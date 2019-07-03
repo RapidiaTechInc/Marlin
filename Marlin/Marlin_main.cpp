@@ -8256,6 +8256,7 @@ inline void gcode_M77() { print_job_timer.stop(); }
  * M104: Set hot end temperature
  */
 inline void gcode_M104() {
+  #if ENABLED(HOTENDS_ENABLED)
   if (get_target_extruder_from_command(104)) return;
   if (DEBUGGING(DRYRUN)) return;
 
@@ -8288,6 +8289,9 @@ inline void gcode_M104() {
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
+  #endif
+  #else // HOTENDS_ENABLED
+    
   #endif
 }
 
@@ -8408,7 +8412,7 @@ inline void gcode_M105() {
 #endif
 
 inline void gcode_M109() {
-
+#if ENABLED(HOTENDS_ENABLED)
   if (get_target_extruder_from_command(109)) return;
   if (DEBUGGING(DRYRUN)) return;
 
@@ -8564,6 +8568,8 @@ inline void gcode_M109() {
   #if DISABLED(BUSY_WHILE_HEATING)
     KEEPALIVE_STATE(IN_HANDLER);
   #endif
+
+  #endif // HOTENDS_ENABLED
 }
 
 #if HAS_HEATED_BED

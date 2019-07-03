@@ -1025,7 +1025,14 @@ void Temperature::updateTemperaturesFromRawValues() {
   #if ENABLED(HEATER_0_USES_MAX6675)
     current_temperature_raw[0] = read_max6675();
   #endif
-  HOTEND_LOOP() current_temperature[e] = Temperature::analog2temp(current_temperature_raw[e], e);
+  HOTEND_LOOP()
+  {
+      #if ENABLED(HOTENDS_ENABLED)
+      Temperature::analog2temp(current_temperature_raw[e], e);
+      #else
+      current_temperature_raw[e] = 210;
+      #endif
+  }
   #if HAS_HEATED_BED
     current_temperature_bed = Temperature::analog2tempBed(current_temperature_bed_raw);
   #endif
