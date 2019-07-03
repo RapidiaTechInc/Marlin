@@ -1,0 +1,1 @@
+time arduino --upload *.ino --port /dev/ttyUSB*
