@@ -149,6 +149,7 @@
 #define MSG_RESEND                          "Resend: "
 #define MSG_UNKNOWN_COMMAND                 "Unknown command: \""
 #define MSG_ACTIVE_EXTRUDER                 "Active Extruder: "
+#define MSG_INVALID_INDEX                   "Invalid Index"
 #define MSG_X_MIN                           "x_min"
 #define MSG_X_MAX                           "x_max"
 #define MSG_X2_MIN                          "x2_min"

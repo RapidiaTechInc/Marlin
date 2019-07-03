@@ -1651,4 +1651,10 @@
 // Enable Marlin dev mode which adds some special commands
 //#define MARLIN_DEV_MODE
 
+#define CONDITIONAL_GCODE
+#if ENABLED(CONDITIONAL_GCODE)
+    // number of timers for conditional gcode (M710)
+    #define M710_TIMER_COUNT 4
+#endif
+
 #endif // CONFIGURATION_ADV_H

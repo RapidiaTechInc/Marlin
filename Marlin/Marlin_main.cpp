@@ -12083,6 +12083,97 @@ inline void gcode_M355() {
 
 #endif // MIXING_EXTRUDER
 
+#if ENABLED(CONDITIONAL_GCODE)
+    unsigned long timers_m710[M710_TIMER_COUNT];
+    uint8_t skipGCode;
+
+    inline void gcode_M710()
+    {
+        uint8_t timerIndex = 0;
+        if (parser.seenval('T'))
+        {
+            timerIndex = parser.value_byte();
+        }
+        
+        if (timerIndex >= M710_TIMER_COUNT)
+        {
+            SERIAL_ECHO_START();
+            SERIAL_ECHOLN(MSG_INVALID_INDEX);
+        }
+        else
+        {
+            timers_m710[timerIndex] = millis();
+            SERIAL_ECHO_START();
+            SERIAL_ECHO("Set timer ");
+            SERIAL_PROTOCOLLN(timerIndex);
+        }
+    }
+
+    inline void gcode_M711()
+    {
+        uint8_t timerIndex = 0;
+        unsigned long comp = 1000;
+        bool above = 0;
+        
+        if (parser.seenval('T'))
+        {
+            timerIndex = parser.value_byte();
+        }
+        
+        if (parser.seenval('A'))
+        {
+            comp = parser.value_ulong();
+            above = true;
+        }
+        if (parser.seenval('B'))
+        {
+            comp = parser.value_ulong();
+            above = false;
+        }
+        
+        // note that even though millis() can overflow, it doesn't matter here.
+        long timerval = static_cast<long>(millis()) - static_cast<long>(timers_m710[timerIndex]);
+        
+        SERIAL_ECHO_START();
+        SERIAL_ECHOPGM("Timer comparison. ");
+        SERIAL_PROTOCOL(timerval);
+        if (above)
+        {
+            SERIAL_ECHOPGM(" >= ");
+        }
+        else
+        {
+            SERIAL_ECHOPGM(" < ");
+        }
+        SERIAL_PROTOCOL(comp);
+        SERIAL_ECHOLNPGM("?");
+        
+        if ((timerval >= comp) != above)
+        {
+            // condition failed; skip the next N lines of gcode.
+            uint8_t lines = 1;
+            if (parser.seenval('L'))
+            {
+                lines = comp = parser.value_byte();
+            }
+            
+            SERIAL_ECHOPGM("No. Skipping ");
+            SERIAL_PROTOCOL(lines);
+            SERIAL_ECHOLNPGM(" lines of gcode.");
+            
+            if (skipGCode < lines)
+            {
+                skipGCode = lines;
+            }
+        }
+        else
+        {
+            SERIAL_ECHOLNPGM("Yes. No GCode will be skipped.");
+        }
+    }
+
+#endif // CONDITIONAL_GCODE
+
 /**
  * M999: Restart after being stopped
  *
@@ -12647,7 +12738,20 @@ void process_parsed_command() {
 
   // Handle a known G, M, or T
   switch (parser.command_letter) {
-    case 'G': switch (parser.codenum) {
+  case 'G':
+    
+    #if ENABLED(CONDITIONAL_GCODE)
+        if (skipGCode > 0) {
+            // skip conditional gcode
+            if (--skipGCode == 0) {
+                SERIAL_ECHO_START();
+                SERIAL_ECHOLN("Conditional block finished. Now receiving GCode.");
+            }
+            break;
+        }
+    #endif // CONDITIONAL_GCODE
+    
+    switch (parser.codenum) {
 
       case 0: case 1: gcode_G0_G1(                                // G0: Fast Move, G1: Linear Move
                         #if IS_SCARA
@@ -13041,6 +13145,17 @@ void process_parsed_command() {
         case 701: gcode_M701(); break;                            // M701: Load Filament
         case 702: gcode_M702(); break;                            // M702: Unload Filament
       #endif
+      
+      #if ENABLED(CONDITIONAL_GCODE)
+      case 710: // M710: set timer
+        gcode_M710();
+        break;
+
+      case 711: // timer-predicate conditional execution
+        gcode_M711();
+        break;
+      #endif
+
 
       #if ENABLED(MAX7219_GCODE)
         case 7219: gcode_M7219(); break;                          // M7219: Set LEDs, columns, and rows
