@@ -50,8 +50,9 @@
 //
 // RAMPS 1.3 / 1.4 - ATmega1280, ATmega2560
 //
-
-#if MB(RAMPS_OLD)
+#if 1
+  #include "pins_bcn3d.h"
+#elif MB(RAMPS_OLD)
   #include "pins_RAMPS_OLD.h"         // ATmega1280, ATmega2560                     env:megaatmega1280 env:megaatmega2560
 #elif MB(RAMPS_13_EFB)
   #include "pins_RAMPS_13.h"          // ATmega1280, ATmega2560                     env:megaatmega1280 env:megaatmega2560
