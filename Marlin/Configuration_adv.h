@@ -342,11 +342,15 @@
  * By default the X2 stepper is assigned to the first unused E plug on the board.
  */
 #define DUAL_X_CARRIAGE
+
+// minimum permitted distance between the two extruders.
+#define RAPIDIA_CARRIAGE_INTERVAL 50
+
 #if ENABLED(DUAL_X_CARRIAGE)
   #define X1_MIN_POS X_MIN_POS  // set minimum to ensure first x-carriage doesn't hit the parked second X-carriage
-  #define X1_MAX_POS X_BED_SIZE // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
-  #define X2_MIN_POS 80     // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
-  #define X2_MAX_POS 353    // set maximum to the distance between toolheads when both heads are homed
+  #define X1_MAX_POS (X_BED_SIZE - RAPIDIA_CARRIAGE_INTERVAL) // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
+  #define X2_MIN_POS (X_MIN_POS + RAPIDIA_CARRIAGE_INTERVAL)     // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
+  #define X2_MAX_POS X_MAX_POS    // set maximum to the distance between toolheads when both heads are homed
   #define X2_HOME_DIR 1     // the second X-carriage always homes to the maximum endstop position
   #define X2_HOME_POS X2_MAX_POS // default home position is the maximum carriage position
       // However: In this mode the HOTEND_OFFSET_X value for the second extruder provides a software

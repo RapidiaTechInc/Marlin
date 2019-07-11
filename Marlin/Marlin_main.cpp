@@ -3252,6 +3252,14 @@ static void homeaxis(const AxisEnum axis) {
     #endif
 
   #endif
+  
+  // move away from endstop
+  if (axis == Z_AXIS)
+  {
+      destination[axis] = 0;
+      prepare_move_to_destination();
+      planner.synchronize();
+  }
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
