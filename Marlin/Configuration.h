@@ -39,8 +39,13 @@
 #define CONFIGURATION_H
 #define CONFIGURATION_H_VERSION 010109
 
-#define EMULATOR
+// target configurations
+//#define EMULATOR
 #define RAPIDIA_PLASTIC
+
+#ifndef RAPIDIA_PLASTIC
+    #define RAPIDIA_METAL
+#endif
 
 //===========================================================================
 //============================= Getting Started =============================
@@ -779,7 +784,7 @@
  *      O-- FRONT --+
  *    (0,0)
  */
-#define X_PROBE_OFFSET_FROM_EXTRUDER 18  // X offset: -left  +right  [of the nozzle]
+#define X_PROBE_OFFSET_FROM_EXTRUDER 20  // X offset: -left  +right  [of the nozzle]
 #define Y_PROBE_OFFSET_FROM_EXTRUDER 24  // Y offset: -front +behind [the nozzle]
 #define Z_PROBE_OFFSET_FROM_EXTRUDER 2   // Z offset: -below +above  [the nozzle]
 
@@ -1136,6 +1141,28 @@
 #define MANUAL_X_HOME_POS X_MIN_POS
 #define MANUAL_Y_HOME_POS Y_MAX_POS
 #define MANUAL_Z_HOME_POS Z_MIN_POS
+
+// perform nozzle tip calibration after homing
+//#define NOZZLETIP_CALIBRATION
+#ifdef NOZZLETIP_CALIBRATION
+
+    #ifdef RAPIDIA_METAL
+        #define NOZZLETIP_LEFT_X 38
+        #define NOZZLETIP_LEFT_Y 278
+        #define NOZZLETIP_RIGHT_X 263
+        #define NOZZLETIP_RIGHT_Y 282
+    #endif
+    
+    #ifdef RAPIDIA_PLASTIC
+        #define NOZZLETIP_LEFT_X -9
+        #define NOZZLETIP_LEFT_Y (Y_BED_SIZE - 60)
+        #define NOZZLETIP_RIGHT_X (X_BED_SIZE + 9)
+        #define NOZZLETIP_RIGHT_Y NOZZLETIP_LEFT_Y
+    #endif
+    
+    // absolute vertical offset between zeroed nozzletip and top of print bed
+    #define NOZZLETIP_ENDSTOP_ABSDISTANCE 13.9
+#endif
 
 // Use "Z Safe Homing" to avoid homing with a Z probe outside the bed area.
 //

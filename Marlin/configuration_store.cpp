@@ -285,6 +285,22 @@ MarlinSettings settings;
 
 uint16_t MarlinSettings::datasize() { return sizeof(SettingsData); }
 
+static uint32_t charv(char a) { return (a > '0') ? (a - '0') : 0; }
+static uint32_t timeval()
+{
+    uint32_t acc;
+    const char* time = __TIME__;
+    for (size_t i = 0; i < strlen(__TIME__); ++i)
+    {
+        if (time[i] != ':')
+        {
+            acc *= 10;
+            acc += charv(time[i]);
+        }
+    }
+    return acc;
+}
+
 /**
  * Post-process after Retrieve or Reset
  */
@@ -430,6 +446,9 @@ void MarlinSettings::postprocess() {
     EEPROM_START();
 
     eeprom_error = false;
+    
+    uint32_t build_date = timeval();
+    EEPROM_WRITE(build_date);
 
     EEPROM_WRITE(ver);     // invalidate data first
     EEPROM_SKIP(working_crc); // Skip the checksum slot
@@ -1008,6 +1027,9 @@ void MarlinSettings::postprocess() {
     uint16_t working_crc = 0;
 
     EEPROM_START();
+    
+    uint32_t stored_build_time;
+    EEPROM_READ_ALWAYS(stored_build_time);
 
     char stored_ver[4];
     EEPROM_READ_ALWAYS(stored_ver);
@@ -1016,6 +1038,17 @@ void MarlinSettings::postprocess() {
     EEPROM_READ_ALWAYS(stored_crc);
 
     // Version has to match or defaults are used
+    #ifdef EEPROM_LOAD_CHECK_BUILD_DATE_MATCH
+    if (stored_build_time != timeval())
+    {
+        #if ENABLED(EEPROM_CHITCHAT)
+          SERIAL_ECHO_START();
+          SERIAL_ECHOLNPGM("EEPROM date mismatch ");
+        #endif
+        eeprom_error = true;
+    }
+    else
+    #endif
     if (strncmp(version, stored_ver, 3) != 0) {
       if (stored_ver[3] != '\0') {
         stored_ver[0] = '?';
@@ -1141,6 +1174,8 @@ void MarlinSettings::postprocess() {
         float zprobe_zoffset;
       #endif
       EEPROM_READ(zprobe_zoffset);
+      SERIAL_ECHOLNPGM("Loading zprobe_""zoffset");
+      SERIAL_ECHO(zprobe_zoffset);
 
       //
       // Planar Bed Leveling matrix
@@ -1642,6 +1677,7 @@ void MarlinSettings::postprocess() {
         }
       #endif
     }
+
 
     #if ENABLED(EEPROM_CHITCHAT) && DISABLED(DISABLE_M503)
       if (!validating) report();
