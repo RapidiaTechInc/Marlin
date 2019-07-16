@@ -1134,7 +1134,7 @@ void MarlinSettings::postprocess() {
       #endif
 
       //
-      // Global Leveling
+      // Global Levelingy
       //
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)

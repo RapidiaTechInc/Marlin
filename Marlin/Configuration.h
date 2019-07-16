@@ -833,7 +833,7 @@
 #define Z_CLEARANCE_DEPLOY_PROBE   10 // Z Clearance for Deploy/Stow
 #define Z_CLEARANCE_BETWEEN_PROBES  Z_PROBE_OFFSET_FROM_EXTRUDER // Z Clearance between probe points
 #define Z_CLEARANCE_MULTI_PROBE     5 // Z Clearance between multiple probes
-//#define Z_AFTER_PROBING           5 // Z position after probing is done
+#define Z_AFTER_PROBING           1 // Z position after probing is done
 
 #define Z_PROBE_LOW_POINT          -2 // Farthest distance below the trigger-point to go before stopping
 
@@ -914,7 +914,8 @@
 #ifdef RAPIDIA_PLASTIC
 #  define X_MIN_POS (-48)
 #  define Y_MIN_POS (-7)
-#  define Z_MIN_POS -2
+   // this number is offset by Z_PROBE_OFFSET_FROM_EXTRUDER
+#  define Z_MIN_POS 0
 #  define X_MAX_POS (X_BED_SIZE + 48)
 #  define Y_MAX_POS Y_BED_SIZE
 #  define Z_MAX_POS 190
@@ -923,7 +924,8 @@
 #ifdef RAPIDIA_METAL
 #  define X_MIN_POS (-45)
 #  define Y_MIN_POS 0
-#  define Z_MIN_POS -33
+   // this number is offset by Z_PROBE_OFFSET_FROM_EXTRUDER
+#  define Z_MIN_POS 0
 #  define X_MAX_POS (X_BED_SIZE + 51)
 #  define Y_MAX_POS Y_BED_SIZE
 #  define Z_MAX_POS 190
@@ -1205,7 +1207,7 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  #define Z_SAFE_HOMING_X_POINT (5)    // X point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_X_POINT (6.5)    // X point for Z homing when homing all axes (G28).
   #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
 #endif
 

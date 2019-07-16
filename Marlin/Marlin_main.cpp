@@ -2156,8 +2156,10 @@ void clean_up_after_endstop_or_probe_move() {
       constexpr float unknown_condition = true;
     #endif
 
+    #if 0
     if (deploy_stow_condition && unknown_condition)
       do_probe_raise(MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_CLEARANCE_DEPLOY_PROBE));
+    #endif
 
     #if ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY)
       #if ENABLED(Z_PROBE_SLED)
@@ -3143,7 +3145,7 @@ static void homeaxis(const AxisEnum axis) {
 
   // When homing Z with probe respect probe clearance
   const float bump = axis_home_dir * (
-    #if HOMING_Z_WITH_PROBE
+    #if HOMING_Z_WITH_PROBE && 0
       (axis == Z_AXIS && (Z_HOME_BUMP_MM)) ? MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
     #endif
     home_bump_mm(axis)
@@ -3253,20 +3255,6 @@ static void homeaxis(const AxisEnum axis) {
     #endif
 
   #endif
-  
-  // move away from endstop
-  if (axis == Z_AXIS)
-  {
-      planner.synchronize();
-      SERIAL_PROTOCOLLNPGM("About to move to position 0...");
-      SERIAL_PROTOCOLLNPGM("Was at ");
-      SERIAL_PROTOCOL(current_position[axis]);
-      SERIAL_PROTOCOLLNPGM(".");
-      destination[axis] = 0;
-      prepare_move_to_destination();
-      planner.synchronize();
-      SERIAL_PROTOCOLLNPGM("Moved.");
-  }
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
@@ -4313,26 +4301,28 @@ inline void gcode_G28(const bool always_home_all) {
 
     #endif
 
-    const float z_homing_height = (
-      #if ENABLED(UNKNOWN_Z_NO_RAISE)
-        !TEST(axis_known_position, Z_AXIS) ? 0 :
-      #endif
-          (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
-    );
+    #ifdef HOMING_RAISE_Z
+        const float z_homing_height = (
+          #if ENABLED(UNKNOWN_Z_NO_RAISE)
+            !TEST(axis_known_position, Z_AXIS) ? 0 :
+          #endif
+              (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
+        );
 
-    if (z_homing_height && (home_all || homeX || homeY)) {
-      // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      destination[Z_AXIS] = z_homing_height;
-      if (destination[Z_AXIS] > current_position[Z_AXIS]) {
+        if (z_homing_height && (home_all || homeX || homeY)) {
+          // Raise Z before homing any other axes and z is not already high enough (never lower z)
+          destination[Z_AXIS] = z_homing_height;
+          if (destination[Z_AXIS] > current_position[Z_AXIS]) {
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING))
-            SERIAL_ECHOLNPAIR("Raise Z (before homing) to ", destination[Z_AXIS]);
-        #endif
+            #if ENABLED(DEBUG_LEVELING_FEATURE)
+              if (DEBUGGING(LEVELING))
+                SERIAL_ECHOLNPAIR("Raise Z (before homing) to ", destination[Z_AXIS]);
+            #endif
 
-        do_blocking_move_to_z(destination[Z_AXIS]);
-      }
-    }
+            do_blocking_move_to_z(destination[Z_AXIS]);
+          }
+        }
+    #endif
 
     #if ENABLED(QUICK_HOME)
 
