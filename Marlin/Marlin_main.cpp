@@ -4403,43 +4403,6 @@ inline void gcode_G28(const bool always_home_all) {
 
   SERIAL_PROTOCOLLNPGM("Finished homing Z.");
 
-  endstops.not_homing();
-
-  #if ENABLED(DELTA) && ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-    // move to a height where we can use the full xy-area
-    do_blocking_move_to_z(delta_clip_start_height);
-  #endif
-
-  #if ENABLED(RESTORE_LEVELING_AFTER_G28)
-    set_bed_leveling_enabled(leveling_was_active);
-  #endif
-
-  clean_up_after_endstop_or_probe_move();
-
-  // Restore the active tool after homing
-  #if HOTENDS > 1 && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
-    #if ENABLED(PARKING_EXTRUDER)
-      #define NO_FETCH false // fetch the previous toolhead
-    #else
-      #define NO_FETCH true
-    #endif
-    tool_change(old_tool_index, 0, NO_FETCH);
-  #endif
-
-  lcd_refresh();
-
-  report_current_position();
-
-  #if ENABLED(NANODLP_Z_SYNC)
-    #if ENABLED(NANODLP_ALL_AXIS)
-      #define _HOME_SYNC true                 // For any axis, output sync text.
-    #else
-      #define _HOME_SYNC (home_all || homeZ)  // Only for Z-axis
-    #endif
-    if (_HOME_SYNC)
-      SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
-  #endif
-  
   #ifdef NOZZLETIP_CALIBRATION
   if (home_all) {
 
@@ -4456,12 +4419,13 @@ inline void gcode_G28(const bool always_home_all) {
           const int Z_lower_position = start_Z - 50; // max distance to descend to find endstop
           const int z_raise = start_Z + 50; // raise height when moving to endstop probe position
           
-          do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], z_raise);
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], z_raise,
+          					  current_position[E_AXIS], 32, active_extruder);
           
           // lower Z (with small Y movement) until limit switch is hit
           current_position[Y_AXIS] += Y_increment;
           planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], Z_lower_position,
-                           current_position[E_AXIS], 8, active_extruder);
+                           current_position[E_AXIS], 4, active_extruder);
           SERIAL_PROTOCOLLNPGM("Start \"move to XY position\"");
           planner.synchronize();
           SERIAL_PROTOCOLLNPGM("Finish \"move to XY position\"");
@@ -4472,8 +4436,8 @@ inline void gcode_G28(const bool always_home_all) {
 
       // set the true Z position of the nozzletip, and adjust left nozzle offset
       {
-          const double z_position = stepper.position(Z_AXIS);
-          zprobe_zoffset = -(z_position + NOZZLETIP_ENDSTOP_ABSDISTANCE);
+          const double z_position = stepper.position(Z_AXIS)/(float)planner.axis_steps_per_mm[Z_AXIS];
+          zprobe_zoffset += z_position + NOZZLETIP_ENDSTOP_ABSDISTANCE;
           (void)settings.save();
           current_position[Z_AXIS] = -NOZZLETIP_ENDSTOP_ABSDISTANCE;
           planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
@@ -4497,7 +4461,7 @@ inline void gcode_G28(const bool always_home_all) {
       SERIAL_PROTOCOLLNPGM("***starting RIGHT nozzletip calibration");
       
       // switch control to right extruder
-      active_extruder = !active_extruder;
+      active_extruder = 1;
 
       // set actual XY position
       {
@@ -4552,6 +4516,43 @@ inline void gcode_G28(const bool always_home_all) {
       active_extruder = !active_extruder;
   }
   #endif //NOZZLETIP_CALIBRATION
+
+  endstops.not_homing();
+
+  #if ENABLED(DELTA) && ENABLED(DELTA_HOME_TO_SAFE_ZONE)
+    // move to a height where we can use the full xy-area
+    do_blocking_move_to_z(delta_clip_start_height);
+  #endif
+
+  #if ENABLED(RESTORE_LEVELING_AFTER_G28)
+    set_bed_leveling_enabled(leveling_was_active);
+  #endif
+
+  clean_up_after_endstop_or_probe_move();
+
+  // Restore the active tool after homing
+  #if HOTENDS > 1 && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
+    #if ENABLED(PARKING_EXTRUDER)
+      #define NO_FETCH false // fetch the previous toolhead
+    #else
+      #define NO_FETCH true
+    #endif
+    tool_change(old_tool_index, 0, NO_FETCH);
+  #endif
+
+  lcd_refresh();
+
+  report_current_position();
+
+  #if ENABLED(NANODLP_Z_SYNC)
+    #if ENABLED(NANODLP_ALL_AXIS)
+      #define _HOME_SYNC true                 // For any axis, output sync text.
+    #else
+      #define _HOME_SYNC (home_all || homeZ)  // Only for Z-axis
+    #endif
+    if (_HOME_SYNC)
+      SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
+  #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) SERIAL_ECHOLNPGM("<<< G28");

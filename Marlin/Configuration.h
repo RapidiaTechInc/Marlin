@@ -794,7 +794,7 @@
 #ifdef RAPIDIA_METAL
 #  define X_PROBE_OFFSET_FROM_EXTRUDER 20  // X offset: -left  +right  [of the nozzle]
 #  define Y_PROBE_OFFSET_FROM_EXTRUDER 74  // Y offset: -front +behind [the nozzle]
-#  define Z_PROBE_OFFSET_FROM_EXTRUDER 33  // Z offset: -below +above  [the nozzle]
+#  define Z_PROBE_OFFSET_FROM_EXTRUDER 35  // Z offset: -below +above  [the nozzle]
 #endif
 
 // Certain types of probes need to stay away from edges
@@ -1174,14 +1174,14 @@
 #define MANUAL_Z_HOME_POS Z_MIN_POS
 
 // perform nozzle tip calibration after homing
-//#define NOZZLETIP_CALIBRATION
+#define NOZZLETIP_CALIBRATION
 #ifdef NOZZLETIP_CALIBRATION
 
     #ifdef RAPIDIA_METAL
-        #define NOZZLETIP_LEFT_X 38
-        #define NOZZLETIP_LEFT_Y 278
+        #define NOZZLETIP_LEFT_X -11
+        #define NOZZLETIP_LEFT_Y 255
         #define NOZZLETIP_RIGHT_X 263
-        #define NOZZLETIP_RIGHT_Y 282
+        #define NOZZLETIP_RIGHT_Y 255
     #endif
     
     #ifdef RAPIDIA_PLASTIC
