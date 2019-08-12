@@ -89,6 +89,7 @@ typedef struct PIDC { float Kp, Ki, Kd, Kc; } PIDC;
  * EEPROM size is known at compile time!
  */
 typedef struct SettingsDataStruct {
+  uint32_t  date;
   char      version[4];                                 // Vnn\0
   uint16_t  crc;                                        // Data Checksum
 
@@ -1037,8 +1038,8 @@ void MarlinSettings::postprocess() {
     uint16_t stored_crc;
     EEPROM_READ_ALWAYS(stored_crc);
 
-    // Version has to match or defaults are used
     #ifdef EEPROM_LOAD_CHECK_BUILD_DATE_MATCH
+    // Version has to match or defaults are used
     if (stored_build_time != timeval())
     {
         #if ENABLED(EEPROM_CHITCHAT)
