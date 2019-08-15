@@ -461,15 +461,20 @@
  *
  * *** IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED! ***
  */
-#define PREVENT_COLD_EXTRUSION
-#define EXTRUDE_MINTEMP 170
+
+#ifdef RAPIDIA_PLASTIC
+  #define PREVENT_COLD_EXTRUSION
+  #define EXTRUDE_MINTEMP 170
+#endif
 
 /**
  * Prevent a single extrusion longer than EXTRUDE_MAXLENGTH.
  * Note: For Bowden Extruders make this large enough to allow load/unload.
  */
-#define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 200
+#ifdef RAPIDIA_PLASTIC 
+  #define PREVENT_LENGTHY_EXTRUDE
+  #define EXTRUDE_MAXLENGTH 200
+#endif
 
 //===========================================================================
 //======================== Thermal Runaway Protection =======================
@@ -792,8 +797,8 @@
 #endif
 
 #ifdef RAPIDIA_METAL
-#  define X_PROBE_OFFSET_FROM_EXTRUDER 20  // X offset: -left  +right  [of the nozzle]
-#  define Y_PROBE_OFFSET_FROM_EXTRUDER 74  // Y offset: -front +behind [the nozzle]
+#  define X_PROBE_OFFSET_FROM_EXTRUDER 30  // X offset: -left  +right  [of the nozzle]
+#  define Y_PROBE_OFFSET_FROM_EXTRUDER 64  // Y offset: -front +behind [the nozzle]
 #  define Z_PROBE_OFFSET_FROM_EXTRUDER 35  // Z offset: -below +above  [the nozzle]
 #endif
 
@@ -838,8 +843,8 @@
 #define Z_PROBE_LOW_POINT          -2 // Farthest distance below the trigger-point to go before stopping
 
 // For M851 give a range for adjusting the Z probe offset
-#define Z_PROBE_OFFSET_RANGE_MIN -20
-#define Z_PROBE_OFFSET_RANGE_MAX 20
+#define Z_PROBE_OFFSET_RANGE_MIN 22
+#define Z_PROBE_OFFSET_RANGE_MAX 35
 
 // Enable the M48 repeatability test to test probe accuracy
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
@@ -907,7 +912,7 @@
 #define X_BED_SIZE 212
 
 // The bed size is larger than this, but the extruder cannot go all the way to the back.
-#define Y_BED_SIZE 260
+#define Y_BED_SIZE 265
 #endif
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
@@ -1014,9 +1019,9 @@
  *   leveling in steps so you can manually adjust the Z height at each grid-point.
  *   With an LCD controller the process is guided step-by-step.
  */
-#define AUTO_BED_LEVELING_3POINT
+//#define AUTO_BED_LEVELING_3POINT
 // #define AUTO_BED_LEVELING_LINEAR
-// #define AUTO_BED_LEVELING_BILINEAR
+ #define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
 //#define MESH_BED_LEVELING
 
@@ -1128,12 +1133,12 @@
  * Override if the automatically selected points are inadequate.
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
-  #define PROBE_PT_1_X 5
+  #define PROBE_PT_1_X 0
   #define PROBE_PT_1_Y 280
-  #define PROBE_PT_2_X 5  
-  #define PROBE_PT_2_Y 60
+  #define PROBE_PT_2_X 0  
+  #define PROBE_PT_2_Y 50
   #define PROBE_PT_3_X 200
-  #define PROBE_PT_3_Y 60
+  #define PROBE_PT_3_Y 50
 #endif
 
 /**
@@ -1174,7 +1179,7 @@
 #define MANUAL_Z_HOME_POS Z_MIN_POS
 
 // perform nozzle tip calibration after homing
-#define NOZZLETIP_CALIBRATION
+//#define NOZZLETIP_CALIBRATION
 #ifdef NOZZLETIP_CALIBRATION
 
     #ifdef RAPIDIA_METAL
@@ -1207,7 +1212,7 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  #define Z_SAFE_HOMING_X_POINT (6.5)    // X point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_X_POINT (17)    // X point for Z homing when homing all axes (G28).
   #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
 #endif
 

@@ -89,6 +89,7 @@ typedef struct PIDC { float Kp, Ki, Kd, Kc; } PIDC;
  * EEPROM size is known at compile time!
  */
 typedef struct SettingsDataStruct {
+  uint32_t  date;
   char      version[4];                                 // Vnn\0
   uint16_t  crc;                                        // Data Checksum
 
