@@ -794,7 +794,7 @@
 #ifdef RAPIDIA_METAL
 #  define X_PROBE_OFFSET_FROM_EXTRUDER 20  // X offset: -left  +right  [of the nozzle]
 #  define Y_PROBE_OFFSET_FROM_EXTRUDER 74  // Y offset: -front +behind [the nozzle]
-#  define Z_PROBE_OFFSET_FROM_EXTRUDER 33  // Z offset: -below +above  [the nozzle]
+#  define Z_PROBE_OFFSET_FROM_EXTRUDER 35  // Z offset: -below +above  [the nozzle]
 #endif
 
 // Certain types of probes need to stay away from edges
@@ -923,7 +923,7 @@
 
 #ifdef RAPIDIA_METAL
 #  define X_MIN_POS (-45)
-#  define Y_MIN_POS 0
+#  define Y_MIN_POS -18
    // this number is offset by Z_PROBE_OFFSET_FROM_EXTRUDER
 #  define Z_MIN_POS 0
 #  define X_MAX_POS (X_BED_SIZE + 51)
@@ -1014,9 +1014,9 @@
  *   leveling in steps so you can manually adjust the Z height at each grid-point.
  *   With an LCD controller the process is guided step-by-step.
  */
-//#define AUTO_BED_LEVELING_3POINT
-//#define AUTO_BED_LEVELING_LINEAR
-#define AUTO_BED_LEVELING_BILINEAR
+#define AUTO_BED_LEVELING_3POINT
+// #define AUTO_BED_LEVELING_LINEAR
+// #define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
 //#define MESH_BED_LEVELING
 
@@ -1128,12 +1128,12 @@
  * Override if the automatically selected points are inadequate.
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
-  //#define PROBE_PT_1_X 15
-  //#define PROBE_PT_1_Y 180
-  //#define PROBE_PT_2_X 15
-  //#define PROBE_PT_2_Y 20
-  //#define PROBE_PT_3_X 170
-  //#define PROBE_PT_3_Y 20
+  #define PROBE_PT_1_X 5
+  #define PROBE_PT_1_Y 280
+  #define PROBE_PT_2_X 5  
+  #define PROBE_PT_2_Y 60
+  #define PROBE_PT_3_X 200
+  #define PROBE_PT_3_Y 60
 #endif
 
 /**
@@ -1174,14 +1174,14 @@
 #define MANUAL_Z_HOME_POS Z_MIN_POS
 
 // perform nozzle tip calibration after homing
-//#define NOZZLETIP_CALIBRATION
+#define NOZZLETIP_CALIBRATION
 #ifdef NOZZLETIP_CALIBRATION
 
     #ifdef RAPIDIA_METAL
-        #define NOZZLETIP_LEFT_X 38
-        #define NOZZLETIP_LEFT_Y 278
+        #define NOZZLETIP_LEFT_X -11
+        #define NOZZLETIP_LEFT_Y 255
         #define NOZZLETIP_RIGHT_X 263
-        #define NOZZLETIP_RIGHT_Y 282
+        #define NOZZLETIP_RIGHT_Y 255
     #endif
     
     #ifdef RAPIDIA_PLASTIC
@@ -1192,7 +1192,7 @@
     #endif
     
     // absolute vertical offset between zeroed nozzletip and top of print bed
-    #define NOZZLETIP_ENDSTOP_ABSDISTANCE 13.9
+    #define NOZZLETIP_ENDSTOP_ABSDISTANCE 14.73
 #endif
 
 // Use "Z Safe Homing" to avoid homing with a Z probe outside the bed area.
