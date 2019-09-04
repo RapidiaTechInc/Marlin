@@ -91,6 +91,7 @@ typedef struct PIDC { float Kp, Ki, Kd, Kc; } PIDC;
 typedef struct SettingsDataStruct {
   char      version[4];                                 // Vnn\0
   uint16_t  crc;                                        // Data Checksum
+  uint32_t  date;
 
   //
   // DISTINCT_E_FACTORS
@@ -446,12 +447,12 @@ void MarlinSettings::postprocess() {
     EEPROM_START();
 
     eeprom_error = false;
-    
-    uint32_t build_date = timeval();
-    EEPROM_WRITE(build_date);
 
     EEPROM_WRITE(ver);     // invalidate data first
     EEPROM_SKIP(working_crc); // Skip the checksum slot
+
+    uint32_t build_date = timeval();
+    EEPROM_WRITE(build_date);
 
     working_crc = 0; // clear before first "real data"
 
@@ -997,6 +998,7 @@ void MarlinSettings::postprocess() {
 
       EEPROM_WRITE(version);
       EEPROM_WRITE(final_crc);
+      EEPROM_WRITE(build_date);
 
       // Report storage size
       #if ENABLED(EEPROM_CHITCHAT)
@@ -1027,9 +1029,6 @@ void MarlinSettings::postprocess() {
     uint16_t working_crc = 0;
 
     EEPROM_START();
-    
-    uint32_t stored_build_time;
-    EEPROM_READ_ALWAYS(stored_build_time);
 
     char stored_ver[4];
     EEPROM_READ_ALWAYS(stored_ver);
@@ -1037,8 +1036,11 @@ void MarlinSettings::postprocess() {
     uint16_t stored_crc;
     EEPROM_READ_ALWAYS(stored_crc);
 
-    // Version has to match or defaults are used
+    uint32_t stored_build_time;
+    EEPROM_READ_ALWAYS(stored_build_time);
+
     #ifdef EEPROM_LOAD_CHECK_BUILD_DATE_MATCH
+    // Version has to match or defaults are used
     if (stored_build_time != timeval())
     {
         #if ENABLED(EEPROM_CHITCHAT)
