@@ -41,7 +41,7 @@
 
 // target configurations
 //#define EMULATOR
-#define RAPIDIA_PLASTIC
+// #define RAPIDIA_PLASTIC
 
 #ifndef RAPIDIA_PLASTIC
     #define RAPIDIA_METAL
