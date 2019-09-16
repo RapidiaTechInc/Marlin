@@ -1184,7 +1184,7 @@
 #define MANUAL_Z_HOME_POS Z_MIN_POS
 
 // perform nozzle tip calibration after homing
-//#define NOZZLETIP_CALIBRATION
+#define NOZZLETIP_CALIBRATION
 #ifdef NOZZLETIP_CALIBRATION
 
     #ifdef RAPIDIA_METAL
