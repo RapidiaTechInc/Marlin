@@ -41,7 +41,7 @@
 
 // target configurations
 //#define EMULATOR
-//#define RAPIDIA_PLASTIC
+#define RAPIDIA_PLASTIC
 
 #ifndef RAPIDIA_PLASTIC
     #define RAPIDIA_METAL
@@ -808,7 +808,7 @@
 #define MIN_PROBE_EDGE X_MIN_POS
 
 // X and Y axis travel speed (mm/m) between probes
-#define XY_PROBE_SPEED 8000
+#define XY_PROBE_SPEED 4800
 
 // Feedrate (mm/m) for the first approach when double-probing (MULTIPLE_PROBING == 2)
 #define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
@@ -1018,12 +1018,17 @@
  *   For machines without a probe, Mesh Bed Leveling provides a method to perform
  *   leveling in steps so you can manually adjust the Z height at each grid-point.
  *   With an LCD controller the process is guided step-by-step.
+ *  
+ * - RAPIDIA_BED_LEVELING
+ *   Probe 3 points on the plane and out put screw adjustment reading
  */
-//#define AUTO_BED_LEVELING_3POINT
+#define RAPIDIA_LEVELING_3POINT
+#define AUTO_BED_LEVELING_3POINT
 // #define AUTO_BED_LEVELING_LINEAR
- #define AUTO_BED_LEVELING_BILINEAR
+//  #define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
 //#define MESH_BED_LEVELING
+// #define RAPIDIA_BED_LEVELING
 
 /**
  * Normally G28 leaves leveling disabled on completion. Enable
@@ -1133,9 +1138,9 @@
  * Override if the automatically selected points are inadequate.
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
-  #define PROBE_PT_1_X 0
+  #define PROBE_PT_1_X 40
   #define PROBE_PT_1_Y 280
-  #define PROBE_PT_2_X 0  
+  #define PROBE_PT_2_X 40 
   #define PROBE_PT_2_Y 50
   #define PROBE_PT_3_X 200
   #define PROBE_PT_3_Y 50
