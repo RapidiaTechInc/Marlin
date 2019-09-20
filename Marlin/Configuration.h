@@ -843,7 +843,7 @@
 #define Z_PROBE_LOW_POINT          -2 // Farthest distance below the trigger-point to go before stopping
 
 // For M851 give a range for adjusting the Z probe offset
-#define Z_PROBE_OFFSET_RANGE_MIN 22
+#define Z_PROBE_OFFSET_RANGE_MIN 0
 #define Z_PROBE_OFFSET_RANGE_MAX 35
 
 // Enable the M48 repeatability test to test probe accuracy
@@ -1139,7 +1139,7 @@
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
   #define PROBE_PT_1_X 40
-  #define PROBE_PT_1_Y 280
+  #define PROBE_PT_1_Y 260
   #define PROBE_PT_2_X 40 
   #define PROBE_PT_2_Y 50
   #define PROBE_PT_3_X 200
@@ -1184,7 +1184,7 @@
 #define MANUAL_Z_HOME_POS Z_MIN_POS
 
 // perform nozzle tip calibration after homing
-#define NOZZLETIP_CALIBRATION
+// #define NOZZLETIP_CALIBRATION
 #ifdef NOZZLETIP_CALIBRATION
 
     #ifdef RAPIDIA_METAL
@@ -1222,7 +1222,7 @@
 #endif
 
 // Homing speeds (mm/m)
-#define HOMING_FEEDRATE_XY (100*60)
+#define HOMING_FEEDRATE_XY (50*60)
 #define HOMING_FEEDRATE_Z  (4*60)
 
 // @section calibrate
