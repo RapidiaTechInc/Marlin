@@ -102,10 +102,9 @@
 #define HEATER_2_PIN       -1
 #define HEATER_BED_PIN     46
 
-#ifndef FAN_PIN
-  #define FAN_PIN           6
-#endif
-#define FAN1_PIN            7
+//Layer Fans
+#define FAN_PIN      45
+#define FAN2_PIN    6
 
 //
 // Misc. Functions
