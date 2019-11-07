@@ -1779,8 +1779,8 @@ void setup_for_endstop_or_probe_move() {
   #endif
   saved_feedrate_mm_s = feedrate_mm_s;
   saved_feedrate_percentage = feedrate_percentage;
-  SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
-  SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
+  // SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
+  // SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
   
   feedrate_percentage = 100;
 }
