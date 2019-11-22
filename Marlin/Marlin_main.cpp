@@ -5492,15 +5492,18 @@ void home_all_axes() { gcode_G28(true); }
 
     // calculate screw adjustments to level bed
     #if ENABLED(AUTO_BED_LEVELING_3POINT)
+    //#if ENABLED(MESH_BED_LEVELING)
     {
 	    #ifdef RAPIDIA_METAL
 	    {
 		    // bed levelling without plane normals
 		    // calculate the bed slope along bed X and Y axes (averaged over both measurments)
 		    // (+)X angle is when front is lower than rear of bed
-		    float X_slope_angle, Y_slope_angle;
-		    Y_slope_angle = atan((points[0].z - points[1].z)/(points[0].y - points[1].y));
-		    X_slope_angle = atan((points[1].z - points[2].z)/(points[2].x - points[1].x));
+		    float z_back_average = (points[0].z + points[1].z)/2;
+        
+        float X_slope_angle, Y_slope_angle;
+		    Y_slope_angle = atan((z_back_average - points[2].z)/(points[0].y - points[2].y));
+		    X_slope_angle = atan((points[0].z - points[1].z)/(points[1].x - points[0].x));
 
 		    SERIAL_PROTOCOLLN("*** bed angles (deg):");
 		    SERIAL_PROTOCOLLN(Y_slope_angle*180.0/M_PI);
@@ -5556,6 +5559,7 @@ void home_all_axes() { gcode_G28(true); }
     #ifndef RAPIDIA_LEVELING_3POINT
       if (!isnan(measured_z)) {
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        float z = z_values[0][0];
 
           if (!dryrun) extrapolate_unprobed_bed_level();
           print_bilinear_leveling_grid();
@@ -5722,7 +5726,7 @@ void home_all_axes() { gcode_G28(true); }
           }
 
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
+          
           if (!dryrun) {
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (DEBUGGING(LEVELING)) SERIAL_ECHOLNPAIR("G29 uncorrected Z:", current_position[Z_AXIS]);

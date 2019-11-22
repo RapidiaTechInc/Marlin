@@ -1027,8 +1027,8 @@
 // #define AUTO_BED_LEVELING_LINEAR
 //  #define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
-//#define MESH_BED_LEVELING
-// #define RAPIDIA_BED_LEVELING
+//define MESH_BED_LEVELING
+//#define RAPIDIA_BED_LEVELING
 
 /**
  * Normally G28 leaves leveling disabled on completion. Enable
@@ -1139,11 +1139,11 @@
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
   #define PROBE_PT_1_X 30
-  #define PROBE_PT_1_Y 240
-  #define PROBE_PT_2_X 30 
-  #define PROBE_PT_2_Y 60
-  #define PROBE_PT_3_X 170
-  #define PROBE_PT_3_Y 60
+  #define PROBE_PT_1_Y 260
+  #define PROBE_PT_2_X 180 
+  #define PROBE_PT_2_Y 260
+  #define PROBE_PT_3_X 105
+  #define PROBE_PT_3_Y 50
 #endif
 
 /**
