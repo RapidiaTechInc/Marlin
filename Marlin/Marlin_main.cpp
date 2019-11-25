@@ -15371,7 +15371,7 @@ void setup() {
   #endif
 
   MYSERIAL0.begin(BAUDRATE);
-  SERIAL_PROTOCOLLNPGM("start");
+  SERIAL_PROTOCOLLNPGM("start Rapidia");
   SERIAL_ECHO_START();
 
   // Prepare communication for TMC drivers
