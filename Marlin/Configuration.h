@@ -1022,7 +1022,7 @@
  * - RAPIDIA_BED_LEVELING
  *   Probe 3 points on the plane and out put screw adjustment reading
  */
-#define RAPIDIA_LEVELING_3POINT
+//#define RAPIDIA_LEVELING_3POINT
 #define AUTO_BED_LEVELING_3POINT
 // #define AUTO_BED_LEVELING_LINEAR
 //  #define AUTO_BED_LEVELING_BILINEAR
@@ -1217,8 +1217,8 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  #define Z_SAFE_HOMING_X_POINT (17)    // X point for Z homing when homing all axes (G28).
-  #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2 )    // X point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2 )    // Y point for Z homing when homing all axes (G28).
 #endif
 
 // Homing speeds (mm/m)
