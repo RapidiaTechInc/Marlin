@@ -671,7 +671,7 @@
  *
  * See https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
  */
-//#define S_CURVE_ACCELERATION
+#define S_CURVE_ACCELERATION
 
 //===========================================================================
 //============================= Z Probe Options =============================
@@ -836,7 +836,7 @@
  *     But: `M851 Z+1` with a CLEARANCE of 2  =>  2mm from bed to nozzle.
  */
 #define Z_CLEARANCE_DEPLOY_PROBE   10 // Z Clearance for Deploy/Stow
-#define Z_CLEARANCE_BETWEEN_PROBES  Z_PROBE_OFFSET_FROM_EXTRUDER // Z Clearance between probe points
+#define Z_CLEARANCE_BETWEEN_PROBES  10//Z_PROBE_OFFSET_FROM_EXTRUDER // Z Clearance between probe points
 #define Z_CLEARANCE_MULTI_PROBE     5 // Z Clearance between multiple probes
 #define Z_AFTER_PROBING           1 // Z position after probing is done
 
@@ -1022,13 +1022,13 @@
  * - RAPIDIA_BED_LEVELING
  *   Probe 3 points on the plane and out put screw adjustment reading
  */
-#define RAPIDIA_LEVELING_3POINT
+//#define RAPIDIA_LEVELING_3POINT
 #define AUTO_BED_LEVELING_3POINT
 // #define AUTO_BED_LEVELING_LINEAR
 //  #define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
-//#define MESH_BED_LEVELING
-// #define RAPIDIA_BED_LEVELING
+//define MESH_BED_LEVELING
+//#define RAPIDIA_BED_LEVELING
 
 /**
  * Normally G28 leaves leveling disabled on completion. Enable
@@ -1138,11 +1138,11 @@
  * Override if the automatically selected points are inadequate.
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
-  #define PROBE_PT_1_X 40
+  #define PROBE_PT_1_X 30
   #define PROBE_PT_1_Y 260
-  #define PROBE_PT_2_X 40 
-  #define PROBE_PT_2_Y 50
-  #define PROBE_PT_3_X 200
+  #define PROBE_PT_2_X 180 
+  #define PROBE_PT_2_Y 260
+  #define PROBE_PT_3_X 105
   #define PROBE_PT_3_Y 50
 #endif
 
@@ -1217,8 +1217,8 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  #define Z_SAFE_HOMING_X_POINT (17)    // X point for Z homing when homing all axes (G28).
-  #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2 )    // X point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2 )    // Y point for Z homing when homing all axes (G28).
 #endif
 
 // Homing speeds (mm/m)

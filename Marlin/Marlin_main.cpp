@@ -1779,8 +1779,8 @@ void setup_for_endstop_or_probe_move() {
   #endif
   saved_feedrate_mm_s = feedrate_mm_s;
   saved_feedrate_percentage = feedrate_percentage;
-  SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
-  SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
+  // SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
+  // SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
   
   feedrate_percentage = 100;
 }
@@ -2454,7 +2454,7 @@ void clean_up_after_endstop_or_probe_move() {
 
     const float old_feedrate_mm_s = feedrate_mm_s;
     feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
-    SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+    // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
     // Move the probe to the starting XYZ
     do_blocking_move_to(nx, ny, nz);
 
@@ -2480,7 +2480,7 @@ void clean_up_after_endstop_or_probe_move() {
     }
 
     feedrate_mm_s = old_feedrate_mm_s;
-    SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+    // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
     if (isnan(measured_z)) {
       LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
       SERIAL_ERROR_START();
@@ -3358,7 +3358,7 @@ void gcode_get_destination() {
 
   if (parser.linearval('F') > 0)
     feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
-    SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+    // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
   #if ENABLED(PRINTCOUNTER)
     if (!DEBUGGING(DRYRUN))
       print_job_timer.incFilamentUsed(destination[E_CART] - current_position[E_CART]);
@@ -4071,7 +4071,7 @@ inline void gcode_G4() {
     // Move all carriages together linearly until an endstop is hit.
     current_position[X_AXIS] = current_position[Y_AXIS] = current_position[Z_AXIS] = (delta_height + 10);
     feedrate_mm_s = homing_feedrate(X_AXIS);
-    SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+    // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
     buffer_line_to_current_position();
     planner.synchronize();
 
@@ -5492,15 +5492,18 @@ void home_all_axes() { gcode_G28(true); }
 
     // calculate screw adjustments to level bed
     #if ENABLED(AUTO_BED_LEVELING_3POINT)
+    //#if ENABLED(MESH_BED_LEVELING)
     {
 	    #ifdef RAPIDIA_METAL
 	    {
 		    // bed levelling without plane normals
 		    // calculate the bed slope along bed X and Y axes (averaged over both measurments)
 		    // (+)X angle is when front is lower than rear of bed
-		    float X_slope_angle, Y_slope_angle;
-		    Y_slope_angle = atan((points[0].z - points[1].z)/(points[0].y - points[1].y));
-		    X_slope_angle = atan((points[1].z - points[2].z)/(points[2].x - points[1].x));
+		    float z_back_average = (points[0].z + points[1].z)/2;
+        
+        float X_slope_angle, Y_slope_angle;
+		    Y_slope_angle = atan((z_back_average - points[2].z)/(points[0].y - points[2].y));
+		    X_slope_angle = atan((points[0].z - points[1].z)/(points[1].x - points[0].x));
 
 		    SERIAL_PROTOCOLLN("*** bed angles (deg):");
 		    SERIAL_PROTOCOLLN(Y_slope_angle*180.0/M_PI);
@@ -5556,6 +5559,7 @@ void home_all_axes() { gcode_G28(true); }
     #ifndef RAPIDIA_LEVELING_3POINT
       if (!isnan(measured_z)) {
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        float z = z_values[0][0];
 
           if (!dryrun) extrapolate_unprobed_bed_level();
           print_bilinear_leveling_grid();
@@ -5722,7 +5726,7 @@ void home_all_axes() { gcode_G28(true); }
           }
 
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
+          
           if (!dryrun) {
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (DEBUGGING(LEVELING)) SERIAL_ECHOLNPAIR("G29 uncorrected Z:", current_position[Z_AXIS]);
@@ -6559,7 +6563,7 @@ void home_all_axes() { gcode_G28(true); }
         prepare_move_to_destination();
 
         feedrate_mm_s /= 4;
-        SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+        // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
 
         // Bump the target more slowly
         LOOP_XYZ(i) destination[i] -= retract_mm[i] * 2;
@@ -6598,7 +6602,7 @@ void home_all_axes() { gcode_G28(true); }
       if (ABS(destination[i] - current_position[i]) >= G38_MINIMUM_MOVE) {
         if (!parser.seenval('F')) {
           feedrate_mm_s = homing_feedrate((AxisEnum)i);
-          SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+          // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
         }
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {
@@ -6646,7 +6650,7 @@ void home_all_axes() { gcode_G28(true); }
       if (fval > 0.0) 
       {
         feedrate_mm_s = MMM_TO_MMS(fval);
-        SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+        // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
       }
       // SCARA kinematic has "safe" XY raw moves
       #if IS_SCARA
@@ -12736,7 +12740,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : feedrate_mm_s;
 
       feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
-      SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+      // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
 
       if (tmp_extruder != active_extruder) {
         if (!no_move && axis_unhomed_error()) {
@@ -12845,7 +12849,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #endif
 
       feedrate_mm_s = old_feedrate_mm_s;
-      SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
+      // SERIAL_PROTOCOLLNPAIR("SETTING FEEDRATE: ",feedrate_mm_s);
       #if HAS_SOFTWARE_ENDSTOPS && ENABLED(DUAL_X_CARRIAGE)
         update_software_endstops(X_AXIS);
       #endif
@@ -15367,7 +15371,7 @@ void setup() {
   #endif
 
   MYSERIAL0.begin(BAUDRATE);
-  SERIAL_PROTOCOLLNPGM("start");
+  SERIAL_PROTOCOLLNPGM("start Rapidia");
   SERIAL_ECHO_START();
 
   // Prepare communication for TMC drivers
