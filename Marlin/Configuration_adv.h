@@ -344,7 +344,7 @@
 #define DUAL_X_CARRIAGE
 
 // minimum permitted distance between the two extruders.
-#define RAPIDIA_CARRIAGE_INTERVAL 50
+#define RAPIDIA_CARRIAGE_INTERVAL 70
 
 #if ENABLED(DUAL_X_CARRIAGE)
   #define X1_MIN_POS X_MIN_POS  // set minimum to ensure first x-carriage doesn't hit the parked second X-carriage
