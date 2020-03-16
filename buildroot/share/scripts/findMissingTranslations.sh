@@ -9,7 +9,9 @@
 # If no language codes are specified then all languages will be checked
 #
 
-[ -d "Marlin" ] && cd "Marlin"
+LANGHOME="Marlin/src/lcd/language"
+
+[ -d $LANGHOME ] && cd $LANGHOME
 
 FILES=$(ls language_*.h | grep -v -E "(_en|_test)\.h" | sed -E 's/language_([^\.]+)\.h/\1/')
 declare -A STRING_MAP
@@ -27,8 +29,8 @@ fi
 
 echo -n "Building list of missing strings..."
 
-for i in $(awk '/#ifndef/{print $2}' language_en.h); do
-  [[ $i == "LANGUAGE_EN_H" || $i == "CHARSIZE" ]] && continue
+for i in $(awk '/Language_Str/{print $3}' language_en.h); do
+  [[ $i == "MSG_CUBED" ]] && continue
   LANG_LIST=""
   for j in $TEST_LANGS; do
     [[ $(grep -c " ${i} " language_${j}.h) -eq 0 ]] && LANG_LIST="$LANG_LIST $j"
