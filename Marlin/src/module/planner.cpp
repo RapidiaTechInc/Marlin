@@ -1741,7 +1741,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
 
   #if EITHER(PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE)
     if (de) {
-      #if ENABLED(PREVENT_COLD_EXTRUSION)
+      #if ENABLED(PREVENT_COLD_EXTRUSION)  && ENABLED(HOTENDS_ENABLED)
         if (thermalManager.tooColdToExtrude(extruder)) {
           position.e = target.e; // Behave as if the move really took place, but ignore E part
           #if HAS_POSITION_FLOAT

@@ -139,6 +139,7 @@
 #define STR_RESEND                          "Resend: "
 #define STR_UNKNOWN_COMMAND                 "Unknown command: \""
 #define STR_ACTIVE_EXTRUDER                 "Active Extruder: "
+#define MSG_INVALID_INDEX                   "Invalid Index"
 #define STR_X_MIN                           "x_min"
 #define STR_X_MAX                           "x_max"
 #define STR_X2_MIN                          "x2_min"

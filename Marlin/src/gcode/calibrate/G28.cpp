@@ -324,19 +324,21 @@ void GcodeSuite::G28() {
 
     #endif
 
-    const float z_homing_height =
-      (DISABLED(UNKNOWN_Z_NO_RAISE) || TEST(axis_known_position, Z_AXIS))
-        ? (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
-        : 0;
+    #ifdef HOMING_RAISE_Z
+      const float z_homing_height =
+        (DISABLED(UNKNOWN_Z_NO_RAISE) || TEST(axis_known_position, Z_AXIS))
+          ? (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
+          : 0;
 
-    if (z_homing_height && (doX || doY)) {
-      // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      destination.z = z_homing_height + (TEST(axis_known_position, Z_AXIS) ? 0.0f : current_position.z);
-      if (destination.z > current_position.z) {
-        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("Raise Z (before homing) to ", destination.z);
-        do_blocking_move_to_z(destination.z);
+      if (z_homing_height && (doX || doY)) {
+        // Raise Z before homing any other axes and z is not already high enough (never lower z)
+        destination.z = z_homing_height + (TEST(axis_known_position, Z_AXIS) ? 0.0f : current_position.z);
+        if (destination.z > current_position.z) {
+          if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("Raise Z (before homing) to ", destination.z);
+          do_blocking_move_to_z(destination.z);
+        }
       }
-    }
+    #endif
 
     #if ENABLED(QUICK_HOME)
 
@@ -418,6 +420,123 @@ void GcodeSuite::G28() {
     sync_plan_position();
 
   #endif // !DELTA (G28)
+  
+  SERIAL_PROTOCOLLNPGM("Finished homing Z.");
+
+  #ifdef NOZZLETIP_CALIBRATION
+  if (home_all) {
+
+      /*** calibrate LEFT nozzletip ***/
+      SERIAL_PROTOCOLLNPGM("***starting LEFT nozzletip calibration");
+      
+      const double Y_increment = 1; // Y delta during probe to force endstop trigger
+      
+      // move to XY position
+      {
+          current_position[X_AXIS] = NOZZLETIP_LEFT_X;
+          current_position[Y_AXIS] = NOZZLETIP_LEFT_Y;
+          const double start_Z = current_position[Z_AXIS];
+          const int Z_lower_position = start_Z - 50; // max distance to descend to find endstop
+          const int z_raise = start_Z + 50; // raise height when moving to endstop probe position
+          
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], z_raise,
+                                                  current_position[E_AXIS], 32, active_extruder);
+          
+          // lower Z (with small Y movement) until limit switch is hit
+          current_position[Y_AXIS] += Y_increment;
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], Z_lower_position,
+                           current_position[E_AXIS], 4, active_extruder);
+          SERIAL_PROTOCOLLNPGM("Start \"move to XY position\"");
+          planner.synchronize();
+          SERIAL_PROTOCOLLNPGM("Finish \"move to XY position\"");
+      }
+
+      // for now skip the double tap - add in later
+      // TODO ^
+
+      // set the true Z position of the nozzletip, and adjust left nozzle offset
+      {
+          const double z_position = stepper.position(Z_AXIS)/(float)planner.axis_steps_per_mm[Z_AXIS];
+          zprobe_zoffset += z_position + NOZZLETIP_ENDSTOP_ABSDISTANCE;
+          (void)settings.save();
+          current_position[Z_AXIS] = -NOZZLETIP_ENDSTOP_ABSDISTANCE;
+          planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+                            current_position[E_AXIS]);
+          SERIAL_PROTOCOLLNPGM("Start \"set the true Z position...\"");
+          planner.synchronize();
+          SERIAL_PROTOCOLLNPGM("Finish \"set the true Z position...\"");
+      }
+      
+      // raise Z position to zero
+      {
+          current_position[X_AXIS] -= 10;
+          current_position[Y_AXIS] -= Y_increment;
+          current_position[Z_AXIS] = 0;
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+                           current_position[E_AXIS], 8, active_extruder);
+          planner.synchronize();
+      }
+      
+  //     /*** calibrate RIGHT nozzletip ***/
+  //     SERIAL_PROTOCOLLNPGM("***starting RIGHT nozzletip calibration");
+      
+  //     // switch control to right extruder
+  //     active_extruder = 1;
+
+  //     // set actual XY position
+    //     {
+    //         current_position[X_AXIS] = X2_HOME_POS;
+    //         current_position[Z_AXIS] = 0;
+    //         planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+    //                           current_position[E_AXIS]);
+    //         planner.synchronize();
+    //     }
+
+    //     // move to XY position
+    //     {
+    //         current_position[X_AXIS] = NOZZLETIP_RIGHT_X;
+    //         current_position[Y_AXIS] = NOZZLETIP_RIGHT_Y;
+    //         do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
+    //     }
+        
+    //     // lower Z (with small Y movement) until limit switch is hit
+    //     {
+    //         const int Z_lower_position = -100;
+    //         current_position[Y_AXIS] += Y_increment;
+    //         planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], Z_lower_position,
+    //                          current_position[E_AXIS], 8, active_extruder);
+    //         planner.synchronize();
+    //     }
+
+    //     // for now skip the double tap - add in later
+    //     // TODO ^
+
+    //     // set the true Z position of the nozzletip, and adjust right nozzle offset
+    //     // note: right offset is with respect to left nozzle tip (if they are the same heigh, offset is zero)
+    //     {
+    //         const double z_position = stepper.position(Z_AXIS);
+    //         hotend_offset[Z_AXIS][1] = z_position + NOZZLETIP_ENDSTOP_ABSDISTANCE;
+    //         (void)settings.save();
+    //         current_position[Z_AXIS] = -NOZZLETIP_ENDSTOP_ABSDISTANCE;
+    //         planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+    //                           current_position[E_AXIS]);
+    //         planner.synchronize();
+    //     }
+        
+    //     // raise Z position to zero
+    //     {
+    //         current_position[Y_AXIS] -= Y_increment;
+    //         current_position[Z_AXIS] = 0;
+    //         planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+    //                          current_position[E_AXIS], 8, active_extruder);
+    //         planner.synchronize(); 
+    //     }
+
+    //     // return control to left extruder
+    //     active_extruder = !active_extruder;
+    }
+    #endif //NOZZLETIP_CALIBRATION
+
 
   /**
    * Preserve DXC mode across a G28 for IDEX printers in DXC_DUPLICATION_MODE.

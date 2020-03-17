@@ -914,6 +914,7 @@ void setup() {
 
   #if NUM_SERIAL > 0
     MYSERIAL0.begin(BAUDRATE);
+    SERIAL_PROTOCOLLNPGM("start Rapidia");
     uint32_t serial_connect_timeout = millis() + 1000UL;
     while (!MYSERIAL0 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #if NUM_SERIAL > 1

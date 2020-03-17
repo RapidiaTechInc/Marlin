@@ -53,6 +53,7 @@
  * M104: Set hot end temperature
  */
 void GcodeSuite::M104() {
+  #if ENABLED(HOTENDS_ENABLED)
 
   if (DEBUGGING(DRYRUN)) return;
 
@@ -90,6 +91,10 @@ void GcodeSuite::M104() {
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
   #endif
+  
+  #else // HOTENDS ENABLED
+  
+  #endif
 }
 
 /**
@@ -99,6 +104,7 @@ void GcodeSuite::M104() {
  * With PRINTJOB_TIMER_AUTOSTART also start the job timer on heating and stop it if turned off.
  */
 void GcodeSuite::M109() {
+  #if ENABLED(HOTENDS_ENABLED)
 
   if (DEBUGGING(DRYRUN)) return;
 
@@ -145,6 +151,7 @@ void GcodeSuite::M109() {
 
   if (set_temp)
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling);
+  #endif // HOTENDS_ENABLED
 }
 
 #endif // EXTRUDERS

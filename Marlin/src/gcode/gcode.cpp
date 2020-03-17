@@ -228,7 +228,20 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
   // Handle a known G, M, or T
   switch (parser.command_letter) {
-    case 'G': switch (parser.codenum) {
+    case 'G':
+    
+    #if ENABLED(CONDITIONAL_GCODE)
+    if (skipGCode > 0) {
+       // skip conditional gcode
+       if (--skipGCode == 0) {
+         SERIAL_ECHO_START();
+         SERIAL_ECHOLN("Conditional block finished. Now receiving GCode.");
+       }
+       break;
+    }
+    #endif // CONDITIONAL_GCODE
+    
+    switch (parser.codenum) {
 
       case 0: case 1: G0_G1(                                      // G0: Fast Move, G1: Linear Move
                         #if IS_SCARA || defined(G0_FEEDRATE)
@@ -750,6 +763,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
         case 701: M701(); break;                                  // M701: Load Filament
         case 702: M702(); break;                                  // M702: Unload Filament
+      #endif
+      
+      #if ENABLED(CONDITIONAL_GCODE)
+        case 710: M710(); break;                              // M710: set timer
+        case 711: M711(); break;                              // timer-predicate conditional execution
       #endif
 
       #if ENABLED(GCODE_MACROS)
