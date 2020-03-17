@@ -301,6 +301,17 @@
 enum AxisRelative : uint8_t { REL_X, REL_Y, REL_Z, REL_E, E_MODE_ABS, E_MODE_REL };
 
 class GcodeSuite {
+private:
+  #if ENABLED(CONDITIONAL_GCODE)
+    static unsigned long timers_m710[M710_TIMER_COUNT];
+    static uint8_t skipGCode;
+    static bool conditional_execution();
+  #endif
+
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+   static long gcode_N;
+  #endif
+
 public:
 
   static uint8_t axis_relative;
@@ -802,6 +813,38 @@ private:
   #endif
 
   TERN_(GCODE_MACROS, static void M810_819());
+  #if ENABLED(CONDITIONAL_GCODE)
+    static void M710();
+    static void M711();
+  #endif
+
+  #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
+    static void M730(); // enable line finished reporting
+    static void M731(); // disable line finished reporting
+  #endif
+
+  #if ENABLED(RAPIDIA_PIN_TEST)
+    static void M733(); // pin test.
+  #endif
+
+  #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+      static void M734(); // begin recording nozzle plug data.
+    #endif
+    static void M735(); // set z_max hysteresis threshold.
+  #endif
+
+  #if ENABLED(RAPIDIA_LAMP_ALIAS)
+    // M736  --  alias for M106
+    // M737  --  alias for M107
+  #endif
+
+  #if ENABLED(RAPIDIA_PAUSE)
+    #if DISABLED(EMERGENCY_PARSER)
+      static void M751(); // pause (soft -- wait for this line of gcode to finish)
+      static void M752(); // pause (hard -- decelerate immediately)
+    #endif
+  #endif
 
   TERN_(HAS_BED_PROBE, static void M851());
 

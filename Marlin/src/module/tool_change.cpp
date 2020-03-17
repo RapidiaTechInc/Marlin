@@ -966,7 +966,17 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
         #else
           #define _EXT_ARGS
         #endif
-        update_software_endstops(X_AXIS _EXT_ARGS);
+
+        #if ENABLED(DUAL_X_CARRIAGE)
+          // we temporarily allow motion to be unconstrained during the tool change.
+          soft_endstop.min.x = X1_MIN_POS;
+          soft_endstop.max.x = X2_MAX_POS;
+        #else
+          // legacy behaviour for non-dual-x-carriage
+          update_software_endstops(X_AXIS _EXT_ARGS);
+        #endif
+        
+
         #if DISABLED(DUAL_X_CARRIAGE)
           update_software_endstops(Y_AXIS _EXT_ARGS);
           update_software_endstops(Z_AXIS _EXT_ARGS);
@@ -1167,6 +1177,11 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
       TERN_(PRUSA_MMU2, mmu2.tool_change(new_tool));
 
       TERN_(SWITCHING_NOZZLE_TWO_SERVOS, lower_nozzle(new_tool));
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        // after tool-change is complete, we update the software endstops for the new tool.
+        update_software_endstops(X_AXIS _EXT_ARGS);
+      #endif
 
     } // (new_tool != old_tool)
 

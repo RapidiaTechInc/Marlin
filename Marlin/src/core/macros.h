@@ -53,6 +53,7 @@
 
 #define _FORCE_INLINE_ __attribute__((__always_inline__)) __inline__
 #define  FORCE_INLINE  __attribute__((always_inline)) inline
+#define  NO_INLINE   __attribute__((noinline))
 #define _UNUSED      __attribute__((unused))
 #define _O0          __attribute__((optimize("O0")))
 #define _Os          __attribute__((optimize("Os")))
@@ -184,8 +185,12 @@
 
 #define _ENA_1(O)           _ISENA(CAT(_IS,CAT(ENA_, O)))
 #define _DIS_1(O)           NOT(_ENA_1(O))
-#define ENABLED(V...)       DO(ENA,&&,V)
-#define DISABLED(V...)      DO(DIS,&&,V)
+#ifndef ENABLED
+  #define ENABLED(V...)       DO(ENA,&&,V)
+#endif
+#ifndef DISABLED
+  #define DISABLED(V...)      DO(DIS,&&,V)
+#endif
 
 #define TERN(O,A,B)         _TERN(_ENA_1(O),B,A)    // OPTION converted to '0' or '1'
 #define TERN0(O,A)          _TERN(_ENA_1(O),0,A)    // OPTION converted to A or '0'

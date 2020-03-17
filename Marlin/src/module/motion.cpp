@@ -530,6 +530,9 @@ void remember_feedrate_scaling_off() {
 void restore_feedrate_and_scaling() {
   feedrate_mm_s = saved_feedrate_mm_s;
   feedrate_percentage = saved_feedrate_percentage;
+
+  SERIAL_ECHOLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
+  SERIAL_ECHOLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
 }
 
 #if HAS_SOFTWARE_ENDSTOPS
@@ -561,20 +564,20 @@ void restore_feedrate_and_scaling() {
     #if ENABLED(DUAL_X_CARRIAGE)
 
       if (axis == X_AXIS) {
-
+        SERIAL_ECHOLNPGM("soft endstop set.");
         // In Dual X mode hotend_offset[X] is T1's home position
         const float dual_max_x = _MAX(hotend_offset[1].x, X2_MAX_POS);
 
         if (new_tool_index != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
           soft_endstop.min.x = X2_MIN_POS;
-          soft_endstop.max.x = dual_max_x;
+          soft_endstop.max.x = X2_MAX_POS;
         }
         else if (dxc_is_duplicating()) {
           // In Duplication Mode, T0 can move as far left as X1_MIN_POS
           // but not so far to the right that T1 would move past the end
           soft_endstop.min.x = X1_MIN_POS;
-          soft_endstop.max.x = _MIN(X1_MAX_POS, dual_max_x - duplicate_extruder_x_offset);
+          soft_endstop.max.x = _MIN(X1_MAX_POS, X2_MAX_POS - duplicate_extruder_x_offset);
         }
         else {
           // In other modes, T0 can move from X1_MIN_POS to X1_MAX_POS
@@ -582,6 +585,19 @@ void restore_feedrate_and_scaling() {
           soft_endstop.max.x = X1_MAX_POS;
         }
 
+        // we clamp the endstops to the current position of the other extruder
+        // to prevent the carriages from colliding.
+        if (!dxc_is_duplicating())
+        {
+          if (new_tool_index == 0)
+          {
+            NOMORE(soft_endstop.max.x, inactive_extruder_x_pos - RAPIDIA_CARRIAGE_INTERVAL);
+          }
+          else if (new_tool_index == 1)
+          {
+            NOLESS(soft_endstop.min.x, inactive_extruder_x_pos + RAPIDIA_CARRIAGE_INTERVAL);
+          }
+        }
       }
 
     #elif ENABLED(DELTA)

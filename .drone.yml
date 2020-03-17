@@ -1,0 +1,43 @@
+kind: pipeline
+type: docker
+name: build
+
+steps:
+  - name: build
+    image: tutum/curl:trusty
+    commands:
+      - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/bin sh
+      - ./arduino-build.sh
+
+---
+kind: pipeline
+name: notify
+
+clone:
+  disable: true
+
+steps:
+  - name: slack
+    image: plugins/slack
+    settings:
+      webhook: https://hooks.slack.com/services/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
+      channel: firmware
+      template: >
+        {{#if build.pull }}
+          *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}>
+        {{else}}
+          *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`)
+        {{/if}}
+        Commit: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+        Message: {{ build.message }}
+        Branch: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/commits/{{ build.branch }}|{{ build.branch }}>
+        Author: {{ build.author }}
+        <{{ build.link }}|Visit build page ↗>
+
+depends_on:
+  - build
+
+trigger:
+  status:
+    - success
+    - failure

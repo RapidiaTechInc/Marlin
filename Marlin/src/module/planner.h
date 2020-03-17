@@ -83,6 +83,17 @@
   #define HAS_DIST_MM_ARG 1
 #endif
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  typedef int32_t source_line_t;
+
+  // indicates the block is not at the boundary of a source line.
+  constexpr source_line_t NO_SOURCE_LINE = -1;
+
+  // indicates the block is at the boundary of a source line, but the
+  // actual source line number was not specified in the gcode (Nxxx absent).
+  constexpr source_line_t UNSPECIFIED_SOURCE_LINE = -2;
+#endif
+
 enum BlockFlagBit : char {
   // Recalculate trapezoids on entry junction. For optimization.
   BLOCK_BIT_RECALCULATE,
@@ -230,6 +241,10 @@ typedef struct block_t {
     block_laser_t laser;
   #endif
 
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    source_line_t source_line;
+  #endif
+
 } block_t;
 
 #if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL)
@@ -311,6 +326,21 @@ class Planner {
     static uint16_t cleaning_buffer_counter;        // A counter to disable queuing of blocks
     static uint8_t delay_before_delivering;         // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
+    #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
+      // this can be edited by the stepper interrupt,
+      // so please access this via get_last_source_line() / clear_last_source_line().
+      static volatile long last_source_line;
+
+      // enable message when line is finished
+      static bool auto_report_line_finished;
+    #endif
+
+    #if ENABLED(RAPIDIA_PAUSE)
+      // prevents additional blocks from being planned.
+      // causes Planner::_buffer_steps to return false.
+      // this allows gcode handlers on the call stack to be cancelled.
+      static bool prevent_block_buffering;
+    #endif
 
     #if ENABLED(DISTINCT_E_FACTORS)
       static uint8_t last_extruder;                 // Respond to extruder change
@@ -704,6 +734,59 @@ class Planner {
      */
     static void buffer_sync_block();
 
+    #ifdef RAPIDIA_BLOCK_SOURCE
+      /**
+       * Mark the most recently added block as being the last block added by a particular line of gcode,
+       * and hence a safe spot to "soft-pause" at.
+       */
+      static void mark_block(source_line_t);
+    #endif
+
+    #ifdef RAPIDIA_PAUSE
+      struct pause_result {
+        // what line was paused at?
+        source_line_t line=NO_SOURCE_LINE;
+
+        // was a deceleration block added?
+        bool deceleration_block=false;
+
+        // deceleration block was not added because it would have been too short.
+        bool deceleration_cropped=false;
+
+        // how many millimeters were added for the deceleration?
+        float deceleration_mm=0;
+
+        // what was the entry speed?
+        float deceleration_entry=0;
+
+        // need to call this again later.
+        // (only possible if force=false.)
+        bool defer=false;
+
+        pause_result()=default;
+        pause_result(pause_result&&)=default;
+        pause_result(source_line_t l)
+          : line(l) { }
+      };
+
+      static pause_result pause_decelerate(bool force);
+
+    private:
+      // force: if false, stop only at marked boundaries. Otherwise,
+      // stop as soon as possible.
+      struct pause_scan_result
+      {
+        bool found;
+        source_line_t source_line = NO_SOURCE_LINE;
+        abce_ulong_t steps_prev;
+        uint8_t prev_direction_bits_inv = 0;
+        uint8_t block_index;
+      };
+
+      template<bool force>
+      static pause_scan_result pause_decelerate_scan();
+    #endif
+
   #if IS_KINEMATIC
     private:
 
@@ -711,6 +794,7 @@ class Planner {
       friend void do_homing_move(const AxisEnum, const float, const feedRate_t);
   #endif
 
+public:
     /**
      * Planner::buffer_segment
      *
@@ -865,11 +949,29 @@ class Planner {
     /**
      * "Release" the current block so its slot can be reused.
      * Called when the current block is no longer needed.
+     *
+     * WARNING: Should only be called from Stepper ISR context!
      */
     FORCE_INLINE static void release_current_block() {
       if (has_blocks_queued())
+      {
+        #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
+          block_t* block = &block_buffer[block_buffer_tail];
+          if (block->source_line != NO_SOURCE_LINE)
+          {
+            Planner::last_source_line = block->source_line;
+          }
+        #endif
+
+        // advance tail
         block_buffer_tail = next_block_index(block_buffer_tail);
+      }
     }
+
+    #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
+      static long get_last_source_line();
+      static long clear_last_source_line();
+    #endif
 
     #if HAS_SPI_LCD
       static uint16_t block_buffer_runtime();

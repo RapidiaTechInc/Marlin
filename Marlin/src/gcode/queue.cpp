@@ -47,6 +47,10 @@ GCodeQueue queue;
   #include "../feature/powerloss.h"
 #endif
 
+#if ENABLED(RAPIDIA_PAUSE)
+  #include "../feature/rapidia/pause.h"
+#endif
+
 /**
  * GCode line number handling. Hosts may opt to include line numbers when
  * sending commands to Marlin, and lines will be checked for sequentiality.
@@ -74,6 +78,11 @@ char GCodeQueue::command_buffer[BUFSIZE][MAX_CMD_SIZE];
  */
 #if HAS_MULTI_SERIAL
   int16_t GCodeQueue::port[BUFSIZE];
+#endif
+
+// line number for each command.
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  long GCodeQueue::line[BUFSIZE];
 #endif
 
 /**
@@ -115,6 +124,19 @@ void GCodeQueue::clear() {
   index_r = index_w = length = 0;
 }
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+long GCodeQueue::get_first_line_number() {
+  for (uint8_t index = index_r; index != index_w; ++index)
+  {
+    if (line[index] != -1)
+    {
+      return line[index];
+    }
+  }
+  return -1;
+}
+#endif
+
 /**
  * Once a new command is in the ring buffer, call this to commit it
  */
@@ -122,9 +144,15 @@ void GCodeQueue::_commit_command(bool say_ok
   #if HAS_MULTI_SERIAL
     , int16_t p/*=-1*/
   #endif
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    , long l/*=-1*/
+  #endif
 ) {
   send_ok[index_w] = say_ok;
   TERN_(HAS_MULTI_SERIAL, port[index_w] = p);
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    line[index_w] = l;
+  #endif
   TERN_(POWER_LOSS_RECOVERY, recovery.commit_sdpos(index_w));
   if (++index_w >= BUFSIZE) index_w = 0;
   length++;
@@ -139,12 +167,18 @@ bool GCodeQueue::_enqueue(const char* cmd, bool say_ok/*=false*/
   #if HAS_MULTI_SERIAL
     , int16_t pn/*=-1*/
   #endif
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    , long line/*=-1*/
+  #endif
 ) {
   if (*cmd == ';' || length >= BUFSIZE) return false;
   strcpy(command_buffer[index_w], cmd);
   _commit_command(say_ok
     #if HAS_MULTI_SERIAL
       , pn
+    #endif
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      , line
     #endif
   );
   return true;
@@ -465,6 +499,10 @@ void GCodeQueue::get_serial_commands() {
         while (*command == ' ') command++;                   // Skip leading spaces
         char *npos = (*command == 'N') ? command : nullptr;  // Require the N parameter to start the line
 
+        static long gcode_N = -1;
+        gcode_N = -1;
+
+        // read line number
         if (npos) {
 
           bool M110 = strstr_P(command, PSTR("M110")) != nullptr;
@@ -479,6 +517,7 @@ void GCodeQueue::get_serial_commands() {
           if (gcode_N != last_N[i] + 1 && !M110)
             return gcode_line_error(PSTR(STR_ERR_LINE_NO), i);
 
+          // calculate checksum and compare
           char *apos = strrchr(command, '*');
           if (apos) {
             uint8_t checksum = 0, count = uint8_t(apos - command);
@@ -487,7 +526,11 @@ void GCodeQueue::get_serial_commands() {
               return gcode_line_error(PSTR(STR_ERR_CHECKSUM_MISMATCH), i);
           }
           else
-            return gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
+          {
+            #if ENABLED(LINE_NUMBERS_REQUIRES_CHECKSUM)
+              return gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
+            #endif
+          }
 
           last_N[i] = gcode_N;
         }
@@ -528,6 +571,8 @@ void GCodeQueue::get_serial_commands() {
           }
           if (strcmp_P(command, PSTR("M112")) == 0) kill(M112_KILL_STR, nullptr, true);
           if (strcmp_P(command, PSTR("M410")) == 0) quickstop_stepper();
+          else if (strcmp(command, "M751") == 0) Rapidia::pause.pause(false);
+          else if (strcmp(command, "M752") == 0) Rapidia::pause.pause(true);
         #endif
 
         #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0
@@ -538,6 +583,9 @@ void GCodeQueue::get_serial_commands() {
         _enqueue(serial_line_buffer[i], true
           #if HAS_MULTI_SERIAL
             , i
+          #endif
+          #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+            , gcode_N
           #endif
         );
       }

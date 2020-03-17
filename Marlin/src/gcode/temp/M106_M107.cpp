@@ -92,4 +92,8 @@ void GcodeSuite::M107() {
   thermalManager.set_fan_speed(p, 0);
 }
 
+# elif ENABLED(RAPIDIA_LAMP_ALIAS)
+
+#error RAPIDIA_LAMP_ALIAS requires FAN_COUNT > 0.
+
 #endif // HAS_FAN

@@ -49,6 +49,17 @@
 #include "module/temperature.h"
 #include "module/settings.h"
 #include "module/printcounter.h" // PrintCounter or Stopwatch
+#include "feature/closedloop.h"
+
+#if ENABLED(RAPIDIA_HEARTBEAT)
+#include "feature/rapidia/heartbeat.h"
+#endif
+
+#if ENABLED(RAPIDIA_PAUSE)
+#include "feature/rapidia/pause.h"
+#endif
+
+#include "HAL/shared/Delay.h"
 
 #include "module/stepper.h"
 #include "module/stepper/indirection.h"
@@ -669,6 +680,12 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
   #endif
 }
 
+#if ENABLED(RAPIDIA_EMULATOR_HOOKS)
+  // idle() is re-entrant.
+  // this counts the number of times is is currently on the stack.
+  volatile uint32_t idle_count = 0;
+#endif
+
 /**
  * Standard idle routine keeps the machine alive:
  *  - Core Marlin activities
@@ -718,12 +735,24 @@ void idle(TERN_(ADVANCED_PAUSE_FEATURE, bool no_stepper_sleep/*=false*/)) {
     if (printJobOngoing()) recovery.outage();
   #endif
 
+  #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
+    ++idle_count;
+  #endif
+
   // Run StallGuard endstop checks
   #if ENABLED(SPI_ENDSTOPS)
     if (endstops.tmc_spi_homing.any
       && TERN1(IMPROVE_HOMING_RELIABILITY, ELAPSED(millis(), sg_guard_period))
     ) LOOP_L_N(i, 4) // Read SGT 4 times per idle loop
         if (endstops.tmc_spi_homing_check()) break;
+  #endif
+
+  #if ENABLED(RAPIDIA_PAUSE)
+    Rapidia::pause.process_deferred();
+  #endif
+
+  #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    endstops.update_z_max_hysteresis_core();
   #endif
 
   // Handle SD Card insert / remove
@@ -760,8 +789,29 @@ void idle(TERN_(ADVANCED_PAUSE_FEATURE, bool no_stepper_sleep/*=false*/)) {
   #if HAS_AUTO_REPORTING
     if (!gcode.autoreport_paused) {
       TERN_(AUTO_REPORT_TEMPERATURES, thermalManager.auto_report_temperatures());
+      #if ENABLED(RAPIDIA_HEARTBEAT)
+        Rapidia::heartbeat.auto_report();
+      #endif
       TERN_(AUTO_REPORT_SD_STATUS, card.auto_report_sd_status());
+      }
+  #endif
+
+  #ifdef HAL_IDLETASK
+    HAL_idletask();
+  #endif
+
+  #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
+  {
+    long last_source_line = planner.clear_last_source_line();
+    if (planner.auto_report_line_finished)
+    {
+      if (last_source_line != NO_SOURCE_LINE)
+      {
+        SERIAL_ECHOPGM("Finished executing N");
+        SERIAL_ECHOLN(last_source_line);
+      }
     }
+  }
   #endif
 
   // Update the Průša MMU2
@@ -775,6 +825,10 @@ void idle(TERN_(ADVANCED_PAUSE_FEATURE, bool no_stepper_sleep/*=false*/)) {
 
   #if HAS_TFT_LVGL_UI
     LV_TASK_HANDLER();
+  #endif
+
+  #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
+    --idle_count;
   #endif
 }
 
@@ -910,6 +964,7 @@ void setup() {
 
   #if NUM_SERIAL > 0
     MYSERIAL0.begin(BAUDRATE);
+    SERIAL_ECHOLNPGM("start Rapidia");
     uint32_t serial_connect_timeout = millis() + 1000UL;
     while (!MYSERIAL0 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #if HAS_MULTI_SERIAL
@@ -1246,6 +1301,10 @@ void setup() {
 void loop() {
   do {
     idle();
+
+    #if ENABLED(RAPIDIA_PAUSE)
+      planner.prevent_block_buffering = false;
+    #endif
 
     #if ENABLED(SDSUPPORT)
       card.checkautostart();

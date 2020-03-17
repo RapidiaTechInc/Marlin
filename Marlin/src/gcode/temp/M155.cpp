@@ -26,6 +26,7 @@
 
 #include "../gcode.h"
 #include "../../module/temperature.h"
+#include "../../feature/rapidia/heartbeat.h"
 
 /**
  * M155: Set temperature auto-report interval. M155 S<seconds>
@@ -33,8 +34,63 @@
 void GcodeSuite::M155() {
 
   if (parser.seenval('S'))
-    thermalManager.set_auto_report_interval(parser.value_byte());
+  {
+    uint8_t interval = parser.value_byte();
+    
+    thermalManager.set_auto_report_interval(interval);
+  }
+  
+  #if ENABLED(RAPIDIA_HEARTBEAT)
+  using namespace Rapidia;
+  
+  if (parser.seenval('H'))
+  {
+    uint16_t interval = parser.value_ushort();
+    heartbeat.set_interval(interval);
+  }
+  
+  if (parser.seenval('P'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::PLAN_POSITION, enabled);
+  }
+  
+  if (parser.seenval('C'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::ABS_POSITION, enabled);
+  }
+  
+  if (parser.seenval('R'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::RELMODE, enabled);
+  }
+  
+  if (parser.seenval('F'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::FEEDRATE, enabled);
+  }
+  
+  if (parser.seenval('X'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::DUALX, enabled);
+  }
+  
+  if (parser.seenval('E'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::ENDSTOPS, enabled);
+  }
 
+  if (parser.seenval('D'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::DEBUG, enabled);
+  }
+  #endif
 }
 
 #endif // AUTO_REPORT_TEMPERATURES && HAS_TEMP_SENSOR

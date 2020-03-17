@@ -58,6 +58,11 @@ public:
   #if HAS_MULTI_SERIAL
     static int16_t port[BUFSIZE];
   #endif
+  
+  // keep track of line numbers for each command
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    static long line[BUFSIZE];
+  #endif
 
   static int16_t command_port() {
     return TERN0(HAS_MULTI_SERIAL, port[index_r]);
@@ -69,6 +74,14 @@ public:
    * Clear the Marlin command queue
    */
   static void clear();
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  /*
+  * Returns the line number of the first entry in the queue which has a line number,
+  * or -1 if there is none.
+  */
+  static long get_first_line_number();
+  #endif
 
   /**
    * Next Injected Command (PROGMEM) pointer. (nullptr == empty)
@@ -161,11 +174,17 @@ private:
     #if HAS_MULTI_SERIAL
       , int16_t p=-1
     #endif
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      , long line=-1
+    #endif
   );
 
   static bool _enqueue(const char* cmd, bool say_ok=false
     #if HAS_MULTI_SERIAL
       , int16_t p=-1
+    #endif
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      , long line=-1
     #endif
   );
 

@@ -58,6 +58,7 @@
  *  S<target> : The target temperature in current units
  */
 void GcodeSuite::M104() {
+#if ENABLED(HOTENDS_ENABLED)
 
   if (DEBUGGING(DRYRUN)) return;
 
@@ -110,6 +111,9 @@ void GcodeSuite::M104() {
   }
 
   TERN_(AUTOTEMP, planner.autotemp_M104_M109());
+  #else // HOTENDS_ENABLED
+
+  #endif
 }
 
 /**
@@ -134,7 +138,7 @@ void GcodeSuite::M104() {
  *  (used by printingIsActive, etc.) and turning off heaters will stop the timer.
  */
 void GcodeSuite::M109() {
-
+ #if ENABLED(HOTENDS_ENABLED)
   if (DEBUGGING(DRYRUN)) return;
 
   #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
@@ -195,6 +199,7 @@ void GcodeSuite::M109() {
 
   if (got_temp)
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling);
+  #endif // HOTENDS_ENABLED
 }
 
 #endif // EXTRUDERS

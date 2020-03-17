@@ -343,6 +343,7 @@ void GcodeSuite::G28() {
 
         // Remember this extruder's position for later tool change
         inactive_extruder_x_pos = current_position.x;
+        update_software_endstops(X_AXIS);
 
         // Home the 1st (left) extruder
         active_extruder = 0;
@@ -384,6 +385,66 @@ void GcodeSuite::G28() {
 
   #endif // !DELTA (G28)
 
+  SERIAL_ECHOLNPGM("Finished homing Z.");
+
+  #ifdef NOZZLETIP_CALIBRATION
+  if (home_all) {
+
+      /*** calibrate LEFT nozzletip ***/
+      SERIAL_PROTOCOLLNPGM("***starting LEFT nozzletip calibration");
+
+      const double Y_increment = 1; // Y delta during probe to force endstop trigger
+
+      // move to XY position
+      {
+          current_position[X_AXIS] = NOZZLETIP_LEFT_X;
+          current_position[Y_AXIS] = NOZZLETIP_LEFT_Y;
+          const double start_Z = current_position[Z_AXIS];
+          const int Z_lower_position = start_Z - 50; // max distance to descend to find endstop
+          const int z_raise = start_Z + 50; // raise height when moving to endstop probe position
+
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], z_raise,
+                                                  current_position[E_AXIS], 32, active_extruder);
+
+          // lower Z (with small Y movement) until limit switch is hit
+          current_position[Y_AXIS] += Y_increment;
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], Z_lower_position,
+                           current_position[E_AXIS], 4, active_extruder);
+          SERIAL_PROTOCOLLNPGM("Start \"move to XY position\"");
+          planner.synchronize();
+          SERIAL_PROTOCOLLNPGM("Finish \"move to XY position\"");
+      }
+
+      // for now skip the double tap - add in later
+      // TODO ^
+
+      // set the true Z position of the nozzletip, and adjust left nozzle offset
+      {
+          const double z_position = stepper.position(Z_AXIS)/(float)planner.axis_steps_per_mm[Z_AXIS];
+          zprobe_zoffset += z_position + NOZZLETIP_ENDSTOP_ABSDISTANCE;
+          (void)settings.save();
+          current_position[Z_AXIS] = -NOZZLETIP_ENDSTOP_ABSDISTANCE;
+          planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+                            current_position[E_AXIS]);
+          SERIAL_PROTOCOLLNPGM("Start \"set the true Z position...\"");
+          planner.synchronize();
+          SERIAL_PROTOCOLLNPGM("Finish \"set the true Z position...\"");
+      }
+
+      // raise Z position to zero
+      {
+          current_position[X_AXIS] -= 10;
+          current_position[Y_AXIS] -= Y_increment;
+          current_position[Z_AXIS] = 0;
+          planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+                           current_position[E_AXIS], 8, active_extruder);
+          planner.synchronize();
+      }
+    }
+    #endif //NOZZLETIP_CALIBRATION
+
+  SERIAL_ECHOLNPGM("Finished homing Z.");
+
   /**
    * Preserve DXC mode across a G28 for IDEX printers in DXC_DUPLICATION_MODE.
    * This is important because it lets a user use the LCD Panel to set an IDEX Duplication mode, and
@@ -402,6 +463,7 @@ void GcodeSuite::G28() {
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
+      update_software_endstops(X_AXIS);
 
       // Home the 1st (left) extruder
       active_extruder = 0;
@@ -437,6 +499,12 @@ void GcodeSuite::G28() {
   // Restore the active tool after homing
   #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
     tool_change(old_tool_index, NONE(PARKING_EXTRUDER, DUAL_X_CARRIAGE));   // Do move if one of these
+  #endif
+
+  #if defined(Z_AFTER_HOMING)
+    if (doZ) {
+        do_blocking_move_to_z(Z_AFTER_HOMING);
+    }
   #endif
 
   #if HAS_HOMING_CURRENT

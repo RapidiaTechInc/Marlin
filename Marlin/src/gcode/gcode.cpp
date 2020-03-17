@@ -77,6 +77,10 @@ uint8_t GcodeSuite::axis_relative = (
   | (ar_init.e ? _BV(REL_E) : 0)
 );
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+ long GcodeSuite::gcode_N = -1;
+#endif
+
 #if EITHER(HAS_AUTO_REPORTING, HOST_KEEPALIVE_FEATURE)
   bool GcodeSuite::autoreport_paused; // = false
 #endif
@@ -239,6 +243,25 @@ void GcodeSuite::dwell(millis_t time) {
   extern void M100_dump_routine(PGM_P const title, const char * const start, const char * const end);
 #endif
 
+#if ENABLED(CONDITIONAL_GCODE)
+// returns false if conditional execution prevents this from running.
+// decrements the condition wait.
+bool GcodeSuite::conditional_execution()
+{
+  if (GcodeSuite::skipGCode > 0) {
+     // skip conditional gcode
+     if (--GcodeSuite::skipGCode == 0) {
+       SERIAL_ECHO_START();
+       SERIAL_ECHOLN("Conditional block finished. Now receiving GCode.");
+
+       // (skip this one that was just received as well, however).
+     }
+     return false;
+  }
+  return true;
+}
+#endif
+
 /**
  * Process the parsed command and dispatch it to its handler
  */
@@ -258,7 +281,13 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
   // Handle a known G, M, or T
   switch (parser.command_letter) {
-    case 'G': switch (parser.codenum) {
+    case 'G':
+
+    #if ENABLED(CONDITIONAL_GCODE)
+      if (!conditional_execution()) break;
+    #endif // CONDITIONAL_GCODE
+
+    switch (parser.codenum) {
 
       case 0: case 1: G0_G1(                                      // G0: Fast Move, G1: Linear Move
                         #if IS_SCARA || defined(G0_FEEDRATE)
@@ -803,6 +832,43 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 710: M710(); break;                                  // M710: Set Controller Fan settings
       #endif
 
+      #if ENABLED(CONDITIONAL_GCODE)
+        case 710: M710(); break;                                  // M710: set timer
+        case 711: M711(); break;                                  // timer-predicate conditional execution
+      #endif
+
+      #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
+        case 730: M730(); break;                                  // M730: enable report on line finish
+        case 731: M731(); break;                                  // M731: disable report on line finish
+      #endif
+
+      #if ENABLED(RAPIDIA_PIN_TEST)
+        case 733: M733(); break;
+      #endif
+
+      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+        #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+          case 734: M734(); break;                                // M734: begin z-max recording
+        #endif
+        case 735: M735(); break;                                  // M735: z-max hysteresis threshold
+      #endif
+
+      #if ENABLED(RAPIDIA_LAMP_ALIAS)
+        case 736: M106(); break;                                  // M736: alias for M106
+        case 737: M107(); break;                                  // M737: alias for M107
+      #endif
+
+      #if ENABLED(RAPIDIA_PAUSE)
+      #if DISABLED(EMERGENCY_PARSER)
+        case 751: M751(); break;                                  // M751: pause (soft)
+        case 752: M752(); break;                                  // M752: pause (firm)
+      #else
+        case 751:
+        case 752:
+          break;
+      #endif
+      #endif
+
       #if ENABLED(GCODE_MACROS)
         case 810: case 811: case 812: case 813: case 814:
         case 815: case 816: case 817: case 818: case 819:
@@ -928,7 +994,15 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
     }
     break;
 
-    case 'T': T(parser.codenum); break;                           // Tn: Tool Change
+    case 'T': {
+
+      #if ENABLED(CONDITIONAL_GCODE)
+        if (!conditional_execution()) break;
+      #endif // CONDITIONAL_GCODE
+
+      T(parser.codenum);                                          // Tn: Tool Change
+      break;
+    }
 
     default:
       #if ENABLED(WIFI_CUSTOM_COMMAND)
@@ -964,7 +1038,15 @@ void GcodeSuite::process_next_command() {
 
   // Parse the next command in the queue
   parser.parse(current_command);
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    GcodeSuite::gcode_N = queue.line[queue.index_r];
+  #endif
+
   process_parsed_command();
+
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    GcodeSuite::gcode_N = -1;
+  #endif
 }
 
 /**

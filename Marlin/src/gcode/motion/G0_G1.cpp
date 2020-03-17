@@ -22,6 +22,7 @@
 
 #include "../gcode.h"
 #include "../../module/motion.h"
+#include "../../module/planner.h"
 
 #include "../../MarlinCore.h"
 
@@ -122,4 +123,8 @@ void GcodeSuite::G0_G1(
       }
     #endif
   }
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    planner.mark_block(GcodeSuite::gcode_N);
+  #endif
 }

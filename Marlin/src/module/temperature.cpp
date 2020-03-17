@@ -1545,7 +1545,12 @@ void Temperature::updateTemperaturesFromRawValues() {
     temp_hotend[1].raw = READ_MAX6675(1);
   #endif
   #if HAS_HOTEND
-    HOTEND_LOOP() temp_hotend[e].celsius = analog_to_celsius_hotend(temp_hotend[e].raw, e);
+    HOTEND_LOOP()
+    #if ENABLED(HOTENDS_ENABLED)
+      temp_hotend[e].celsius = analog_to_celsius_hotend(temp_hotend[e].raw, e);
+    #else
+      temp_hotend[e].celsius = 210;
+    #endif
   #endif
 
   TERN_(HAS_HEATED_BED, temp_bed.celsius = analog_to_celsius_bed(temp_bed.raw));
@@ -2916,6 +2921,8 @@ void Temperature::tick() {
       SERIAL_ECHOPAIR(" (", r * RECIPROCAL(OVERSAMPLENR));
       SERIAL_CHAR(')');
     #endif
+
+    // this delay is long enough for the temperature ISR to run once.
     delay(2);
   }
 

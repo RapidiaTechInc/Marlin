@@ -79,7 +79,7 @@ extern xyz_pos_t cartes;
 #endif
 
 #if ENABLED(Z_SAFE_HOMING)
-  constexpr xy_float_t safe_homing_xy = { Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT };
+  constexpr xy_float_t safe_homing_xy = { Z_HOMING_X_POINT, Z_HOMING_Y_POINT };
 #endif
 
 /**

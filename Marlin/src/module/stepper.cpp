@@ -1704,7 +1704,9 @@ void Stepper::pulse_phase_isr() {
           #endif
         }
       #elif HAS_E0_STEP
-        PULSE_PREP(E);
+        #ifndef RAPIDIA_NO_EXTRUDE
+          PULSE_PREP(E);
+        #endif
       #endif
     }
 
@@ -1726,12 +1728,14 @@ void Stepper::pulse_phase_isr() {
       PULSE_START(Z);
     #endif
 
+    #ifndef RAPIDIA_NO_EXTRUDE
     #if DISABLED(LIN_ADVANCE)
       #if ENABLED(MIXING_EXTRUDER)
         if (step_needed.e) E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
       #elif HAS_E0_STEP
         PULSE_START(E);
       #endif
+    #endif
     #endif
 
     #if ENABLED(I2S_STEPPER_STREAM)
@@ -1759,10 +1763,14 @@ void Stepper::pulse_phase_isr() {
       #if ENABLED(MIXING_EXTRUDER)
         if (delta_error.e >= 0) {
           delta_error.e -= advance_divisor;
+          #ifndef RAPIDIA_NO_EXTRUDE
           E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
+          #endif
         }
       #elif HAS_E0_STEP
+        #ifndef RAPIDIA_NO_EXTRUDE
         PULSE_STOP(E);
+        #endif
       #endif
     #endif
 
@@ -2356,21 +2364,9 @@ uint32_t Stepper::block_phase_isr() {
 // we must explicitly prevent that!
 bool Stepper::is_block_busy(const block_t* const block) {
   #ifdef __AVR__
-    // A SW memory barrier, to ensure GCC does not overoptimize loops
-    #define sw_barrier() asm volatile("": : :"memory");
-
-    // Keep reading until 2 consecutive reads return the same value,
-    // meaning there was no update in-between caused by an interrupt.
-    // This works because stepper ISRs happen at a slower rate than
-    // successive reads of a variable, so 2 consecutive reads with
-    // the same value means no interrupt updated it.
-    block_t* vold, *vnew = current_block;
-    sw_barrier();
-    do {
-      vold = vnew;
-      vnew = current_block;
-      sw_barrier();
-    } while (vold != vnew);
+    const bool was_enabled = suspend();
+    block_t *vnew = current_block;
+    if (was_enabled) wake_up();
   #else
     block_t *vnew = current_block;
   #endif
@@ -2638,6 +2634,20 @@ int32_t Stepper::position(const AxisEnum axis) {
     if (was_enabled) wake_up();
   #endif
   return v;
+}
+
+Stepper::State Stepper::report_state() {
+
+  // Protect the access to the position.
+  const bool was_enabled = suspend();
+
+  const xyze_long_t v = count_position;
+  uint8_t extruder = Stepper::stepper_extruder;
+
+  // Reenable Stepper ISR
+  if (was_enabled) wake_up();
+
+  return { v, extruder };
 }
 
 // Set the current position in steps
