@@ -879,6 +879,13 @@ private:
     static void M702();
   #endif
 
+  #if ENABLED(CONDITIONAL_GCODE)
+    static unsigned long timers_m710[M710_TIMER_COUNT];
+    static uint8_t skipGCode;
+    static void M710();
+    static void M711();
+  #endif
+
   #if ENABLED(GCODE_MACROS)
     static void M810_819();
   #endif
