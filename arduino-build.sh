@@ -9,6 +9,9 @@ fi
 
 COMPILE="F"
 
+arduino-cli core update-index
+arduino-cli core install arduino:avr
+
 while test $# -gt 0
 do
     case "$1" in
@@ -44,5 +47,5 @@ then
     *.ino
 else
     echo "standard compile"
-    arduino-builder -compile -tools $arroot/hardware/tools -hardware $arroot/hardware -fqbn arduino:avr:mega:cpu=atmega2560 -build-path $buildpath -verbose Marlin.ino
+    arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 --build-path=$buildpath --verbose
 fi
