@@ -810,9 +810,9 @@ G29_TYPE GcodeSuite::G29() {
         Y_slope_angle = atan((z_back_average - points[2].z)/(points[0].y - points[2].y));
         X_slope_angle = atan((points[0].z - points[1].z)/(points[1].x - points[0].x));
 
-        SERIAL_PROTOCOLLN("*** bed angles (deg):");
-        SERIAL_PROTOCOLLN(Y_slope_angle*180.0/M_PI);
-        SERIAL_PROTOCOLLN(X_slope_angle*180.0/M_PI);
+        SERIAL_ECHOLN("*** bed angles (deg):");
+        SERIAL_ECHOLN(Y_slope_angle*180.0/M_PI);
+        SERIAL_ECHOLN(X_slope_angle*180.0/M_PI);
 
         double X_screw_arm = 78; // X distance between rear screw and bed centerline
         double Y_screw_arm = 253.5; // Y distance between front and back screws
@@ -823,8 +823,8 @@ G29_TYPE GcodeSuite::G29() {
         double front_adjust = Y_screw_arm*tan(Y_slope_angle);
         double turns = front_adjust/pitch; // positive for raising, negative for lowering
 
-        SERIAL_PROTOCOLLN("*** front screw adjust (turns, positive for raising, negative for lowering):");
-        SERIAL_PROTOCOLLN(turns);
+        SERIAL_ECHOLN("*** front screw adjust (turns, positive for raising, negative for lowering):");
+        SERIAL_ECHOLN(turns);
             }
 
             // back left adjustment screw
@@ -832,8 +832,8 @@ G29_TYPE GcodeSuite::G29() {
         double back_left_adjust = -X_screw_arm*tan(X_slope_angle); // negative sign because it's from centre towards -x direction
         double back_left_turns = back_left_adjust/pitch;
 
-        SERIAL_PROTOCOLLN("*** back left adjust (turns, positive for raising, negative for lowering):");
-        SERIAL_PROTOCOLLN(back_left_turns);
+        SERIAL_ECHOLN("*** back left adjust (turns, positive for raising, negative for lowering):");
+        SERIAL_ECHOLN(back_left_turns);
             }
 
             // back right adjustment screw
@@ -841,8 +841,8 @@ G29_TYPE GcodeSuite::G29() {
         double back_right_adjust = X_screw_arm*tan(X_slope_angle);
         double back_right_turns = back_right_adjust/pitch;
 
-        SERIAL_PROTOCOLLN("*** back right adjust (turns, positive for raising, negative for lowering):");
-        SERIAL_PROTOCOLLN(back_right_turns);
+        SERIAL_ECHOLN("*** back right adjust (turns, positive for raising, negative for lowering):");
+        SERIAL_ECHOLN(back_right_turns);
       }
     }
     #endif
@@ -900,8 +900,8 @@ G29_TYPE GcodeSuite::G29() {
         SERIAL_ECHOPAIR_F(" d: ", plane_equation_coefficients.d, 8);
         SERIAL_EOL();
         if (verbose_level > 2) {
-          SERIAL_PROTOCOLPGM("Mean of sampled points: ");
-          SERIAL_PROTOCOL_F(mean, 8);
+          SERIAL_ECHOPGM("Mean of sampled points: ");
+          SERIAL_ECHO_F(mean, 8);
           SERIAL_EOL();
         }
       }
@@ -960,17 +960,17 @@ G29_TYPE GcodeSuite::G29() {
 
               float diff = eqnBVector[ind] - z_tmp - min_diff;
               if (diff >= 0.0)
-                SERIAL_PROTOCOLPGM(" +");
+                SERIAL_ECHOPGM(" +");
               // AUTO_BED_LEVELING_LINEARInclude + for column alignment
               else
-                SERIAL_PROTOCOLCHAR(' ');
-              SERIAL_PROTOCOL_F(diff, 5);
+                SERIAL_ECHOCHAR(' ');
+              SERIAL_ECHO_F(diff, 5);
             } // xx
             SERIAL_EOL();
           } // yy
           SERIAL_EOL();
         }
-
+        
       } //do_topography_map
 
     #endif // AUTO_BED_LEVELING_LINEAR
@@ -1024,6 +1024,7 @@ G29_TYPE GcodeSuite::G29() {
     // Auto Bed Leveling is complete! Enable if possible.
     planner.leveling_active = dryrun ? abl_should_enable : true;
   } // !isnan(measured_z)
+  #endif
 
   // Restore state after probing
   if (!faux) restore_feedrate_and_scaling();

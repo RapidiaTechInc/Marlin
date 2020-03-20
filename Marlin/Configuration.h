@@ -416,7 +416,7 @@
  *   999 : Dummy Table that ALWAYS reads 100°C or the temperature defined below.
  */
 #define TEMP_SENSOR_0 1
-#define TEMP_SENSOR_1 0
+#define TEMP_SENSOR_1 1
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
 #define TEMP_SENSOR_4 0
@@ -438,11 +438,11 @@
 
 #define TEMP_RESIDENCY_TIME      1    // (seconds) Time to wait for hotend to "settle" in M109
 #define TEMP_WINDOW              2.5  // (°C) Temperature proximity for the "temperature reached" timer
-#define TEMP_HYSTERESIS          0.5  // (°C) Temperature proximity considered "close enough" to the target
+#define TEMP_HYSTERESIS          1  // (°C) Temperature proximity considered "close enough" to the target
 
 #define TEMP_BED_RESIDENCY_TIME  1    // (seconds) Time to wait for bed to "settle" in M190
 #define TEMP_BED_WINDOW          0.5  // (°C) Temperature proximity for the "temperature reached" timer
-#define TEMP_BED_HYSTERESIS      2.5  // (°C) Temperature proximity considered "close enough" to the target
+#define TEMP_BED_HYSTERESIS      2  // (°C) Temperature proximity considered "close enough" to the target
 
 // Below this temperature the heater will be switched off
 // because it probably indicates a broken thermistor wire.
@@ -595,7 +595,10 @@
  * details can be tuned in Configuration_adv.h
  */
 
-#define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
+#ifdef RAPIDIA_PLASTIC
+  #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
+#endif
+
 #define THERMAL_PROTECTION_BED     // Enable thermal protection for the heated bed
 #define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
 
@@ -1492,7 +1495,8 @@
  *   M501 - Read settings from EEPROM. (i.e., Throw away unsaved changes)
  *   M502 - Revert settings to "factory" defaults. (Follow with M500 to init the EEPROM.)
  */
-#define EEPROM_SETTINGS     // Persistent storage with M500 and M501
+ // Persistent storage with M500 and M501
+#define EEPROM_SETTINGS  
 //#define DISABLE_M503        // Saves ~2700 bytes of PROGMEM. Disable for release!
 #define EEPROM_CHITCHAT       // Give feedback on EEPROM commands. Disable to save PROGMEM.
 #if ENABLED(EEPROM_SETTINGS)

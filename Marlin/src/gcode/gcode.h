@@ -880,8 +880,8 @@ private:
   #endif
   
   #if ENABLED(CONDITIONAL_GCODE)
-    extern unsigned long timers_m710[M710_TIMER_COUNT];
-    extern uint8_t skipGCode;
+    static unsigned long timers_m710[M710_TIMER_COUNT];
+    static uint8_t skipGCode;
     static void M710();
     static void M711();
   #endif

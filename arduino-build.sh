@@ -2,8 +2,10 @@ cd Marlin/
 
 arroot=$(dirname `which arduino`)
 buildpath=`pwd`/build
-rm -r $buildpath 2> /dev/null
-mkdir $buildpath
+if [ ! -d $buildpath ]
+then
+  mkdir $buildpath
+fi
 
 COMPILE="F"
 
@@ -42,8 +44,5 @@ then
     *.ino
 else
     echo "standard compile"
-    arduino-builder -compile -tools $arroot/tools-builder/ \
-     -tools $arroot/hardware/tools -hardware $arroot/hardware \
-     -fqbn arduino:avr:mega:cpu=atmega2560 -build-path $buildpath \
-      *.ino    
+    arduino-builder -compile -tools $arroot/hardware/tools -hardware $arroot/hardware -fqbn arduino:avr:mega:cpu=atmega2560 -build-path $buildpath -verbose Marlin.ino
 fi

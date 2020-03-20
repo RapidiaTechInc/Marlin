@@ -421,13 +421,13 @@ void GcodeSuite::G28() {
 
   #endif // !DELTA (G28)
   
-  SERIAL_PROTOCOLLNPGM("Finished homing Z.");
+  SERIAL_ECHOLNPGM("Finished homing Z.");
 
   #ifdef NOZZLETIP_CALIBRATION
   if (home_all) {
 
       /*** calibrate LEFT nozzletip ***/
-      SERIAL_PROTOCOLLNPGM("***starting LEFT nozzletip calibration");
+      SERIAL_ECHOLNPGM("***starting LEFT nozzletip calibration");
       
       const double Y_increment = 1; // Y delta during probe to force endstop trigger
       
@@ -446,9 +446,9 @@ void GcodeSuite::G28() {
           current_position[Y_AXIS] += Y_increment;
           planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], Z_lower_position,
                            current_position[E_AXIS], 4, active_extruder);
-          SERIAL_PROTOCOLLNPGM("Start \"move to XY position\"");
+          SERIAL_ECHOLNPGM("Start \"move to XY position\"");
           planner.synchronize();
-          SERIAL_PROTOCOLLNPGM("Finish \"move to XY position\"");
+          SERIAL_ECHOLNPGM("Finish \"move to XY position\"");
       }
 
       // for now skip the double tap - add in later
@@ -462,9 +462,9 @@ void GcodeSuite::G28() {
           current_position[Z_AXIS] = -NOZZLETIP_ENDSTOP_ABSDISTANCE;
           planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
                             current_position[E_AXIS]);
-          SERIAL_PROTOCOLLNPGM("Start \"set the true Z position...\"");
+          SERIAL_ECHOLNPGM("Start \"set the true Z position...\"");
           planner.synchronize();
-          SERIAL_PROTOCOLLNPGM("Finish \"set the true Z position...\"");
+          SERIAL_ECHOLNPGM("Finish \"set the true Z position...\"");
       }
       
       // raise Z position to zero
@@ -478,7 +478,7 @@ void GcodeSuite::G28() {
       }
       
   //     /*** calibrate RIGHT nozzletip ***/
-  //     SERIAL_PROTOCOLLNPGM("***starting RIGHT nozzletip calibration");
+  //     SERIAL_ECHOLNPGM("***starting RIGHT nozzletip calibration");
       
   //     // switch control to right extruder
   //     active_extruder = 1;

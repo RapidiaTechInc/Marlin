@@ -111,5 +111,5 @@
 //
 #define SDSS               53
 #define LED_PIN            -1
-#define PS_ON_PIN          -1
+#define PS_ON_PIN          12
 #define CASE_LIGHT_PIN     45   // Try the keypad connector

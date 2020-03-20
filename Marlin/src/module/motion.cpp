@@ -147,8 +147,8 @@ xyze_pos_t destination; // {0}
 // Functions that override this for custom moves *must always* restore it!
 feedRate_t feedrate_mm_s = MMM_TO_MMS(1500);
 int16_t feedrate_percentage = 100;
-// SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
-// SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
+// SERIAL_ECHOLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
+// SERIAL_ECHOLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
 
 
 // Homing feedrate is const progmem - compare to constexpr in the header
@@ -526,8 +526,8 @@ void restore_feedrate_and_scaling() {
   feedrate_mm_s = saved_feedrate_mm_s;
   feedrate_percentage = saved_feedrate_percentage;
   
-  SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
-  SERIAL_PROTOCOLLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
+  SERIAL_ECHOLNPAIR("SAVING FEEDRATE:", saved_feedrate_mm_s);
+  SERIAL_ECHOLNPAIR("SAVING FEEDRATE PERCENTAGE:", saved_feedrate_percentage);
 }
 
 #if HAS_SOFTWARE_ENDSTOPS

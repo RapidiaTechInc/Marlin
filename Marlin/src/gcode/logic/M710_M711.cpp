@@ -5,10 +5,10 @@
 #include "../../core/debug_out.h"
 
 #if ENABLED(CONDITIONAL_GCODE)
-unsigned long timers_m710[M710_TIMER_COUNT];
-uint8_t skipGCode;
+unsigned long GcodeSuite::timers_m710[M710_TIMER_COUNT];
+uint8_t GcodeSuite::skipGCode;
 
-void M710()
+void GcodeSuite::M710()
 {
     uint8_t timerIndex = 0;
     if (parser.seenval('T'))
@@ -26,11 +26,11 @@ void M710()
         timers_m710[timerIndex] = millis();
         SERIAL_ECHO_START();
         SERIAL_ECHO("Set timer ");
-        SERIAL_PROTOCOLLN(timerIndex);
+        SERIAL_ECHOLN(timerIndex);
     }
 }
 
-void M711()
+void GcodeSuite::M711()
 {
     uint8_t timerIndex = 0;
     unsigned long comp = 1000;
@@ -57,7 +57,7 @@ void M711()
     
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM("Timer comparison. ");
-    SERIAL_PROTOCOL(timerval);
+    SERIAL_ECHO(timerval);
     if (above)
     {
         SERIAL_ECHOPGM(" >= ");
@@ -66,7 +66,7 @@ void M711()
     {
         SERIAL_ECHOPGM(" < ");
     }
-    SERIAL_PROTOCOL(comp);
+    SERIAL_ECHO(comp);
     SERIAL_ECHOLNPGM("?");
     
     if ((timerval >= comp) != above)
@@ -79,7 +79,7 @@ void M711()
         }
         
         SERIAL_ECHOPGM("No. Skipping ");
-        SERIAL_PROTOCOL(lines);
+        SERIAL_ECHO(lines);
         SERIAL_ECHOLNPGM(" lines of gcode.");
         
         if (skipGCode < lines)
