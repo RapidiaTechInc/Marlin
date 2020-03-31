@@ -1577,7 +1577,9 @@ void Stepper::pulse_phase_isr() {
         #endif
       }
     #elif HAS_E0_STEP
+    #ifndef RAPIDIA_NO_EXTRUDE
       PULSE_PREP(E);
+    #endif
     #endif
 
     #if ISR_MULTI_STEPS
@@ -1598,12 +1600,14 @@ void Stepper::pulse_phase_isr() {
       PULSE_START(Z);
     #endif
 
+    #ifndef RAPIDIA_NO_EXTRUDE
     #if DISABLED(LIN_ADVANCE)
       #if ENABLED(MIXING_EXTRUDER)
         if (step_needed.e) E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
       #elif HAS_E0_STEP
         PULSE_START(E);
       #endif
+    #endif
     #endif
 
     #if ENABLED(I2S_STEPPER_STREAM)
@@ -1631,10 +1635,14 @@ void Stepper::pulse_phase_isr() {
       #if ENABLED(MIXING_EXTRUDER)
         if (delta_error.e >= 0) {
           delta_error.e -= advance_divisor;
+          #ifndef RAPIDIA_NO_EXTRUDE
           E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
+          #endif
         }
       #elif HAS_E0_STEP
+        #ifndef RAPIDIA_NO_EXTRUDE
         PULSE_STOP(E);
+        #endif
       #endif
     #endif
 
