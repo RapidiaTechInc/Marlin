@@ -23,6 +23,9 @@
 
 // target configurations
 //#define EMULATOR
+
+#define RAPIDIA_PROTOCOL 2
+
 #define RAPIDIA_NO_EXTRUDE
 #define RAPIDIA_NO_HOTENDS
 #define RAPIDIA_PLASTIC
