@@ -42,6 +42,7 @@
 #include "module/configuration_store.h"
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #include "feature/closedloop.h"
+#include "feature/heartbeat.h"
 
 #include "HAL/shared/Delay.h"
 
@@ -712,6 +713,9 @@ void idle(
     if (!gcode.autoreport_paused) {
       #if ENABLED(AUTO_REPORT_TEMPERATURES)
         thermalManager.auto_report_temperatures();
+      #endif
+      #if ENABLED(RAPIDIA_HEARTBEAT)
+        rapidia_heartbeat();
       #endif
       #if ENABLED(AUTO_REPORT_SD_STATUS)
         card.auto_report_sd_status();
