@@ -26,6 +26,7 @@
 
 #include "../gcode.h"
 #include "../../module/temperature.h"
+#include "../../feature/heartbeat.h"
 
 /**
  * M155: Set temperature auto-report interval. M155 S<seconds>
@@ -33,8 +34,19 @@
 void GcodeSuite::M155() {
 
   if (parser.seenval('S'))
-    thermalManager.set_auto_report_interval(parser.value_byte());
-
+  {
+    uint8_t interval = parser.value_byte();
+    
+    thermalManager.set_auto_report_interval(interval);
+  }
+  
+  #if ENABLED(RAPIDIA_HEARTBEAT)
+  if (parser.seenval('H'))
+  {
+    uint16_t interval = parser.value_ushort();
+    rapidia_heartbeat_set_interval(interval);
+  }
+  #endif
 }
 
 #endif // AUTO_REPORT_TEMPERATURES && HAS_TEMP_SENSOR

@@ -2388,6 +2388,22 @@ int32_t Stepper::position(const AxisEnum axis) {
   return v;
 }
 
+/**
+ * Get all stepper's position in steps.
+ */
+xyze_long_t Stepper::position() {
+  
+  // Protect the access to the position.
+  const bool was_enabled = suspend();
+
+  const xyze_long_t v = count_position;
+
+  // Reenable Stepper ISR
+  if (was_enabled) wake_up();
+  
+  return v;
+}
+
 // Set the current position in steps
 void Stepper::set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
   planner.synchronize();

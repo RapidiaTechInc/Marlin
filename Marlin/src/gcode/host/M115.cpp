@@ -53,6 +53,11 @@ void GcodeSuite::M115() {
   #endif
 
   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
+  
+    // RAPIDIA HEARTBEAT
+    #ifdef RAPIDIA_HEARTBEAT
+      cap_line(PSTR("RAPIDIA_HEARTBEAT"), true);
+    #endif
 
     // PAREN_COMMENTS
     #if ENABLED(PAREN_COMMENTS)

@@ -2748,6 +2748,8 @@
  */
 #define AUTO_REPORT_TEMPERATURES
 
+#define RAPIDIA_HEARTBEAT
+
 /**
  * Include capabilities in M115 output
  */
