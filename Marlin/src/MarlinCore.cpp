@@ -741,7 +741,7 @@ void idle(
         thermalManager.auto_report_temperatures();
       #endif
       #if ENABLED(RAPIDIA_HEARTBEAT)
-        rapidia_heartbeat();
+        Rapidia::heartbeat.auto_report();
       #endif
       #if ENABLED(AUTO_REPORT_SD_STATUS)
         card.auto_report_sd_status();
