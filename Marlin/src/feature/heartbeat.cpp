@@ -71,10 +71,10 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
     LOOP_XYZE(axis)
     {
       position[axis] = state.position[axis];
-      position[axis] /= planner.settings.axis_steps_per_mm[X_AXIS];
+      position[axis] /= planner.settings.axis_steps_per_mm[axis];
     }
   
-    report_xyzet(state.position.asLogical(), state.extruder);
+    report_xyzet(position.asLogical(), state.extruder);
     SERIAL_CHAR('}');
     SERIAL_CHAR(',');
   }
