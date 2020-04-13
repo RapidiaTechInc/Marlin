@@ -18,7 +18,7 @@ enum class HeartbeatSelection : uint8_t
 class Heartbeat
 {
 public:
-  static HeartbeatSelection selection;
+  static uint8_t selection;
   
   // checks for heartbeat timer elapsed, if so, sends heartbeat message.
   static void auto_report();
@@ -28,6 +28,9 @@ public:
   
   // sends status message
   static void serial_info(HeartbeatSelection selection);
+  
+  // enables/disables individual status messages
+  static void select(HeartbeatSelection selection, bool enable);
 };
 
 extern Heartbeat heartbeat;

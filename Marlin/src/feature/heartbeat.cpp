@@ -11,7 +11,9 @@ namespace Rapidia
 {
 static uint16_t heartbeat_interval = 0;
 static millis_t next_heartbeat_report_ms = 0;
-HeartbeatSelection Heartbeat::selection =  HeartbeatSelection::ALL;
+
+decltype(Heartbeat::selection) Heartbeat::selection
+  = (decltype(Heartbeat::selection))HeartbeatSelection::ALL;
 
 void Heartbeat::set_interval(uint16_t v)
 {
@@ -19,16 +21,19 @@ void Heartbeat::set_interval(uint16_t v)
   next_heartbeat_report_ms = millis() + v;
 }
 
-// lifted wholesale from M114.cpp
-static void report_xyze(const xyze_pos_t &pos, const uint8_t n=XYZE, const uint8_t precision=3) {
+static void report_xyzet(const xyze_pos_t &pos, const uint8_t extruder, const uint8_t n=XYZE, const uint8_t precision=3) {
   char str[12];
-  bool first = true;
+  
+  // position.
   LOOP_L_N(a, n) {
-    if (!first) SERIAL_CHAR(',');
     SERIAL_CHAR(axis_codes[a], ':');
     SERIAL_ECHO(dtostrf(pos[a], 1, precision, str));
-    first = false;
+    SERIAL_CHAR(',');
   }
+  
+  // extruder number
+  SERIAL_CHAR('T', ':');
+  SERIAL_CHAR('0' + extruder);
 }
 
 #define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
@@ -48,7 +53,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
     SERIAL_CHAR(':');
     SERIAL_CHAR('{');
     
-    report_xyze(current_position.asLogical());
+    report_xyzet(current_position.asLogical(), active_extruder);
     SERIAL_CHAR('}');
     SERIAL_CHAR(',');
   }
@@ -61,13 +66,15 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
     SERIAL_CHAR('{');
     
     // unit conversion steps -> logical
-    xyze_long_t position = stepper.position();
+    Stepper::State state = stepper.report_state();
+    xyze_pos_t position;
     LOOP_XYZE(axis)
     {
-        position[axis] /= planner.settings.axis_steps_per_mm[X_AXIS];
+      position[axis] = state.position[axis];
+      position[axis] /= planner.settings.axis_steps_per_mm[X_AXIS];
     }
   
-    report_xyze(position.asLogical());
+    report_xyzet(state.position.asLogical(), state.extruder);
     SERIAL_CHAR('}');
     SERIAL_CHAR(',');
   }
@@ -98,13 +105,26 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
   // end heartbeat
 }
 
-void Heartbeat::auto_report() {
+void Heartbeat::auto_report()
+{
   if (heartbeat_interval && ELAPSED(millis(), next_heartbeat_report_ms)) {
     next_heartbeat_report_ms = millis() + heartbeat_interval;
 
     PORT_REDIRECT(SERIAL_BOTH);
-    serial_info(Heartbeat::selection);
+    serial_info(static_cast<HeartbeatSelection>(Heartbeat::selection));
     SERIAL_EOL();
+  }
+}
+
+void Heartbeat::select(HeartbeatSelection selection, bool enable)
+{
+  if (enable)
+  {
+    Heartbeat::selection |= (decltype(Heartbeat::selection)) selection;
+  }
+  else
+  {
+    Heartbeat::selection &= ~(decltype(Heartbeat::selection)) selection;
   }
 }
 

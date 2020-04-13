@@ -2388,20 +2388,18 @@ int32_t Stepper::position(const AxisEnum axis) {
   return v;
 }
 
-/**
- * Get all stepper's position in steps.
- */
-xyze_long_t Stepper::position() {
+Stepper::State Stepper::report_state() {
   
   // Protect the access to the position.
   const bool was_enabled = suspend();
 
   const xyze_long_t v = count_position;
+  uint8_t extruder = Stepper::stepper_extruder;
 
   // Reenable Stepper ISR
   if (was_enabled) wake_up();
   
-  return v;
+  return { v, extruder };
 }
 
 // Set the current position in steps
