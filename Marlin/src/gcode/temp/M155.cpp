@@ -41,10 +41,30 @@ void GcodeSuite::M155() {
   }
   
   #if ENABLED(RAPIDIA_HEARTBEAT)
+  using namespace Rapidia;
+  
   if (parser.seenval('H'))
   {
     uint16_t interval = parser.value_ushort();
-    Rapidia::heartbeat.set_interval(interval);
+    heartbeat.set_interval(interval);
+  }
+  
+  if (parser.seenval('P'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::PLAN_POSITION, enabled);
+  }
+  
+  if (parser.seenval('C'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::ABS_POSITION, enabled);
+  }
+  
+  if (parser.seenval('R'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::RELMODE, enabled);
   }
   #endif
 }

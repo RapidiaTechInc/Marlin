@@ -405,8 +405,13 @@ class Stepper {
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);
     
-    // Get the position of all steppers, in steps.
-    static xyze_long_t position();
+    // Get the position of all steppers, in steps,
+    // and the current extruder.
+    struct State {
+      xyze_long_t position;
+      uint8_t extruder;
+    };
+    static State report_state();
 
     // Set the current position in steps
     static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
