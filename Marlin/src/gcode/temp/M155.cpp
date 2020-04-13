@@ -44,7 +44,7 @@ void GcodeSuite::M155() {
   if (parser.seenval('H'))
   {
     uint16_t interval = parser.value_ushort();
-    rapidia_heartbeat_set_interval(interval);
+    Rapidia::heartbeat.set_interval(interval);
   }
   #endif
 }

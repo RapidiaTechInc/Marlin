@@ -3,13 +3,17 @@
 #include "../inc/MarlinConfig.h"
 #include "../module/stepper.h"
 #include "../module/planner.h"
+#include "../gcode/gcode.h"
 
 #if ENABLED(RAPIDIA_HEARTBEAT)
 
-uint16_t heartbeat_interval = 0;
-millis_t next_heartbeat_report_ms = 0;
+namespace Rapidia
+{
+static uint16_t heartbeat_interval = 0;
+static millis_t next_heartbeat_report_ms = 0;
+HeartbeatSelection Heartbeat::selection =  HeartbeatSelection::ALL;
 
-void rapidia_heartbeat_set_interval(uint16_t v)
+void Heartbeat::set_interval(uint16_t v)
 {
   heartbeat_interval = v;
   next_heartbeat_report_ms = millis() + v;
@@ -27,7 +31,9 @@ static void report_xyze(const xyze_pos_t &pos, const uint8_t n=XYZE, const uint8
   }
 }
 
-static void print_heartbeat()
+#define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
+
+void Heartbeat::serial_info(HeartbeatSelection selection)
 {
   // begin heartbeat
   SERIAL_CHAR(' ');
@@ -35,44 +41,73 @@ static void print_heartbeat()
   SERIAL_CHAR(':');
   SERIAL_CHAR('{');
   
-  // begin plan position
-  SERIAL_CHAR('P');
-  SERIAL_CHAR(':');
-  SERIAL_CHAR('{');
-  
-  report_xyze(current_position.asLogical());
-  SERIAL_CHAR('}');
-  SERIAL_CHAR(',');
-  // end plan position
-  
-  // begin actual position
-  SERIAL_CHAR('C');
-  SERIAL_CHAR(':');
-  SERIAL_CHAR('{');
-  
-  // unit conversion steps -> logical
-  xyze_long_t position = stepper.position();
-  LOOP_XYZE(axis)
+  // plan position
+  if (TEST_FLAG(selection, HeartbeatSelection::PLAN_POSITION))
   {
-      position[axis] /= planner.settings.axis_steps_per_mm[X_AXIS];
+    SERIAL_CHAR('P');
+    SERIAL_CHAR(':');
+    SERIAL_CHAR('{');
+    
+    report_xyze(current_position.asLogical());
+    SERIAL_CHAR('}');
+    SERIAL_CHAR(',');
   }
   
-  report_xyze(position.asLogical());
-  SERIAL_CHAR('}');
-  // end actual position
+  // actual position
+  if (TEST_FLAG(selection, HeartbeatSelection::ABS_POSITION))
+  {
+    SERIAL_CHAR('C');
+    SERIAL_CHAR(':');
+    SERIAL_CHAR('{');
+    
+    // unit conversion steps -> logical
+    xyze_long_t position = stepper.position();
+    LOOP_XYZE(axis)
+    {
+        position[axis] /= planner.settings.axis_steps_per_mm[X_AXIS];
+    }
+  
+    report_xyze(position.asLogical());
+    SERIAL_CHAR('}');
+    SERIAL_CHAR(',');
+  }
+  
+  // relative mode axes:
+  if (TEST_FLAG(selection, HeartbeatSelection::RELMODE))
+  {
+    SERIAL_CHAR('R');
+    SERIAL_CHAR(':');
+    SERIAL_CHAR('"');
+    LOOP_XYZE(axis)
+    {
+      if (gcode.axis_is_relative(AxisEnum(axis)))
+      {
+        SERIAL_CHAR(axis_codes[axis]);
+      }
+    }
+    SERIAL_CHAR('"');
+    SERIAL_CHAR(',');
+  }
+  
+  // dummy data at end of json so that we don't have to worry about separators.
+  SERIAL_CHAR('_');
+  SERIAL_CHAR(':');
+  SERIAL_CHAR('0');
   
   SERIAL_CHAR('}');
   // end heartbeat
 }
 
-void rapidia_heartbeat() {
+void Heartbeat::auto_report() {
   if (heartbeat_interval && ELAPSED(millis(), next_heartbeat_report_ms)) {
     next_heartbeat_report_ms = millis() + heartbeat_interval;
 
     PORT_REDIRECT(SERIAL_BOTH);
-    print_heartbeat();
+    serial_info(Heartbeat::selection);
     SERIAL_EOL();
   }
 }
+
+} // namespace Rapidia
 
 #endif // ENABLED(RAPIDIA_HEARTBEAT)

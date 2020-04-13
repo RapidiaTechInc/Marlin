@@ -4,10 +4,33 @@
 
 #if ENABLED(RAPIDIA_HEARTBEAT)
 
-// checks for heartbeat timer elapsed, if so, sends heartbeat message.
-void rapidia_heartbeat();
+namespace Rapidia
+{
 
-// sets heartbeat interval.
-void rapidia_heartbeat_set_interval(uint16_t ms);
+enum class HeartbeatSelection : uint8_t
+{
+  PLAN_POSITION = _BV(0),
+  ABS_POSITION = _BV(1),
+  RELMODE = _BV(2),
+  ALL = PLAN_POSITION | ABS_POSITION | RELMODE
+};
+
+class Heartbeat
+{
+public:
+  static HeartbeatSelection selection;
+  
+  // checks for heartbeat timer elapsed, if so, sends heartbeat message.
+  static void auto_report();
+
+  // sets heartbeat interval.
+  static void set_interval(uint16_t ms);
+  
+  // sends status message
+  static void serial_info(HeartbeatSelection selection);
+};
+
+extern Heartbeat heartbeat;
+}
 
 #endif
