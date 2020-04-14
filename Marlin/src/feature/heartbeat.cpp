@@ -12,8 +12,8 @@ namespace Rapidia
 static uint16_t heartbeat_interval = 0;
 static millis_t next_heartbeat_report_ms = 0;
 
-decltype(Heartbeat::selection) Heartbeat::selection
-  = (decltype(Heartbeat::selection))HeartbeatSelection::ALL;
+HeartbeatSelectionUint Heartbeat::selection
+  = (HeartbeatSelectionUint)HeartbeatSelection::DEFAULT;
 
 void Heartbeat::set_interval(uint16_t v)
 {
@@ -21,13 +21,20 @@ void Heartbeat::set_interval(uint16_t v)
   next_heartbeat_report_ms = millis() + v;
 }
 
-static void report_xyzet(const xyze_pos_t &pos, const uint8_t extruder, const uint8_t n=XYZE, const uint8_t precision=3) {
+static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const bool feedrate=false, const uint8_t n=XYZE, const uint8_t precision=3) {
   char str[12];
   
   // position.
   LOOP_L_N(a, n) {
     SERIAL_CHAR(axis_codes[a], ':');
     SERIAL_ECHO(dtostrf(pos[a], 1, precision, str));
+    SERIAL_CHAR(',');
+  }
+  
+  if (feedrate)
+  {
+    SERIAL_CHAR('F', ':');
+    SERIAL_ECHO(dtostrf(feedrate_mm_s, 1, precision, str));
     SERIAL_CHAR(',');
   }
   
@@ -53,7 +60,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
     SERIAL_CHAR(':');
     SERIAL_CHAR('{');
     
-    report_xyzet(current_position.asLogical(), active_extruder);
+    report_xyzetf(current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
     SERIAL_CHAR('}');
     SERIAL_CHAR(',');
   }
@@ -74,7 +81,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
       position[axis] /= planner.settings.axis_steps_per_mm[axis];
     }
   
-    report_xyzet(position.asLogical(), state.extruder);
+    report_xyzetf(position.asLogical(), state.extruder);
     SERIAL_CHAR('}');
     SERIAL_CHAR(',');
   }
@@ -93,6 +100,34 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
       }
     }
     SERIAL_CHAR('"');
+    SERIAL_CHAR(',');
+  }
+  
+  // dualx info
+  if (TEST_FLAG(selection, HeartbeatSelection::DUALX))
+  {
+    SERIAL_CHAR('X', ':');
+    SERIAL_CHAR('{');
+    {
+      char str[12];
+      
+      // dual_x_carriage_mode
+      SERIAL_CHAR('S', ':');
+      SERIAL_CHAR('0' + (int32_t)(dual_x_carriage_mode));
+      SERIAL_CHAR(',');
+      
+      // active toolhead
+      SERIAL_CHAR('T', ':');
+      SERIAL_CHAR('0' + (int32_t)(active_extruder));
+      SERIAL_CHAR(',');
+      
+      // stored x position
+      SERIAL_CHAR('X', ':');
+      SERIAL_ECHO(dtostrf(inactive_extruder_x_pos, 1, 3, str));
+      
+      // TODO: stored feedrate.
+    }
+    SERIAL_CHAR('}');
     SERIAL_CHAR(',');
   }
   
@@ -120,11 +155,11 @@ void Heartbeat::select(HeartbeatSelection selection, bool enable)
 {
   if (enable)
   {
-    Heartbeat::selection |= (decltype(Heartbeat::selection)) selection;
+    Heartbeat::selection |= static_cast<HeartbeatSelectionUint>(selection);
   }
   else
   {
-    Heartbeat::selection &= ~(decltype(Heartbeat::selection)) selection;
+    Heartbeat::selection &= ~static_cast<HeartbeatSelectionUint>(selection);
   }
 }
 

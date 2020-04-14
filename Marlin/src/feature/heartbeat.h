@@ -7,18 +7,22 @@
 namespace Rapidia
 {
 
-enum class HeartbeatSelection : uint8_t
+typedef uint8_t HeartbeatSelectionUint;
+
+enum class HeartbeatSelection : HeartbeatSelectionUint
 {
-  PLAN_POSITION = _BV(0),
-  ABS_POSITION = _BV(1),
-  RELMODE = _BV(2),
-  ALL = PLAN_POSITION | ABS_POSITION | RELMODE
+  PLAN_POSITION = _BV(0), // 'P'
+  ABS_POSITION  = _BV(1), // 'C'
+  RELMODE       = _BV(2), // 'R'
+  FEEDRATE      = _BV(3), // 'F' (reported in P)
+  DUALX         = _BV(4), // 'X'
+  DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE
 };
 
 class Heartbeat
 {
 public:
-  static uint8_t selection;
+  static HeartbeatSelectionUint selection;
   
   // checks for heartbeat timer elapsed, if so, sends heartbeat message.
   static void auto_report();
