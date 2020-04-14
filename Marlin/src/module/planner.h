@@ -61,6 +61,11 @@
                             manual_feedrate_mm_s { _mf.x / 60.0f, _mf.y / 60.0f, _mf.z / 60.0f, _mf.e / 60.0f };
 #endif
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  typedef int32_t source_line_t;
+  constexpr source_line_t NO_SOURCE_LINE = -1;
+#endif
+
 enum BlockFlagBit : char {
   // Recalculate trapezoids on entry junction. For optimization.
   BLOCK_BIT_RECALCULATE,
@@ -168,6 +173,10 @@ typedef struct block_t {
 
   #if ENABLED(POWER_LOSS_RECOVERY)
     uint32_t sdpos;
+  #endif
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    source_line_t source_line;
   #endif
 
 } block_t;
@@ -622,6 +631,14 @@ class Planner {
      * Add a block to the buffer that just updates the position
      */
     static void buffer_sync_block();
+    
+    #ifdef RAPIDIA_BLOCK_SOURCE
+      /**
+       * Mark the most recently added block as being the last block added by a particular line of gcode,
+       * and hence a safe spot to "soft-pause" at.
+       */
+      static void mark_block(source_line_t);
+    #endif
 
   #if IS_KINEMATIC
     private:

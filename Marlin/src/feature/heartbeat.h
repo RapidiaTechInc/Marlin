@@ -16,7 +16,7 @@ enum class HeartbeatSelection : HeartbeatSelectionUint
   RELMODE       = _BV(2), // 'R'
   FEEDRATE      = _BV(3), // 'F' (reported in P)
   DUALX         = _BV(4), // 'X'
-  DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE
+  _DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE
 };
 
 class Heartbeat

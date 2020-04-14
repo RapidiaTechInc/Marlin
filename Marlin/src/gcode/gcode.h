@@ -296,6 +296,10 @@ class GcodeSuite {
 public:
 
   static uint8_t axis_relative;
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+   static long gcode_N;
+  #endif
 
   static inline bool axis_is_relative(const AxisEnum a) {
     if (a == E_AXIS) {

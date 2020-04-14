@@ -57,6 +57,11 @@ public:
   #if NUM_SERIAL > 1
     static int16_t port[BUFSIZE];
   #endif
+  
+  // keep track of line numbers for each command
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    static long line[BUFSIZE];
+  #endif
 
   GCodeQueue();
 
@@ -137,11 +142,17 @@ private:
     #if NUM_SERIAL > 1
       , int16_t p=-1
     #endif
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      , long line=-1
+    #endif
   );
 
   static bool _enqueue(const char* cmd, bool say_ok=false
     #if NUM_SERIAL > 1
       , int16_t p=-1
+    #endif
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      , long line=-1
     #endif
   );
 

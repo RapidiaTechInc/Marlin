@@ -66,6 +66,10 @@ uint8_t GcodeSuite::axis_relative = (
   | (ar_init.e ? _BV(REL_E) : 0)
 );
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+ long GcodeSuite::gcode_N = -1;
+#endif
+
 #if HAS_AUTO_REPORTING || ENABLED(HOST_KEEPALIVE_FEATURE)
   bool GcodeSuite::autoreport_paused; // = false
 #endif
@@ -918,7 +922,15 @@ void GcodeSuite::process_next_command() {
 
   // Parse the next command in the queue
   parser.parse(current_command);
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    gcode_N = queue.line[queue.index_r];
+  #endif
+  
   process_parsed_command();
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    gcode_N = -1;
+  #endif
 }
 
 /**

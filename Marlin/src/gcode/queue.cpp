@@ -52,7 +52,7 @@ GCodeQueue queue;
  * sending commands to Marlin, and lines will be checked for sequentiality.
  * M110 N<int> sets the current line number.
  */
-long gcode_N, GCodeQueue::last_N;
+long GCodeQueue::last_N;
 
 /**
  * GCode Command Queue
@@ -74,6 +74,11 @@ char GCodeQueue::command_buffer[BUFSIZE][MAX_CMD_SIZE];
  */
 #if NUM_SERIAL > 1
   int16_t GCodeQueue::port[BUFSIZE];
+#endif
+
+// line number for each command.
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  long GCodeQueue::line[BUFSIZE];
 #endif
 
 /**
@@ -118,10 +123,16 @@ void GCodeQueue::_commit_command(bool say_ok
   #if NUM_SERIAL > 1
     , int16_t p/*=-1*/
   #endif
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    , long l/*=-1*/
+  #endif
 ) {
   send_ok[index_w] = say_ok;
   #if NUM_SERIAL > 1
     port[index_w] = p;
+  #endif
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    line[index_w] = l;
   #endif
   #if ENABLED(POWER_LOSS_RECOVERY)
     recovery.commit_sdpos(index_w);
@@ -139,12 +150,18 @@ bool GCodeQueue::_enqueue(const char* cmd, bool say_ok/*=false*/
   #if NUM_SERIAL > 1
     , int16_t pn/*=-1*/
   #endif
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    , long line/*=-1*/
+  #endif
 ) {
   if (*cmd == ';' || length >= BUFSIZE) return false;
   strcpy(command_buffer[index_w], cmd);
   _commit_command(say_ok
     #if NUM_SERIAL > 1
       , pn
+    #endif
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      , line
     #endif
   );
   return true;
@@ -444,6 +461,9 @@ void GCodeQueue::get_serial_commands() {
 
         while (*command == ' ') command++;                   // Skip leading spaces
         char *npos = (*command == 'N') ? command : nullptr;  // Require the N parameter to start the line
+        
+        static long gcode_N = -1;
+        gcode_N = -1;
 
         if (npos) {
 
@@ -520,6 +540,9 @@ void GCodeQueue::get_serial_commands() {
         _enqueue(serial_line_buffer[i], true
           #if NUM_SERIAL > 1
             , i
+          #endif
+          #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+            , gcode_N
           #endif
         );
       }

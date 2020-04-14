@@ -44,6 +44,8 @@
     #define HOTENDS_ENABLED
 #endif
 
+#define RAPIDIA_BLOCK_SOURCE
+
 /**
  * Configuration.h
  *
