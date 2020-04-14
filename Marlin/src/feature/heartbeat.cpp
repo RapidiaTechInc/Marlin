@@ -13,7 +13,7 @@ static uint16_t heartbeat_interval = 0;
 static millis_t next_heartbeat_report_ms = 0;
 
 HeartbeatSelectionUint Heartbeat::selection
-  = (HeartbeatSelectionUint)HeartbeatSelection::DEFAULT;
+  = (HeartbeatSelectionUint)HeartbeatSelection::_DEFAULT;
 
 void Heartbeat::set_interval(uint16_t v)
 {

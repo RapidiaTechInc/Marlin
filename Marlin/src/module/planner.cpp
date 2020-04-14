@@ -1806,6 +1806,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   #else
     constexpr uint32_t esteps = 0;
   #endif
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    block->source_line = NO_SOURCE_LINE;
+  #endif
 
   // Clear all flags, including the "busy" bit
   block->flag = 0x00;
@@ -2535,6 +2539,10 @@ void Planner::buffer_sync_block() {
 
   // Clear block
   memset(block, 0, sizeof(block_t));
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    block->source_line = NO_SOURCE_LINE;
+  #endif
 
   block->flag = BLOCK_FLAG_SYNC_POSITION;
 
@@ -2554,6 +2562,21 @@ void Planner::buffer_sync_block() {
 
   stepper.wake_up();
 } // buffer_sync_block()
+
+
+
+void Planner::mark_block(source_line_t source_line) {
+  if (block_buffer_head == block_buffer_tail) {
+    // the queue is empty, so we've already reached finished every gcode, including
+    // source_line.
+    return;
+  }
+  else {
+    // most recently-added block.
+    block_t* block = &block_buffer[prev_block_index(block_buffer_head)];
+    block->source_line = source_line;
+  }
+} // mark_block()
 
 /**
  * Planner::buffer_segment

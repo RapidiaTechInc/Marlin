@@ -122,4 +122,8 @@ void GcodeSuite::G0_G1(
       }
     #endif
   }
+  
+  #if ENABLED(RAPIDIA_PLAN_SOURCE)
+    planner.mark_line(gcode_N);
+  #endif
 }
