@@ -66,6 +66,18 @@ void GcodeSuite::M155() {
     uint16_t enabled = parser.value_ushort();
     heartbeat.select(HeartbeatSelection::RELMODE, enabled);
   }
+  
+  if (parser.seenval('F'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::FEEDRATE, enabled);
+  }
+  
+  if (parser.seenval('X'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::DUALX, enabled);
+  }
   #endif
 }
 
