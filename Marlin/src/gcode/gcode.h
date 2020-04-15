@@ -889,6 +889,11 @@ private:
     static void M710();
     static void M711();
   #endif
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    static void M730(); // enable line finished reporting
+    static void M731(); // disable line finished reporting
+  #endif
 
   #if ENABLED(GCODE_MACROS)
     static void M810_819();

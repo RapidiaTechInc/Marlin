@@ -770,8 +770,13 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
       
       #if ENABLED(CONDITIONAL_GCODE)
-        case 710: M710(); break;                              // M710: set timer
-        case 711: M711(); break;                              // timer-predicate conditional execution
+        case 710: M710(); break;                                  // M710: set timer
+        case 711: M711(); break;                                  // timer-predicate conditional execution
+      #endif
+      
+      #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+        case 730: M730(); break;                                  // M730: enable report on line finish
+        case 731: M731(); break;                                  // M731: disable report on line finish
       #endif
 
       #if ENABLED(GCODE_MACROS)
@@ -923,13 +928,13 @@ void GcodeSuite::process_next_command() {
   // Parse the next command in the queue
   parser.parse(current_command);
   #if ENABLED(RAPIDIA_BLOCK_SOURCE)
-    gcode_N = queue.line[queue.index_r];
+    GcodeSuite::gcode_N = queue.line[queue.index_r];
   #endif
   
   process_parsed_command();
   
   #if ENABLED(RAPIDIA_BLOCK_SOURCE)
-    gcode_N = -1;
+    GcodeSuite::gcode_N = -1;
   #endif
 }
 

@@ -734,6 +734,20 @@ void idle(
   #ifdef HAL_IDLETASK
     HAL_idletask();
   #endif
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  {
+    long last_source_line = planner.clear_last_source_line();
+    if (planner.auto_report_line_finished)
+    {
+      if (last_source_line != -1)
+      {
+        SERIAL_ECHOPGM("Finished executing N");
+        SERIAL_ECHOLN(last_source_line);
+      }
+    }
+  }
+  #endif 
 
   #if HAS_AUTO_REPORTING
     if (!gcode.autoreport_paused) {
