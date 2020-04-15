@@ -245,6 +245,14 @@ class Planner {
     static uint16_t cleaning_buffer_counter;        // A counter to disable queuing of blocks
     static uint8_t delay_before_delivering;         // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      // this can be edited by the stepper interrupt,
+      // so please access this via get_last_source_line() / clear_last_source_line().
+      static volatile long last_source_line;
+      
+      // enable message when line is finished
+      static long auto_report_line_finished;
+    #endif
 
     #if ENABLED(DISTINCT_E_FACTORS)
       static uint8_t last_extruder;                 // Respond to extruder change
@@ -806,11 +814,29 @@ class Planner {
     /**
      * "Discard" the block and "release" the memory.
      * Called when the current block is no longer needed.
+     * 
+     * WARNING: Should only be called from Stepper ISR context!
      */
     FORCE_INLINE static void discard_current_block() {
       if (has_blocks_queued())
+      {
+        #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+          block_t* block = &block_buffer[block_buffer_tail];
+          if (block->source_line != NO_SOURCE_LINE)
+          {
+            Planner::last_source_line = block->source_line;
+          }
+        #endif
+        
+        // advance tail
         block_buffer_tail = next_block_index(block_buffer_tail);
+      }
     }
+    
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      static long get_last_source_line();
+      static long clear_last_source_line();
+    #endif
 
     #if HAS_SPI_LCD
       static uint16_t block_buffer_runtime();

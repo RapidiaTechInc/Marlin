@@ -465,6 +465,7 @@ void GCodeQueue::get_serial_commands() {
         static long gcode_N = -1;
         gcode_N = -1;
 
+        // read line number
         if (npos) {
 
           bool M110 = strstr_P(command, PSTR("M110")) != nullptr;
@@ -479,6 +480,7 @@ void GCodeQueue::get_serial_commands() {
           if (gcode_N != last_N + 1 && !M110)
             return gcode_line_error(PSTR(STR_ERR_LINE_NO), i);
 
+          // calculate checksum and compare
           char *apos = strrchr(command, '*');
           if (apos) {
             uint8_t checksum = 0, count = uint8_t(apos - command);
@@ -487,7 +489,11 @@ void GCodeQueue::get_serial_commands() {
               return gcode_line_error(PSTR(STR_ERR_CHECKSUM_MISMATCH), i);
           }
           else
-            return gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
+          {
+            #if ENABLED(LINE_NUMBERS_REQUIRES_CHECKSUM)
+              return gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
+            #endif
+          }
 
           last_N = gcode_N;
         }

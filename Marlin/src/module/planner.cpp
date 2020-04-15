@@ -155,6 +155,11 @@ float Planner::steps_to_mm[XYZE_N];           // (mm) Millimeters per step
   bool Planner::abort_on_endstop_hit = false;
 #endif
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  volatile long Planner::last_source_line = -1;
+  long Planner::auto_report_line_finished = false;
+#endif
+
 #if ENABLED(DISTINCT_E_FACTORS)
   uint8_t Planner::last_extruder = 0;     // Respond to extruder change
 #endif
@@ -2904,6 +2909,25 @@ void Planner::set_max_jerk(const AxisEnum axis, float targetValue) {
     UNUSED(axis); UNUSED(targetValue);
   #endif
 }
+
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  long Planner::get_last_source_line()
+  {
+    const bool was_enabled = stepper.suspend();
+    volatile long line = Planner::last_source_line;
+    if (was_enabled) stepper.wake_up();
+    return line;
+  }
+  
+  long Planner::clear_last_source_line()
+  {
+    const bool was_enabled = stepper.suspend();
+    volatile long line = Planner::last_source_line;
+    Planner::last_source_line = -1;
+    if (was_enabled) stepper.wake_up();
+    return line;
+  }
+#endif
 
 #if HAS_SPI_LCD
 
