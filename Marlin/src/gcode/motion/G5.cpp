@@ -58,6 +58,11 @@ void GcodeSuite::G5() {
     };
 
     cubic_b_spline(current_position, destination, offsets, MMS_SCALED(feedrate_mm_s), active_extruder);
+    
+    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      planner.mark_block(GcodeSuite::gcode_N);
+    #endif
+    
     current_position = destination;
   }
 }

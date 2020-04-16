@@ -335,6 +335,11 @@ void GcodeSuite::G2_G3(const bool clockwise) {
 
       // Send the arc to the planner
       plan_arc(destination, arc_offset, clockwise);
+      
+      #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+        planner.mark_block(GcodeSuite::gcode_N);
+      #endif
+      
       reset_stepper_timeout();
     }
     else

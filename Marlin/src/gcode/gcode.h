@@ -293,13 +293,20 @@
 enum AxisRelative : uint8_t { REL_X, REL_Y, REL_Z, REL_E, E_MODE_ABS, E_MODE_REL };
 
 class GcodeSuite {
-public:
-
-  static uint8_t axis_relative;
+private:
+  #if ENABLED(CONDITIONAL_GCODE)
+    static unsigned long timers_m710[M710_TIMER_COUNT];
+    static uint8_t skipGCode;
+    static bool conditional_execution();
+  #endif
   
   #if ENABLED(RAPIDIA_BLOCK_SOURCE)
    static long gcode_N;
   #endif
+  
+public:
+
+  static uint8_t axis_relative;
 
   static inline bool axis_is_relative(const AxisEnum a) {
     if (a == E_AXIS) {
@@ -884,8 +891,6 @@ private:
   #endif
   
   #if ENABLED(CONDITIONAL_GCODE)
-    static unsigned long timers_m710[M710_TIMER_COUNT];
-    static uint8_t skipGCode;
     static void M710();
     static void M711();
   #endif
@@ -893,6 +898,10 @@ private:
   #if ENABLED(RAPIDIA_BLOCK_SOURCE)
     static void M730(); // enable line finished reporting
     static void M731(); // disable line finished reporting
+  #endif
+  
+  #if ENABLED(RAPIDIA_PAUSE)
+    static void M751(); // pause
   #endif
 
   #if ENABLED(GCODE_MACROS)

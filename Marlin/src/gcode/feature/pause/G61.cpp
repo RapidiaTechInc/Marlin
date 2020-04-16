@@ -66,6 +66,10 @@ void GcodeSuite::G61(void) {
 
   // Move to the saved position
   prepare_line_to_destination();
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    planner.mark_block(GcodeSuite::gcode_N);
+  #endif
 }
 
 #endif // SAVED_POSITIONS
