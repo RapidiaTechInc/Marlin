@@ -2096,21 +2096,9 @@ uint32_t Stepper::block_phase_isr() {
 // we must explicitly prevent that!
 bool Stepper::is_block_busy(const block_t* const block) {
   #ifdef __AVR__
-    // A SW memory barrier, to ensure GCC does not overoptimize loops
-    #define sw_barrier() asm volatile("": : :"memory");
-
-    // Keep reading until 2 consecutive reads return the same value,
-    // meaning there was no update in-between caused by an interrupt.
-    // This works because stepper ISRs happen at a slower rate than
-    // successive reads of a variable, so 2 consecutive reads with
-    // the same value means no interrupt updated it.
-    block_t* vold, *vnew = current_block;
-    sw_barrier();
-    do {
-      vold = vnew;
-      vnew = current_block;
-      sw_barrier();
-    } while (vold != vnew);
+    const bool was_enabled = suspend();
+    block_t *vnew = current_block;
+    if (was_enabled) wake_up();
   #else
     block_t *vnew = current_block;
   #endif
