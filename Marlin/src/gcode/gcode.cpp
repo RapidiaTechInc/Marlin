@@ -224,6 +224,25 @@ void GcodeSuite::dwell(millis_t time) {
   extern void M100_dump_routine(PGM_P const title, const char * const start, const char * const end);
 #endif
 
+#if ENABLED(CONDITIONAL_GCODE)
+// returns false if conditional execution prevents this from running.
+// decrements the condition wait.
+bool GcodeSuite::conditional_execution()
+{
+  if (GcodeSuite::skipGCode > 0) {
+     // skip conditional gcode
+     if (--GcodeSuite::skipGCode == 0) {
+       SERIAL_ECHO_START();
+       SERIAL_ECHOLN("Conditional block finished. Now receiving GCode.");
+
+       // (skip this one that was just received as well, however).
+     }
+     return false;
+  }
+  return true;
+}
+#endif
+
 /**
  * Process the parsed command and dispatch it to its handler
  */
@@ -232,7 +251,13 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
   // Handle a known G, M, or T
   switch (parser.command_letter) {
-    case 'G': switch (parser.codenum) {
+    case 'G':
+
+    #if ENABLED(CONDITIONAL_GCODE)
+      if (!conditional_execution()) break;
+    #endif // CONDITIONAL_GCODE
+
+    switch (parser.codenum) {
 
       case 0: case 1: G0_G1(                                      // G0: Fast Move, G1: Linear Move
                         #if IS_SCARA || defined(G0_FEEDRATE)
@@ -886,7 +911,15 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
     }
     break;
 
-    case 'T': T(parser.codenum); break;                           // Tn: Tool Change
+    case 'T': {
+
+      #if ENABLED(CONDITIONAL_GCODE)
+        if (!conditional_execution()) break;
+      #endif // CONDITIONAL_GCODE
+
+      T(parser.codenum);                                          // Tn: Tool Change
+      break;
+    }
 
     default:
       #if ENABLED(WIFI_CUSTOM_COMMAND)
