@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../inc/MarlinConfigPre.h"
+#include "../../inc/MarlinConfigPre.h"
 
 #if ENABLED(RAPIDIA_HEARTBEAT)
 

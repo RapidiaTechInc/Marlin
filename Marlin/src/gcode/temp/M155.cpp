@@ -26,7 +26,7 @@
 
 #include "../gcode.h"
 #include "../../module/temperature.h"
-#include "../../feature/heartbeat.h"
+#include "../../feature/rapidia/heartbeat.h"
 
 /**
  * M155: Set temperature auto-report interval. M155 S<seconds>

@@ -47,6 +47,10 @@ GCodeQueue queue;
   #include "../feature/powerloss.h"
 #endif
 
+#if ENABLED(RAPIDIA_PAUSE)
+  #include "../feature/rapidia/pause.h"
+#endif
+
 /**
  * GCode line number handling. Hosts may opt to include line numbers when
  * sending commands to Marlin, and lines will be checked for sequentiality.
@@ -534,8 +538,10 @@ void GCodeQueue::get_serial_commands() {
               wait_for_user = false;
             #endif
           }
-          if (strcmp(command, "M112") == 0) kill(M112_KILL_STR, nullptr, true);
-          if (strcmp(command, "M410") == 0) quickstop_stepper();
+          else if (strcmp(command, "M112") == 0) kill(M112_KILL_STR, nullptr, true);
+          else if (strcmp(command, "M410") == 0) quickstop_stepper();
+          else if (strcmp(command, "M751") == 0) Rapidia::pause.pause(false);
+          else if (strcmp(command, "M752") == 0) Rapidia::pause.pause(true);
         #endif
 
         #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0

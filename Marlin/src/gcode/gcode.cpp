@@ -790,6 +790,17 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 730: M730(); break;                                  // M730: enable report on line finish
         case 731: M731(); break;                                  // M731: disable report on line finish
       #endif
+      
+      #if ENABLED(RAPIDIA_PAUSE)
+      #if DISABLED(EMERGENCY_PARSER)
+        case 751: M751(); break;
+        case 752: M752(); break;
+      #else
+        case 751:
+        case 752:
+          break;
+      #endif
+      #endif
 
       #if ENABLED(GCODE_MACROS)
         case 810: case 811: case 812: case 813: case 814:

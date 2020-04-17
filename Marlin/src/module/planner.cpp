@@ -157,7 +157,7 @@ float Planner::steps_to_mm[XYZE_N];           // (mm) Millimeters per step
 
 #if ENABLED(RAPIDIA_BLOCK_SOURCE)
   volatile long Planner::last_source_line = -1;
-  long Planner::auto_report_line_finished = false;
+  bool Planner::auto_report_line_finished = false;
 #endif
 
 #if ENABLED(DISTINCT_E_FACTORS)
@@ -2569,7 +2569,161 @@ void Planner::buffer_sync_block() {
   stepper.wake_up();
 } // buffer_sync_block()
 
-
+#ifdef RAPIDIA_PAUSE
+source_line_t Planner::pause_decelerate()
+{
+  // prevent extrusion until we next enable the e steppers.
+  // (They will be enabled if a segment is buffered with e movement)
+  disable_e_steppers();
+  
+  // scan forward until a marked line is encountered.
+  bool found = false;
+  source_line_t source_line = NO_SOURCE_LINE;
+  abce_ulong_t steps_prev;
+  uint8_t prev_direction_bits_inv = 0;
+  
+  // FIXME: is this too much time to suspend for?
+  const bool was_enabled = stepper.suspend();
+  uint8_t block_index;
+  for (
+    block_index = block_buffer_tail;
+    block_index != block_buffer_head;
+    block_index = next_block_index(block_index)
+  ) {
+    block_t* block = &block_buffer[block_index];
+    
+    // get the steps for the last non-sync-block.
+    if (!TEST(block->flag, BLOCK_BIT_SYNC_POSITION))
+    {
+      steps_prev.a = block->steps.a;
+      steps_prev.b = block->steps.b;
+      steps_prev.c = block->steps.c;
+      
+      // note: this sets direction_prev to non-zero value.
+      prev_direction_bits_inv = ~block->direction_bits;
+    }
+    
+    // stop when we have found a marked block AND
+    // we have determined the motion prior to that block.
+    if (prev_direction_bits_inv && block->source_line != NO_SOURCE_LINE)
+    {
+      source_line = block->source_line;
+      
+      // find the first non-sync block after this one.
+      do
+      {
+        block_index = next_block_index(block_index);
+        block = &block_buffer[block_index];
+      } while (
+        TEST(block->flag, BLOCK_BIT_SYNC_POSITION)
+        && block_index != block_buffer_head
+      );
+      
+      // mark this as recalculate to prevent the stepper from
+      // reading it while we edit it.
+      SBI(block->flag, BLOCK_BIT_RECALCULATE);
+      break;
+    }
+  }
+  if (was_enabled) stepper.wake_up();
+  
+  if (source_line == NO_SOURCE_LINE) return NO_SOURCE_LINE;
+  
+  block_t* block = &block_buffer[block_index];
+  
+  // if the block we found is the end of the queue, then it already stops.
+  if (block_index == block_buffer_head)
+  {
+    CBI(block->flag, BLOCK_BIT_RECALCULATE);
+    return source_line;
+  }
+  
+  // if the block we found already has an entry speed of 0, then we're done.
+  // nominal speed check is paranoia.
+  // steps check is in case the block is a pure-extrusion block
+  if (
+    block->entry_speed_sqr == 0
+    || block->nominal_speed_sqr == 0
+    || ABS(steps_prev.a) + ABS(steps_prev.b) + ABS(steps_prev.c) < MIN_STEPS_PER_SEGMENT)
+  {
+    // clear the buffer past this point.
+    block_buffer_head = block_index;
+    
+    // don't replan before this.
+    block_buffer_planned = block_buffer_head;
+    
+    CBI(block->flag, BLOCK_BIT_RECALCULATE);    
+    return source_line;
+  }
+  
+  // we found an existing block to replace.
+  
+  // clear the buffer past this point.
+  block_buffer_head = block_index + 1;
+  
+  // don't replan before this.
+  block_buffer_planned = block_buffer_head;
+  
+  // calculate block distance
+  // Note that we can hijack the nominal entry speed that was previously planned.
+  block->millimeters = block->entry_speed_sqr / (2 * block->acceleration);
+  
+  // add epsilon to give some wiggle room in case of floating point errors
+  block->millimeters += 0.05;
+  
+  // calculate length for previous steps
+  // note that steps_prev is nonzero because of MIN_STEPS_PER_SEGMENT.
+  
+  float prev_millimeters_r = RSQRT(
+      sq(steps_prev.a * steps_to_mm[A_AXIS])
+    + sq(steps_prev.b * steps_to_mm[B_AXIS])
+    + sq(steps_prev.c * steps_to_mm[C_AXIS])
+  );
+  
+  float scale_factor = block->millimeters * prev_millimeters_r;
+  
+  // calculate steps per axis for deceleration.
+  // we rescale the previous block's steps in order to reach the desired
+  // length without changin direction.
+  block->direction_bits = ~prev_direction_bits_inv;
+  block->steps.a = steps_prev.a * scale_factor;
+  block->steps.b = steps_prev.b * scale_factor;
+  block->steps.c = steps_prev.c * scale_factor;
+  block->steps.e = 0;
+  
+  block->step_event_count = _MAX(block->steps.a, block->steps.b, block->steps.c);
+  
+  // bail if this block is too short.
+  if (block->step_event_count < MIN_STEPS_PER_SEGMENT)
+  {
+    // clear the buffer past this point.
+    block_buffer_head = block_index;
+    
+    // don't replan before this.
+    block_buffer_planned = block_buffer_head;
+    
+    CBI(block->flag, BLOCK_BIT_RECALCULATE);    
+    return source_line;
+  }
+  
+  #if HAS_SPI_LCD
+    // set segment time to an arbitrary value.
+    block->segment_time_us = 1000;
+  #endif
+  
+  // calculate deceleration trapezoid.
+  // Note that we can hijack the nominal and entry speed that was previously planned.
+  const float entry_speed = SQRT(block->entry_speed_sqr),
+              nominal_speed = SQRT(block->nominal_speed_sqr),
+              nomr = 1.0f / nominal_speed;
+  calculate_trapezoid_for_block(block, entry_speed * nomr, float(MINIMUM_PLANNER_SPEED) * nomr);
+  
+  // signal to the stepper the block is now usable.
+  CBI(block->flag, BLOCK_BIT_RECALCULATE);
+  
+  return source_line;
+}
+#endif
 
 void Planner::mark_block(source_line_t source_line) {
   if (block_buffer_head == block_buffer_tail) {

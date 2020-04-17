@@ -42,7 +42,14 @@
 #include "module/configuration_store.h"
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #include "feature/closedloop.h"
-#include "feature/heartbeat.h"
+
+#if ENABLED(RAPIDIA_HEARTBEAT)
+#include "feature/rapidia/heartbeat.h"
+#endif
+
+#if ENABLED(RAPIDIA_PAUSE)
+#include "feature/rapidia/pause.h"
+#endif
 
 #include "HAL/shared/Delay.h"
 
@@ -692,6 +699,10 @@ void idle(
       for (uint8_t i = 4; i--;) // Read SGT 4 times per idle loop
         if (endstops.tmc_spi_homing_check()) break;
     }
+  #endif
+  
+  #if ENABLED(RAPIDIA_PAUSE)
+  Rapidia::pause.process_deferred();
   #endif
 
   #if ENABLED(MAX7219_DEBUG)
