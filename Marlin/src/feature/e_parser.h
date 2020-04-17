@@ -31,6 +31,10 @@
   #include "host_actions.h"
 #endif
 
+#if ENABLED(RAPIDIA_PAUSE)
+  #include "rapidia/pause.h"
+#endif
+
 // External references
 extern bool wait_for_user, wait_for_heatup;
 void quickstop_stepper();
@@ -52,6 +56,12 @@ public:
     EP_M4,
     EP_M41,
     EP_M410,
+    #if ENABLED(RAPIDIA_PAUSE)
+    EP_M7,
+    EP_M75,
+    EP_M751,
+    EP_M752,
+    #endif
     #if ENABLED(HOST_PROMPT_SUPPORT)
       EP_M8,
       EP_M87,
@@ -102,6 +112,9 @@ public:
           case ' ': break;
           case '1': state = EP_M1;     break;
           case '4': state = EP_M4;     break;
+          #if ENABLED(RAPIDIA_PAUSE)
+          case '7': state = EP_M7;     break;
+          #endif
           #if ENABLED(HOST_PROMPT_SUPPORT)
             case '8': state = EP_M8;     break;
           #endif
@@ -132,6 +145,18 @@ public:
       case EP_M41:
         state = (c == '0') ? EP_M410 : EP_IGNORE;
         break;
+        
+      #if ENABLED(RAPIDIA_PAUSE)
+      case EP_M7:
+        state = (c == '5') ? EP_M75 : EP_IGNORE;
+        break;
+        
+      case EP_M75:
+        if (c == '1') state = EP_M751;
+        else if (c == '2') state = EP_M752;
+        else state = EP_IGNORE;
+        break;
+      #endif
 
       #if ENABLED(HOST_PROMPT_SUPPORT)
       case EP_M8:
@@ -174,6 +199,10 @@ public:
             case EP_M108: wait_for_user = wait_for_heatup = false; break;
             case EP_M112: killed_by_M112 = true; break;
             case EP_M410: quickstop_stepper(); break;
+            #if ENABLED(RAPIDIA_PAUSE)
+            case EP_M751: Rapidia::pause.defer(false); break;
+            case EP_M752: Rapidia::pause.defer(true); break;
+            #endif
             #if ENABLED(HOST_PROMPT_SUPPORT)
               case EP_M876SN: host_response_handler(M876_reason); break;
             #endif

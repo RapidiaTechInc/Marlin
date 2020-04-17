@@ -45,6 +45,7 @@
 #endif
 
 #define RAPIDIA_BLOCK_SOURCE
+#define RAPIDIA_PAUSE
 
 /**
  * Configuration.h

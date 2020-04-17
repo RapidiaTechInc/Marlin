@@ -1,9 +1,9 @@
 #include "heartbeat.h"
 
-#include "../inc/MarlinConfig.h"
-#include "../module/stepper.h"
-#include "../module/planner.h"
-#include "../gcode/gcode.h"
+#include "../../inc/MarlinConfig.h"
+#include "../../module/stepper.h"
+#include "../../module/planner.h"
+#include "../../gcode/gcode.h"
 
 #if ENABLED(RAPIDIA_HEARTBEAT)
 
@@ -11,6 +11,7 @@ namespace Rapidia
 {
 static uint16_t heartbeat_interval = 0;
 static millis_t next_heartbeat_report_ms = 0;
+Heartbeat heartbeat; // singleton
 
 HeartbeatSelectionUint Heartbeat::selection
   = (HeartbeatSelectionUint)HeartbeatSelection::_DEFAULT;

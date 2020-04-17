@@ -251,7 +251,7 @@ class Planner {
       static volatile long last_source_line;
       
       // enable message when line is finished
-      static long auto_report_line_finished;
+      static bool auto_report_line_finished;
     #endif
 
     #if ENABLED(DISTINCT_E_FACTORS)
@@ -650,6 +650,11 @@ class Planner {
        * and hence a safe spot to "soft-pause" at.
        */
       static void mark_block(source_line_t);
+    #endif
+    
+    #ifdef RAPIDIA_PAUSE
+      // returns source line where the break occurred.
+      static source_line_t pause_decelerate();
     #endif
 
   #if IS_KINEMATIC

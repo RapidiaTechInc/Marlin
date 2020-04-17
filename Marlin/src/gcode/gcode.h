@@ -901,7 +901,10 @@ private:
   #endif
   
   #if ENABLED(RAPIDIA_PAUSE)
-    static void M751(); // pause
+  #if DISABLED(EMERGENCY_PARSER)
+    static void M751(); // pause (soft -- wait for this line of gcode to finish)
+    static void M752(); // pause (hard -- decelerate immediately)
+  #endif
   #endif
 
   #if ENABLED(GCODE_MACROS)
