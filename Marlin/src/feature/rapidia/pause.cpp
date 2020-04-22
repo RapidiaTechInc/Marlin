@@ -15,6 +15,9 @@ void Pause::pause(bool hard)
   // hard yet-to-be-implemented.
   hard = false;
   
+  SERIAL_ECHO_START();
+  SERIAL_ECHOLNPGM("Pausing!");
+  
   source_line_t line = planner.pause_decelerate();
   planner.synchronize();
   
@@ -30,21 +33,25 @@ void Pause::defer(bool hard)
 
 void Pause::process_deferred()
 {
+  static bool pause_in_progress = false;
+  if (pause_in_progress) return;
+  pause_in_progress = true;
   switch (defer_pause)
   {
   case 1: // soft
-    pause(false);
     defer_pause=0;
+    pause(false);
     break;
     
   case 2: // hard
-    pause(true);
     defer_pause=0;
+    pause(true);
     break;
     
   default:
     break;
   }
+  pause_in_progress = false;
 }
 
 }

@@ -402,16 +402,8 @@ void GcodeSuite::G28() {
         #else
           homeaxis(Z_AXIS);
         #endif
-
-        #if HOMING_Z_WITH_PROBE && defined(Z_AFTER_PROBING)
-          #if Z_AFTER_HOMING > Z_AFTER_PROBING
-            do_blocking_move_to_z(Z_AFTER_HOMING);
-          #else
-            probe.move_z_after_probing();
-          #endif
-        #elif defined(Z_AFTER_HOMING)
-          do_blocking_move_to_z(Z_AFTER_HOMING);
-        #endif
+        
+        probe.move_z_after_probing();
 
       } // doZ
 
@@ -599,6 +591,10 @@ void GcodeSuite::G28() {
   // Restore the active tool after homing
   #if HOTENDS > 1 && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
     tool_change(old_tool_index, NONE(PARKING_EXTRUDER, DUAL_X_CARRIAGE));   // Do move if one of these
+  #endif
+  
+  #if defined(Z_AFTER_PROBING)
+      do_blocking_move_to_z(Z_AFTER_HOMING);
   #endif
 
   #if HAS_HOMING_CURRENT
