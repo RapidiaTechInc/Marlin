@@ -2705,7 +2705,7 @@ Planner::pause_result Planner::pause_decelerate()
     // don't replan before this.
     block_buffer_planned = block_buffer_head;
     
-    CBI(block->flag, BLOCK_BIT_RECALCULATE);    
+    CBI(block->flag, BLOCK_BIT_RECALCULATE);
     result.line = source_line;
     result.deceleration_cropped = true;
     return result;
@@ -2743,7 +2743,9 @@ void Planner::mark_block(source_line_t source_line) {
   else {
     // most recently-added block.
     block_t* block = &block_buffer[prev_block_index(block_buffer_head)];
-    block->source_line = source_line;
+    block->source_line = (source_line == NO_SOURCE_LINE)
+      ? UNSPECIFIED_SOURCE_LINE
+      : source_line;
   }
 } // mark_block()
 

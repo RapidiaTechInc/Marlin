@@ -81,8 +81,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     xyze_pos_t position;
     LOOP_XYZE(axis)
     {
-      position[axis] = state.position[axis];
-      position[axis] /= planner.settings.axis_steps_per_mm[axis];
+      position[axis] = state.position[axis] / planner.settings.axis_steps_per_mm[axis];
     }
   
     report_xyzetf(position.asLogical(), state.extruder);

@@ -64,6 +64,7 @@
 #if ENABLED(RAPIDIA_BLOCK_SOURCE)
   typedef int32_t source_line_t;
   constexpr source_line_t NO_SOURCE_LINE = -1;
+  constexpr source_line_t UNSPECIFIED_SOURCE_LINE = -2;
 #endif
 
 enum BlockFlagBit : char {
