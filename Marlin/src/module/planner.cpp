@@ -2570,7 +2570,7 @@ void Planner::buffer_sync_block() {
 } // buffer_sync_block()
 
 #ifdef RAPIDIA_PAUSE
-source_line_t Planner::pause_decelerate()
+Planner::pause_result Planner::pause_decelerate()
 {
   // prevent extrusion until we next enable the e steppers.
   // (They will be enabled if a segment is buffered with e movement)
@@ -2581,7 +2581,9 @@ source_line_t Planner::pause_decelerate()
   source_line_t source_line = NO_SOURCE_LINE;
   abce_ulong_t steps_prev;
   uint8_t prev_direction_bits_inv = 0;
+  pause_result result;
   
+  // Begin critical section -----------------------------------------
   // FIXME: is this too much time to suspend for?
   const bool was_enabled = stepper.suspend();
   uint8_t block_index;
@@ -2626,6 +2628,7 @@ source_line_t Planner::pause_decelerate()
     }
   }
   if (was_enabled) stepper.wake_up();
+  // End critical section -------------------------------------------
   
   if (source_line == NO_SOURCE_LINE) return NO_SOURCE_LINE;
   
@@ -2659,7 +2662,7 @@ source_line_t Planner::pause_decelerate()
   // we found an existing block to replace.
   
   // clear the buffer past this point.
-  block_buffer_head = block_index + 1;
+  block_buffer_head = next_block_index(block_index);
   
   // don't replan before this.
   block_buffer_planned = block_buffer_head;
@@ -2703,7 +2706,9 @@ source_line_t Planner::pause_decelerate()
     block_buffer_planned = block_buffer_head;
     
     CBI(block->flag, BLOCK_BIT_RECALCULATE);    
-    return source_line;
+    result.line = source_line;
+    result.deceleration_cropped = true;
+    return result;
   }
   
   #if HAS_SPI_LCD
@@ -2718,10 +2723,14 @@ source_line_t Planner::pause_decelerate()
               nomr = 1.0f / nominal_speed;
   calculate_trapezoid_for_block(block, entry_speed * nomr, float(MINIMUM_PLANNER_SPEED) * nomr);
   
+  result.line = source_line;
+  result.deceleration_block = true;
+  result.deceleration_mm = block->millimeters;
+  result.deceleration_entry = entry_speed;
+  
   // signal to the stepper the block is now usable.
   CBI(block->flag, BLOCK_BIT_RECALCULATE);
-  
-  return source_line;
+  return result;
 }
 #endif
 

@@ -16,6 +16,7 @@ enum class HeartbeatSelection : HeartbeatSelectionUint
   RELMODE       = _BV(2), // 'R'
   FEEDRATE      = _BV(3), // 'F' (reported in P)
   DUALX         = _BV(4), // 'X'
+  ALL_POSITION = PLAN_POSITION | ABS_POSITION,
   _DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE
 };
 
@@ -31,7 +32,9 @@ public:
   static void set_interval(uint16_t ms);
   
   // sends status message
-  static void serial_info(HeartbeatSelection selection);
+  // selection: what status to send
+  // bare: if false, wrap message in H:{ on the left and _:0} on the right"
+  static void serial_info(HeartbeatSelection selection, bool bare=false);
   
   // enables/disables individual status messages
   static void select(HeartbeatSelection selection, bool enable);

@@ -1137,7 +1137,9 @@
     #define Y_BED_SIZE 265
 #endif
 
-// Travel limits (mm) after homing, corresponding to endstop positions.
+// Travel limits (mm). These are the locations at which the endstops are defined to trigger
+// (depending on which direction is the homing direction). Additionally, Marlin will clamp
+// movement commands to be within these bounds.
 #ifdef RAPIDIA_PLASTIC
     #define X_MIN_POS (-48)
     #define Y_MIN_POS (-7)

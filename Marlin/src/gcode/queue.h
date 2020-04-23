@@ -69,6 +69,14 @@ public:
    * Clear the Marlin command queue
    */
   static void clear();
+  
+  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  /*
+  * Returns the line number of the first entry in the queue which has a line number,
+  * or -1 if there is none.
+  */
+  static long get_first_line_number();
+  #endif
 
   /**
    * Enqueue one or many commands to run from program memory.

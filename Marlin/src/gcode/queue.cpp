@@ -120,6 +120,19 @@ void GCodeQueue::clear() {
   index_r = index_w = length = 0;
 }
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+long GCodeQueue::get_first_line_number() {
+  for (uint8_t index = index_r; index != index_w; ++index)
+  {
+    if (line[index] != -1)
+    {
+      return line[index];
+    }
+  }
+  return -1;
+}
+#endif
+
 /**
  * Once a new command is in the ring buffer, call this to commit it
  */
