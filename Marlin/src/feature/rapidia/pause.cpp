@@ -35,6 +35,8 @@ void Pause::pause(bool hard)
   SERIAL_ECHO_START();
   SERIAL_ECHOLNPGM("Pausing!");
   
+  Stepper::State pause_state = stepper.report_state();
+  
   long qline = queue.get_first_line_number();
   
   // process no further commands.
@@ -49,16 +51,16 @@ void Pause::pause(bool hard)
   sync_plan_position();
   
   // report pause result.
-  SERIAL_ECHO("pause: {");
+  SERIAL_ECHO("pause:{");
   if (qline != -1)
   {
-    SERIAL_ECHO("Q:");
+    SERIAL_ECHO("N:");
     SERIAL_ECHO(qline);
     SERIAL_CHAR(',');
   }
-  if (result.line != -1)
+  if (result.line >= 0)
   {
-    SERIAL_ECHO("P:");
+    SERIAL_ECHO("G:");
     SERIAL_ECHO(result.line);
     SERIAL_CHAR(',');
   }
@@ -67,11 +69,11 @@ void Pause::pause(bool hard)
     SERIAL_ECHO("deceleration:false");
     if (result.deceleration_cropped)
     {
-      SERIAL_ECHO("cropped:false");
+      SERIAL_ECHO(",cropped:false");
     }
     else
     {
-      SERIAL_ECHO("cropped:true");
+      SERIAL_ECHO(",cropped:true");
     }
     SERIAL_CHAR(',');
   }
@@ -83,8 +85,22 @@ void Pause::pause(bool hard)
     SERIAL_CHAR(',');
   }
   
-  // position
+  // pre-pause position
   SERIAL_CHAR('P');
+  SERIAL_CHAR(':');
+  SERIAL_CHAR('{');
+  
+  xyze_pos_t position;
+  LOOP_XYZE(axis)
+  {
+    position[axis] = pause_state.position[axis] / planner.settings.axis_steps_per_mm[axis];
+  }
+
+  report_xyzet(position.asLogical(), pause_state.extruder);
+  SERIAL_CHAR('}');
+  
+  // position
+  SERIAL_CHAR('C');
   SERIAL_CHAR(':');
   SERIAL_CHAR('{');
   report_xyzet(current_position.asLogical(), active_extruder);
