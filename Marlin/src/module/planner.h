@@ -654,7 +654,28 @@ class Planner {
     
     #ifdef RAPIDIA_PAUSE
       // returns source line where the break occurred.
-      static source_line_t pause_decelerate();
+      struct pause_result {
+        // what line was paused at?
+        source_line_t line=NO_SOURCE_LINE;
+        
+        // was a deceleration block added?
+        bool deceleration_block=false;
+        
+        // deceleration block was not added because it would have been too short.
+        bool deceleration_cropped=false;
+        
+        // how many millimeters were added for the deceleration?
+        float deceleration_mm=0;
+        
+        // what was the entry speed?
+        float deceleration_entry=0;
+        
+        pause_result()=default;
+        pause_result(pause_result&&)=default;
+        pause_result(source_line_t l)
+          : line(l) { }
+      };
+      static pause_result pause_decelerate();
     #endif
 
   #if IS_KINEMATIC

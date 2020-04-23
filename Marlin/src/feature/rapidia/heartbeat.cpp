@@ -46,13 +46,16 @@ static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const b
 
 #define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
 
-void Heartbeat::serial_info(HeartbeatSelection selection)
+void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 {
   // begin heartbeat
-  SERIAL_CHAR(' ');
-  SERIAL_CHAR('H');
-  SERIAL_CHAR(':');
-  SERIAL_CHAR('{');
+  if (!bare)
+  {
+    SERIAL_CHAR(' ');
+    SERIAL_CHAR('H');
+    SERIAL_CHAR(':');
+    SERIAL_CHAR('{');
+  }
   
   // plan position
   if (TEST_FLAG(selection, HeartbeatSelection::PLAN_POSITION))
@@ -133,11 +136,14 @@ void Heartbeat::serial_info(HeartbeatSelection selection)
   }
   
   // dummy data at end of json so that we don't have to worry about separators.
-  SERIAL_CHAR('_');
-  SERIAL_CHAR(':');
-  SERIAL_CHAR('0');
-  
-  SERIAL_CHAR('}');
+  if (!bare)
+  {
+    SERIAL_CHAR('_');
+    SERIAL_CHAR(':');
+    SERIAL_CHAR('0');
+    
+    SERIAL_CHAR('}');
+  }
   // end heartbeat
 }
 

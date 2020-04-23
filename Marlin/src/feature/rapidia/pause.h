@@ -2,7 +2,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if ENABLED(RAPIDIA_HEARTBEAT)
+#if ENABLED(RAPIDIA_PAUSE)
 namespace Rapidia
 {
 class Pause
