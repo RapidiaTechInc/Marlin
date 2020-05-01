@@ -912,7 +912,7 @@
 #define X_BED_SIZE 202
 
 // The bed size is larger than this, but the extruder cannot go all the way to the back.
-#define Y_BED_SIZE 265
+#define Y_BED_SIZE 243
 #endif
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
@@ -931,7 +931,7 @@
 #  define Y_MIN_POS -18
    // this number is offset by Z_PROBE_OFFSET_FROM_EXTRUDER
 #  define Z_MIN_POS 0
-#  define X_MAX_POS (X_BED_SIZE + 51)
+#  define X_MAX_POS 248
 #  define Y_MAX_POS Y_BED_SIZE
 #  define Z_MAX_POS 190
 #endif
@@ -1139,9 +1139,9 @@
  */
 #if ENABLED(AUTO_BED_LEVELING_3POINT) || ENABLED(AUTO_BED_LEVELING_UBL)
   #define PROBE_PT_1_X 30
-  #define PROBE_PT_1_Y 260
+  #define PROBE_PT_1_Y 240
   #define PROBE_PT_2_X 180 
-  #define PROBE_PT_2_Y 260
+  #define PROBE_PT_2_Y 240
   #define PROBE_PT_3_X 105
   #define PROBE_PT_3_Y 50
 #endif
