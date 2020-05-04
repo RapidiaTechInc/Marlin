@@ -160,6 +160,10 @@ float Planner::steps_to_mm[XYZE_N];           // (mm) Millimeters per step
   bool Planner::auto_report_line_finished = false;
 #endif
 
+#if ENABLED(RAPIDIA_PAUSE)
+  bool Planner::prevent_block_buffering = false;
+#endif
+
 #if ENABLED(DISTINCT_E_FACTORS)
   uint8_t Planner::last_extruder = 0;     // Respond to extruder change
 #endif
@@ -1657,6 +1661,11 @@ bool Planner::_buffer_steps(const xyze_long_t &target
 
   // If we are cleaning, do not accept queuing of movements
   if (cleaning_buffer_counter) return false;
+  
+  #if ENABLED(RAPIDIA_PAUSE)
+  // while paused, do not accept queueing of movements.
+  if (prevent_block_buffering) return false;
+  #endif
 
   // Wait for the next available block
   uint8_t next_buffer_head;
@@ -2569,75 +2578,121 @@ void Planner::buffer_sync_block() {
 } // buffer_sync_block()
 
 #ifdef RAPIDIA_PAUSE
-Planner::pause_result Planner::pause_decelerate()
+// information returned by helper function below.
+
+template<bool force>
+inline Planner::pause_scan_result Planner::pause_decelerate_scan()
 {
-  // prevent extrusion until we next enable the e steppers.
-  // (They will be enabled if a segment is buffered with e movement)
-  disable_e_steppers();
-  
   // scan forward until a marked line is encountered.
-  bool found = false;
-  source_line_t source_line = NO_SOURCE_LINE;
-  abce_ulong_t steps_prev;
-  uint8_t prev_direction_bits_inv = 0;
-  pause_result result;
+  pause_scan_result r;
+  r.found = false;
   
   // Begin critical section -----------------------------------------
   // FIXME: is this too much time to suspend for?
   const bool was_enabled = stepper.suspend();
-  uint8_t block_index;
   for (
-    block_index = block_buffer_tail;
-    block_index != block_buffer_head;
-    block_index = next_block_index(block_index)
+    r.block_index = block_buffer_tail;
+    r.block_index != block_buffer_head;
+    r.block_index = next_block_index(r.block_index)
   ) {
-    block_t* block = &block_buffer[block_index];
+    block_t* block = &block_buffer[r.block_index];
     
     // get the steps for the last non-sync-block.
     if (!TEST(block->flag, BLOCK_BIT_SYNC_POSITION))
     {
-      steps_prev.a = block->steps.a;
-      steps_prev.b = block->steps.b;
-      steps_prev.c = block->steps.c;
+      r.steps_prev.a = block->steps.a;
+      r.steps_prev.b = block->steps.b;
+      r.steps_prev.c = block->steps.c;
       
       // note: this sets direction_prev to non-zero value.
-      prev_direction_bits_inv = ~block->direction_bits;
+      r.prev_direction_bits_inv = ~block->direction_bits;
     }
     
     // stop when we have found a marked block AND
     // we have determined the motion prior to that block.
-    if (prev_direction_bits_inv && block->source_line != NO_SOURCE_LINE)
+    // (if force, we don't care about source line markings.)
+    if (r.prev_direction_bits_inv && (force || block->source_line != NO_SOURCE_LINE))
     {
-      source_line = block->source_line;
+      if (!force) r.source_line = block->source_line;
       
       // find the first non-sync block after this one.
       do
       {
-        block_index = next_block_index(block_index);
-        block = &block_buffer[block_index];
+        r.block_index = next_block_index(r.block_index);
+        block = &block_buffer[r.block_index];
       } while (
         TEST(block->flag, BLOCK_BIT_SYNC_POSITION)
-        && block_index != block_buffer_head
+        && r.block_index != block_buffer_head
       );
       
       // mark this as recalculate to prevent the stepper from
       // reading it while we edit it.
       SBI(block->flag, BLOCK_BIT_RECALCULATE);
+      
+      r.found = true;
       break;
     }
   }
   if (was_enabled) stepper.wake_up();
   // End critical section -------------------------------------------
   
-  if (source_line == NO_SOURCE_LINE) return NO_SOURCE_LINE;
+  return r;
+}
+
+Planner::pause_result Planner::pause_decelerate(bool force)
+{
+  // prevent extrusion until we next enable the e steppers.
+  // (They will be enabled if a segment is buffered with e movement)
+  disable_e_steppers();
   
-  block_t* block = &block_buffer[block_index];
+  pause_result result;
+  pause_scan_result scan = (force)
+    ? pause_decelerate_scan<true>()
+    : pause_decelerate_scan<false>();
+  
+  if (!scan.found)
+  // did not find a marked boundary to stop at.
+  {
+    if (force)
+    {
+      // if forcing, scan result of not found only means that
+      // there is already a stop as early as possible.
+      return NO_SOURCE_LINE;
+    }
+    else
+    {
+      // soft force where the scan didn't find anything -- this could mean that the next gcode
+      // boundary is yet to be queued (queue is full), so we will idle/check for a break until either
+      // we succeed or the queue drops in size (indicating nothing more will be added.)
+      
+      // TODO: (use a safer way of checking if there are potentially blocks coming than
+      // just checking if the buffer is more than half full.)
+      if (movesplanned() <= BLOCK_BUFFER_SIZE / 2 + 1)
+      {
+        // buffer naturally reaches an ending point (i.e. a stopping point) -- no need to modify it.
+        return NO_SOURCE_LINE;
+      }
+      else
+      {
+        // It seems there are more blocks to be queued, so we will ask the caller
+        // to call this function again later.
+        result.defer = true;
+        return result;
+      }
+    }
+  }
+  
+  block_t* block = &block_buffer[scan.block_index];
+  
+  // remove line number from this block, as it may be misleading.
+  block->source_line = NO_SOURCE_LINE;
   
   // if the block we found is the end of the queue, then it already stops.
-  if (block_index == block_buffer_head)
+  // (This is paranoia -- it shouldn't be possible for this to be returned.)
+  if (scan.block_index == block_buffer_head)
   {
     CBI(block->flag, BLOCK_BIT_RECALCULATE);
-    return source_line;
+    return scan.source_line;
   }
   
   // if the block we found already has an entry speed of 0, then we're done.
@@ -2646,22 +2701,22 @@ Planner::pause_result Planner::pause_decelerate()
   if (
     block->entry_speed_sqr == 0
     || block->nominal_speed_sqr == 0
-    || ABS(steps_prev.a) + ABS(steps_prev.b) + ABS(steps_prev.c) < MIN_STEPS_PER_SEGMENT)
+    || ABS(scan.steps_prev.a) + ABS(scan.steps_prev.b) + ABS(scan.steps_prev.c) < MIN_STEPS_PER_SEGMENT)
   {
     // clear the buffer past this point.
-    block_buffer_head = block_index;
+    block_buffer_head = scan.block_index;
     
     // don't replan before this.
     block_buffer_planned = block_buffer_head;
     
     CBI(block->flag, BLOCK_BIT_RECALCULATE);    
-    return source_line;
+    return scan.source_line;
   }
   
   // we found an existing block to replace.
   
   // clear the buffer past this point.
-  block_buffer_head = next_block_index(block_index);
+  block_buffer_head = next_block_index(scan.block_index);
   
   // don't replan before this.
   block_buffer_planned = block_buffer_head;
@@ -2677,9 +2732,9 @@ Planner::pause_result Planner::pause_decelerate()
   // note that steps_prev is nonzero because of MIN_STEPS_PER_SEGMENT.
   
   float prev_millimeters_r = RSQRT(
-      sq(steps_prev.a * steps_to_mm[A_AXIS])
-    + sq(steps_prev.b * steps_to_mm[B_AXIS])
-    + sq(steps_prev.c * steps_to_mm[C_AXIS])
+      sq(scan.steps_prev.a * steps_to_mm[A_AXIS])
+    + sq(scan.steps_prev.b * steps_to_mm[B_AXIS])
+    + sq(scan.steps_prev.c * steps_to_mm[C_AXIS])
   );
   
   float scale_factor = block->millimeters * prev_millimeters_r;
@@ -2687,10 +2742,10 @@ Planner::pause_result Planner::pause_decelerate()
   // calculate steps per axis for deceleration.
   // we rescale the previous block's steps in order to reach the desired
   // length without changin direction.
-  block->direction_bits = ~prev_direction_bits_inv;
-  block->steps.a = steps_prev.a * scale_factor;
-  block->steps.b = steps_prev.b * scale_factor;
-  block->steps.c = steps_prev.c * scale_factor;
+  block->direction_bits = ~scan.prev_direction_bits_inv;
+  block->steps.a = scan.steps_prev.a * scale_factor;
+  block->steps.b = scan.steps_prev.b * scale_factor;
+  block->steps.c = scan.steps_prev.c * scale_factor;
   block->steps.e = 0;
   
   block->step_event_count = _MAX(block->steps.a, block->steps.b, block->steps.c);
@@ -2699,13 +2754,13 @@ Planner::pause_result Planner::pause_decelerate()
   if (block->step_event_count < MIN_STEPS_PER_SEGMENT)
   {
     // clear the buffer past this point.
-    block_buffer_head = block_index;
+    block_buffer_head = scan.block_index;
     
     // don't replan before this.
     block_buffer_planned = block_buffer_head;
     
     CBI(block->flag, BLOCK_BIT_RECALCULATE);
-    result.line = source_line;
+    result.line = scan.source_line;
     result.deceleration_cropped = true;
     return result;
   }
@@ -2722,7 +2777,7 @@ Planner::pause_result Planner::pause_decelerate()
               nomr = 1.0f / nominal_speed;
   calculate_trapezoid_for_block(block, entry_speed * nomr, float(MINIMUM_PLANNER_SPEED) * nomr);
   
-  result.line = source_line;
+  result.line = scan.source_line;
   result.deceleration_block = true;
   result.deceleration_mm = block->millimeters;
   result.deceleration_entry = entry_speed;

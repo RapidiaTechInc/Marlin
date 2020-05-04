@@ -254,6 +254,13 @@ class Planner {
       // enable message when line is finished
       static bool auto_report_line_finished;
     #endif
+    
+    #if ENABLED(RAPIDIA_PAUSE)
+      // prevents additional blocks from being planned.
+      // causes Planner::_buffer_steps to return false.
+      // this allows gcode handlers on the call stack to be cancelled.
+      static bool prevent_block_buffering;
+    #endif
 
     #if ENABLED(DISTINCT_E_FACTORS)
       static uint8_t last_extruder;                 // Respond to extruder change
@@ -654,7 +661,6 @@ class Planner {
     #endif
     
     #ifdef RAPIDIA_PAUSE
-      // returns source line where the break occurred.
       struct pause_result {
         // what line was paused at?
         source_line_t line=NO_SOURCE_LINE;
@@ -671,12 +677,32 @@ class Planner {
         // what was the entry speed?
         float deceleration_entry=0;
         
+        // need to call this again later.
+        // (only possible if force=false.)
+        bool defer=false;
+        
         pause_result()=default;
         pause_result(pause_result&&)=default;
         pause_result(source_line_t l)
           : line(l) { }
       };
-      static pause_result pause_decelerate();
+      
+      static pause_result pause_decelerate(bool force);
+      
+    private:
+      // force: if false, stop only at marked boundaries. Otherwise,
+      // stop as soon as possible.
+      struct pause_scan_result
+      {
+        bool found;
+        source_line_t source_line = NO_SOURCE_LINE;
+        abce_ulong_t steps_prev;
+        uint8_t prev_direction_bits_inv = 0;
+        uint8_t block_index;
+      };
+      
+      template<bool force>
+      static pause_scan_result pause_decelerate_scan();
     #endif
 
   #if IS_KINEMATIC
@@ -686,6 +712,7 @@ class Planner {
       friend void do_homing_move(const AxisEnum, const float, const feedRate_t);
   #endif
 
+public:
     /**
      * Planner::buffer_segment
      *

@@ -29,9 +29,6 @@ static void report_xyzet(const xyze_pos_t &pos, const uint8_t extruder, const ui
 
 void Pause::pause(bool hard)
 {
-  // hard yet-to-be-implemented.
-  hard = false;
-  
   SERIAL_ECHO_START();
   SERIAL_ECHOLNPGM("Pausing!");
   
@@ -43,12 +40,26 @@ void Pause::pause(bool hard)
   queue.clear();
   
   // tell planner to pause.
-  Planner::pause_result result = planner.pause_decelerate();
+  Planner::pause_result result = planner.pause_decelerate(hard);
+  
+  if (result.defer)
+  {
+    // try to pause again next idle loop.
+    defer_pause = hard + 1;
+    return;
+  }
+  
+  // We are now ready to wait for the pause to complete.
+  
+  // prevent additional blocks 
   planner.synchronize();
   
   // new plan position = calculated position from stepper.  
   set_current_from_steppers_for_axis(ALL_AXES);
   sync_plan_position();
+  
+  // cancel any gcode higher-up on the callstack.
+  planner.prevent_block_buffering = true;
   
   // report pause result.
   SERIAL_ECHO("pause:{");
@@ -97,7 +108,7 @@ void Pause::pause(bool hard)
   }
 
   report_xyzet(position.asLogical(), pause_state.extruder);
-  SERIAL_CHAR('}');
+  SERIAL_CHAR('}', ',');
   
   // position
   SERIAL_CHAR('C');
