@@ -1232,6 +1232,10 @@ void setup() {
 void loop() {
   do {
     idle();
+    
+    #if ENABLED(RAPIDIA_PAUSE)
+      planner.prevent_block_buffering = false;
+    #endif
 
     #if ENABLED(SDSUPPORT)
       card.checkautostart();
