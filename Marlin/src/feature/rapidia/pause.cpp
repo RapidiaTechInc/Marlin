@@ -3,6 +3,7 @@
 #include "../../module/planner.h"
 #include "../../module/stepper.h"
 #include "../../gcode/queue.h"
+#include "../../sd/cardreader.h"
 #include "heartbeat.h"
 
 #if ENABLED(RAPIDIA_PAUSE)
@@ -35,6 +36,16 @@ void Pause::pause(bool hard)
   Stepper::State pause_state = stepper.report_state();
   
   long qline = queue.get_first_line_number();
+  
+  // pause SD card printing
+  #if ENABLED(SDSUPPORT)
+    static bool was_printing_sd = false;
+    if (IS_SD_PRINTING())
+    {
+      was_printing_sd = true;
+      card.pauseSDPrint();
+    }
+  #endif
   
   // process no further commands.
   queue.clear();
@@ -95,6 +106,19 @@ void Pause::pause(bool hard)
     SERIAL_ECHO(result.deceleration_mm);
     SERIAL_CHAR(',');
   }
+  #if ENABLED(SDSUPPORT)
+    SERIAL_ECHO("sd:");
+    if (was_printing_sd)
+    {
+      SERIAL_ECHO("true");
+    }
+    else
+    {
+      SERIAL_ECHO("false");
+    }
+    SERIAL_CHAR(',');
+    was_printing_sd = false;
+  #endif
   
   // pre-pause position
   SERIAL_CHAR('P');
