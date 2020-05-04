@@ -46,6 +46,7 @@
 
 #define RAPIDIA_BLOCK_SOURCE
 #define RAPIDIA_PAUSE
+#define RAPIDIA_LAMP_ALIAS
 
 /**
  * Configuration.h

@@ -791,10 +791,15 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 731: M731(); break;                                  // M731: disable report on line finish
       #endif
       
+      #if ENABLED(RAPIDIA_LAMP_ALIAS)
+        case 736: M106(); break;                                  // M736: alias for M106
+        case 737: M107(); break;                                  // M737: alias for M107
+      #endif
+      
       #if ENABLED(RAPIDIA_PAUSE)
       #if DISABLED(EMERGENCY_PARSER)
-        case 751: M751(); break;
-        case 752: M752(); break;
+        case 751: M751(); break;                                  // M751: pause (soft)
+        case 752: M752(); break;                                  // M752: pause (firm)
       #else
         case 751:
         case 752:
