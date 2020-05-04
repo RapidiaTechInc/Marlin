@@ -20,9 +20,11 @@ then
     rapidia_version_previous=$(grep "#define RAPIDIA_SHORT_BUILD_VERSION" "$RAPIDIA_VERSION_H" | sed "s/.*VERSION \"\(.*\)\"/\1/")
 fi
 
-rversion_major=$(echo "$rapidia_version_previous" | sed "s/\([0-9]\)\.\([0-9]\)\.\([0-9]\)/\1/")
-rversion_minor=$(echo "$rapidia_version_previous" | sed "s/\([0-9]\)\.\([0-9]\)\.\([0-9]\)/\2/")
-rversion_patch=$(echo "$rapidia_version_previous" | sed "s/\([0-9]\)\.\([0-9]\)\.\([0-9]\)/\3/")
+rversion_major=$(echo "$rapidia_version_previous" | sed "s/\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\1/")
+rversion_minor=$(echo "$rapidia_version_previous" | sed "s/\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\2/")
+rversion_patch=$(echo "$rapidia_version_previous" | sed "s/\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)/\3/")
+
+echo "Previous version was $rversion_major.$rversion_minor.$rversion_patch"
 
 # increment version
 rversion_patch=$((rversion_patch+1))

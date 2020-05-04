@@ -26,10 +26,6 @@
 
 #define RAPIDIA_PROTOCOL 2
 
-#define RAPIDIA_NO_EXTRUDE
-#define RAPIDIA_NO_HOTENDS
-#define RAPIDIA_PLASTIC
-
 #ifndef RAPIDIA_PLASTIC
     #define RAPIDIA_METAL
 #endif
@@ -613,9 +609,9 @@
  * details can be tuned in Configuration_adv.h
  */
 
-#ifdef RAPIDIA_PLASTIC
-  #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
-#endif
+// despite the fact that this is labelled for hotends, it is actually 
+// needed even without hotends.
+#define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
 
 #define THERMAL_PROTECTION_BED     // Enable thermal protection for the heated bed
 #define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
