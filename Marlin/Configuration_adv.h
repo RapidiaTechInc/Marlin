@@ -559,7 +559,7 @@
 #define DUAL_X_CARRIAGE
 #if ENABLED(DUAL_X_CARRIAGE)
 
-  #define RAPIDIA_CARRIAGE_INTERVAL 70
+  #define RAPIDIA_CARRIAGE_INTERVAL 55
 
   #define X1_MIN_POS X_MIN_POS   // Set to X_MIN_POS
   #define X1_MAX_POS (X_MAX_POS - RAPIDIA_CARRIAGE_INTERVAL)  // Set a maximum so the first X-carriage can't hit the parked second X-carriage
@@ -1521,7 +1521,7 @@
 #if EITHER(AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_UBL)
   #define PROBE_PT_1_X 30
   #define PROBE_PT_1_Y 260
-  #define PROBE_PT_2_X 180 
+  #define PROBE_PT_2_X 180
   #define PROBE_PT_2_Y 260
   #define PROBE_PT_3_X 105
   #define PROBE_PT_3_Y 50

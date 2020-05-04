@@ -615,7 +615,7 @@
  * details can be tuned in Configuration_adv.h
  */
 
-// despite the fact that this is labelled for hotends, it is actually 
+// despite the fact that this is labelled for hotends, it is actually
 // needed even without hotends.
 #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
 
@@ -1134,7 +1134,7 @@
 #endif
 #ifdef RAPIDIA_METAL
     #define X_BED_SIZE 202
-    #define Y_BED_SIZE 265
+    #define Y_BED_SIZE 243
 #endif
 
 // Travel limits (mm). These are the locations at which the endstops are defined to trigger
@@ -1153,7 +1153,7 @@
     #define X_MIN_POS (-45)
     #define Y_MIN_POS (-18)
     #define Z_MIN_POS 0
-    #define X_MAX_POS (X_BED_SIZE + 51)
+    #define X_MAX_POS 248
     #define Y_MAX_POS Y_BED_SIZE
     #define Z_MAX_POS 190
 #endif
@@ -1412,14 +1412,14 @@
         #define NOZZLETIP_RIGHT_X 263
         #define NOZZLETIP_RIGHT_Y 255
     #endif
-    
+
     #ifdef RAPIDIA_PLASTIC
         #define NOZZLETIP_LEFT_X -9
         #define NOZZLETIP_LEFT_Y (Y_BED_SIZE - 60)
         #define NOZZLETIP_RIGHT_X (X_BED_SIZE + 9)
         #define NOZZLETIP_RIGHT_Y NOZZLETIP_LEFT_Y
     #endif
-    
+
     // absolute vertical offset between zeroed nozzletip and top of print bed
     #define NOZZLETIP_ENDSTOP_ABSDISTANCE 14.73
 #endif
@@ -1520,7 +1520,7 @@
  *   M502 - Revert settings to "factory" defaults. (Follow with M500 to init the EEPROM.)
  */
  // Persistent storage with M500 and M501
-#define EEPROM_SETTINGS  
+#define EEPROM_SETTINGS
 //#define DISABLE_M503        // Saves ~2700 bytes of PROGMEM. Disable for release!
 #define EEPROM_CHITCHAT       // Give feedback on EEPROM commands. Disable to save PROGMEM.
 #if ENABLED(EEPROM_SETTINGS)
