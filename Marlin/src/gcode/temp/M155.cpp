@@ -78,6 +78,12 @@ void GcodeSuite::M155() {
     uint16_t enabled = parser.value_ushort();
     heartbeat.select(HeartbeatSelection::DUALX, enabled);
   }
+  
+  if (parser.seenval('E'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    heartbeat.select(HeartbeatSelection::ENDSTOPS, enabled);
+  }
   #endif
 }
 

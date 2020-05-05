@@ -3,6 +3,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "../../module/stepper.h"
 #include "../../module/planner.h"
+#include "../../module/endstops.h"
 #include "../../gcode/gcode.h"
 
 #if ENABLED(RAPIDIA_HEARTBEAT)
@@ -51,30 +52,22 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
   // begin heartbeat
   if (!bare)
   {
-    SERIAL_CHAR(' ');
-    SERIAL_CHAR('H');
-    SERIAL_CHAR(':');
-    SERIAL_CHAR('{');
+    SERIAL_ECHOPGM(" H:{");
   }
   
   // plan position
   if (TEST_FLAG(selection, HeartbeatSelection::PLAN_POSITION))
   {
-    SERIAL_CHAR('P');
-    SERIAL_CHAR(':');
-    SERIAL_CHAR('{');
+    SERIAL_ECHOPGM("P:{");
     
     report_xyzetf(current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
-    SERIAL_CHAR('}');
-    SERIAL_CHAR(',');
+    SERIAL_CHAR('}', ',');
   }
   
   // actual position
   if (TEST_FLAG(selection, HeartbeatSelection::ABS_POSITION))
   {
-    SERIAL_CHAR('C');
-    SERIAL_CHAR(':');
-    SERIAL_CHAR('{');
+    SERIAL_ECHOPGM("C:{");
     
     // unit conversion steps -> logical
     Stepper::State state = stepper.report_state();
@@ -85,16 +78,13 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     }
   
     report_xyzetf(position.asLogical(), state.extruder);
-    SERIAL_CHAR('}');
-    SERIAL_CHAR(',');
+    SERIAL_CHAR('}', ',');
   }
   
   // relative mode axes:
   if (TEST_FLAG(selection, HeartbeatSelection::RELMODE))
   {
-    SERIAL_CHAR('R');
-    SERIAL_CHAR(':');
-    SERIAL_CHAR('"');
+   SERIAL_ECHOPGM("R:\"");
     LOOP_XYZE(axis)
     {
       if (gcode.axis_is_relative(AxisEnum(axis)))
@@ -109,8 +99,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
   // dualx info
   if (TEST_FLAG(selection, HeartbeatSelection::DUALX))
   {
-    SERIAL_CHAR('X', ':');
-    SERIAL_CHAR('{');
+    SERIAL_ECHOPGM("X:{");
     {
       char str[12];
       
@@ -130,18 +119,47 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       
       // TODO: stored feedrate.
     }
-    SERIAL_CHAR('}');
-    SERIAL_CHAR(',');
+    SERIAL_CHAR('}', ',');
+  }
+  
+  // endstops
+  if (TEST_FLAG(selection, HeartbeatSelection::ENDSTOPS))
+  {
+    // report endstops closed state (at this moment)
+    SERIAL_ECHOPGM("E:\"");
+    
+    // read from the endstop pins directly.
+    // (this info doesn't seem to be cached in the Endstops class.)
+    
+    #define ES_TRIGGERED(S) READ(S##_PIN) != S##_ENDSTOP_INVERTING
+    #define ES_REPORT(S, N) if (ES_TRIGGERED(S)) SERIAL_CHAR(N);
+    
+    #if HAS_X_MIN
+      ES_REPORT(X_MIN, 'x');
+    #endif
+    #if HAS_X_MAX
+      ES_REPORT(X_MAX, 'X');
+    #endif
+    #if HAS_Y_MIN
+      ES_REPORT(Y_MIN, 'y');
+    #endif
+    #if HAS_Y_MAX
+      ES_REPORT(Y_MAX, 'Y');
+    #endif
+    #if HAS_Z_MIN
+      ES_REPORT(Z_MIN, 'z');
+    #endif
+    #if HAS_Z_MAX
+      ES_REPORT(Z_MAX, 'Z');
+    #endif
+   
+    SERIAL_CHAR('"', ',');
   }
   
   // dummy data at end of json so that we don't have to worry about separators.
   if (!bare)
   {
-    SERIAL_CHAR('_');
-    SERIAL_CHAR(':');
-    SERIAL_CHAR('0');
-    
-    SERIAL_CHAR('}');
+    SERIAL_ECHOPGM("_:0}");
   }
   // end heartbeat
 }
