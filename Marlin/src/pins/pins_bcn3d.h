@@ -92,7 +92,11 @@
 #define TEMP_0_PIN         9   // Analog Input
 #define TEMP_1_PIN         8   // Analog Input
 #define TEMP_2_PIN         -1   // Analog Input
-#define TEMP_BED_PIN       15   // Analog Input
+#ifdef RAPIDIA_NO_HEATED_BED
+  #define TEMP_BED_PIN       -1
+#else
+  #define TEMP_BED_PIN       15   // Analog Input
+#endif
 
 //
 // Heaters / Fans
@@ -100,7 +104,11 @@
 #define HEATER_0_PIN       44
 #define HEATER_1_PIN       7
 #define HEATER_2_PIN       -1
-#define HEATER_BED_PIN     46
+#ifdef RAPIDIA_NO_HEATED_BED
+  #define HEATER_BED_PIN     -1
+#else
+  #define HEATER_BED_PIN     46
+#endif
 
 //Layer Fans
 #define FAN_PIN      45

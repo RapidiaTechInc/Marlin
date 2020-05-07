@@ -28,6 +28,7 @@
 
 // #define RAPIDIA_NO_HOTENDS
 // #define RAPIDIA_NO_EXTRUDE
+// #define RAPIDIA_NO_HEATED_BED
 
 #ifndef RAPIDIA_PLASTIC
     #define RAPIDIA_METAL
