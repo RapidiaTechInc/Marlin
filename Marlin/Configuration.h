@@ -34,16 +34,6 @@
     #define RAPIDIA_METAL
 #endif
 
-#ifdef RAPIDIA_METAL
-    #ifndef RAPIDIA_NO_HOTENDS
-        #define RAPIDIA_NO_HOTENDS
-    #endif
-#endif
-
-#ifndef RAPIDIA_NO_HOTENDS
-    #define HOTENDS_ENABLED
-#endif
-
 #define RAPIDIA_BLOCK_SOURCE
 #define RAPIDIA_PAUSE
 #define RAPIDIA_LAMP_ALIAS
@@ -579,23 +569,6 @@
 
 // @section extruder
 
-/**
- * Prevent extrusion if the temperature is below EXTRUDE_MINTEMP.
- * Add M302 to set the minimum extrusion temperature and/or turn
- * cold extrusion prevention on and off.
- *
- * *** IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED! ***
- */
-#define PREVENT_COLD_EXTRUSION
-#define EXTRUDE_MINTEMP 170
-
-/**
- * Prevent a single extrusion longer than EXTRUDE_MAXLENGTH.
- * Note: For Bowden Extruders make this large enough to allow load/unload.
- */
-#define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 200
-
 //===========================================================================
 //======================== Thermal Runaway Protection =======================
 //===========================================================================
@@ -678,19 +651,11 @@
 #endif
 
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
-#define X_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-#define Y_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-#define Z_MIN_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-#define X_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-#define Y_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-
-// RAPIDIA_METAL uses Z_MAX endstop for nozzle plug detection.
-#ifdef RAPIDIA_METAL
-  #define Z_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
-#else
-  #define Z_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
-#endif
-
+#define X_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
+#define Y_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
+#define Z_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
+#define X_MAX_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
+#define Y_MAX_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
 #define Z_MIN_PROBE_ENDSTOP_INVERTING true // Set to true to invert the logic of the probe.
 
 /**
@@ -1132,35 +1097,68 @@
 
 // @section machine
 
-// The size of the print bed
-#ifdef RAPIDIA_PLASTIC
-    #define X_BED_SIZE 202
-    #define Y_BED_SIZE 285
-#endif
-#ifdef RAPIDIA_METAL
-    #define X_BED_SIZE 202
-    #define Y_BED_SIZE 243
-#endif
-
 // Travel limits (mm). These are the locations at which the endstops are defined to trigger
 // (depending on which direction is the homing direction). Additionally, Marlin will clamp
 // movement commands to be within these bounds.
 #ifdef RAPIDIA_PLASTIC
+  #define X_BED_SIZE 202
+  #define Y_BED_SIZE 285
+
     #define X_MIN_POS (-48)
     #define Y_MIN_POS (-7)
     #define Z_MIN_POS (-5)
     #define X_MAX_POS (X_BED_SIZE + 48)
     #define Y_MAX_POS Y_BED_SIZE
     #define Z_MAX_POS 190
+
+  #define Z_HOMING_X_POINT 0                  // X point for Z homing when homing all axes (G28).
+  #define Z_HOMING_Y_POINT ((Y_BED_SIZE) / 2) // Y point for Z homing when homing all axes (G28).
+
+  #define Z_MAX_ENDSTOP_INVERTING true // Set to true to invert the logic of the endstop.
+
+/**
+ * Prevent extrusion if the temperature is below EXTRUDE_MINTEMP.
+ * Add M302 to set the minimum extrusion temperature and/or turn
+ * cold extrusion prevention on and off.
+ *
+ * *** IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED! ***
+ */
+#define PREVENT_COLD_EXTRUSION
+#define EXTRUDE_MINTEMP 170
+
+/**
+ * Prevent a single extrusion longer than EXTRUDE_MAXLENGTH.
+ * Note: For Bowden Extruders make this large enough to allow load/unload.
+ */
+#define PREVENT_LENGTHY_EXTRUDE
+#define EXTRUDE_MAXLENGTH 200
+
 #endif
 
 #ifdef RAPIDIA_METAL
+#define X_BED_SIZE 202
+#define Y_BED_SIZE 243
+
     #define X_MIN_POS (-45)
     #define Y_MIN_POS (-18)
     #define Z_MIN_POS 0
     #define X_MAX_POS 248
     #define Y_MAX_POS Y_BED_SIZE
     #define Z_MAX_POS 190
+
+#define Z_HOMING_X_POINT ((X_BED_SIZE) / 2) // X point for Z homing when homing all axes (G28).
+#define Z_HOMING_Y_POINT ((Y_BED_SIZE) / 2) // Y point for Z homing when homing all axes (G28).
+
+#define Z_MAX_ENDSTOP_INVERTING false // Set to true to invert the logic of the endstop.
+
+#ifndef RAPIDIA_NO_HOTENDS
+#define RAPIDIA_NO_HOTENDS
+#endif
+
+#endif
+
+#ifndef RAPIDIA_NO_HOTENDS
+#define HOTENDS_ENABLED
 #endif
 
 /**
