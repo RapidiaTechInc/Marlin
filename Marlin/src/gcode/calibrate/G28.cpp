@@ -402,7 +402,7 @@ void GcodeSuite::G28() {
         #else
           homeaxis(Z_AXIS);
         #endif
-        
+
         probe.move_z_after_probing();
 
       } // doZ
@@ -412,7 +412,7 @@ void GcodeSuite::G28() {
     sync_plan_position();
 
   #endif // !DELTA (G28)
-  
+
   SERIAL_ECHOLNPGM("Finished homing Z.");
 
   #ifdef NOZZLETIP_CALIBRATION
@@ -420,9 +420,9 @@ void GcodeSuite::G28() {
 
       /*** calibrate LEFT nozzletip ***/
       SERIAL_ECHOLNPGM("***starting LEFT nozzletip calibration");
-      
+
       const double Y_increment = 1; // Y delta during probe to force endstop trigger
-      
+
       // move to XY position
       {
           current_position[X_AXIS] = NOZZLETIP_LEFT_X;
@@ -430,10 +430,10 @@ void GcodeSuite::G28() {
           const double start_Z = current_position[Z_AXIS];
           const int Z_lower_position = start_Z - 50; // max distance to descend to find endstop
           const int z_raise = start_Z + 50; // raise height when moving to endstop probe position
-          
+
           planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], z_raise,
                                                   current_position[E_AXIS], 32, active_extruder);
-          
+
           // lower Z (with small Y movement) until limit switch is hit
           current_position[Y_AXIS] += Y_increment;
           planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], Z_lower_position,
@@ -458,7 +458,7 @@ void GcodeSuite::G28() {
           planner.synchronize();
           SERIAL_ECHOLNPGM("Finish \"set the true Z position...\"");
       }
-      
+
       // raise Z position to zero
       {
           current_position[X_AXIS] -= 10;
@@ -468,10 +468,10 @@ void GcodeSuite::G28() {
                            current_position[E_AXIS], 8, active_extruder);
           planner.synchronize();
       }
-      
+
   //     /*** calibrate RIGHT nozzletip ***/
   //     SERIAL_ECHOLNPGM("***starting RIGHT nozzletip calibration");
-      
+
   //     // switch control to right extruder
   //     active_extruder = 1;
 
@@ -490,7 +490,7 @@ void GcodeSuite::G28() {
     //         current_position[Y_AXIS] = NOZZLETIP_RIGHT_Y;
     //         do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
     //     }
-        
+
     //     // lower Z (with small Y movement) until limit switch is hit
     //     {
     //         const int Z_lower_position = -100;
@@ -514,14 +514,14 @@ void GcodeSuite::G28() {
     //                           current_position[E_AXIS]);
     //         planner.synchronize();
     //     }
-        
+
     //     // raise Z position to zero
     //     {
     //         current_position[Y_AXIS] -= Y_increment;
     //         current_position[Z_AXIS] = 0;
     //         planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
     //                          current_position[E_AXIS], 8, active_extruder);
-    //         planner.synchronize(); 
+    //         planner.synchronize();
     //     }
 
     //     // return control to left extruder
@@ -592,9 +592,11 @@ void GcodeSuite::G28() {
   #if HOTENDS > 1 && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
     tool_change(old_tool_index, NONE(PARKING_EXTRUDER, DUAL_X_CARRIAGE));   // Do move if one of these
   #endif
-  
-  #if defined(Z_AFTER_PROBING)
-      do_blocking_move_to_z(Z_AFTER_HOMING);
+
+  #if defined(Z_AFTER_HOMING)
+    if (doZ) {
+        do_blocking_move_to_z(Z_AFTER_HOMING);
+    }
   #endif
 
   #if HAS_HOMING_CURRENT
