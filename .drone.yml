@@ -7,9 +7,7 @@ steps:
     image: tutum/curl:trusty
     commands:
       - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/bin sh
-      - arduino-cli core update-index
-      - arduino-cli core install arduino:avr
-      - arduino-cli compile --fqbn arduino:avr:mega ./Marlin/ --verbose
+      - ./arduino-build.sh
 
 ---
 kind: pipeline
