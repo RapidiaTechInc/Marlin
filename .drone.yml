@@ -4,7 +4,7 @@ name: build
 
 steps:
   - name: build
-    image: ubuntu:xenial
+    image: tutum/curl:alpine
     commands:
       - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
       - ./arduino-build.sh
