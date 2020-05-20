@@ -4,7 +4,7 @@ name: build
 
 steps:
   - name: build
-    image: ubuntu:xenial
+    image: arduino/arduino-cli:builder-1
     commands:
       - ./arduino-build.sh
 
