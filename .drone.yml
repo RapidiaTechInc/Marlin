@@ -6,7 +6,7 @@ steps:
   - name: build
     image: tutum/curl:alpine
     commands:
-      - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+      - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/bin sh
       - ./arduino-build.sh
 
 ---
