@@ -7,7 +7,7 @@ steps:
     image: ubuntu:xenial
     commands:
       - apt-get update
-      - apt-get install curl
+      - yes | apt-get install curl
       - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/bin sh
       - arduino-cli core update-index
       - arduino-cli core install arduino:avr
