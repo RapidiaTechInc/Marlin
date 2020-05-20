@@ -21,7 +21,7 @@ steps:
     image: plugins/slack
     settings:
       webhook: https://hooks.slack.com/services/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
-      channel: software
+      channel: firmware
       template: >
         {{#if build.pull }}
           *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}>
