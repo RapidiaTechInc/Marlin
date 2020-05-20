@@ -4,8 +4,9 @@ name: build
 
 steps:
   - name: build
-    image: arduino/arduino-cli:builder-1
+    image: ubuntu:xenial
     commands:
+      - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
       - ./arduino-build.sh
 
 ---
