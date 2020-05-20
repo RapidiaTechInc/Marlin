@@ -16,16 +16,16 @@ kind: pipeline
 name: notify
 
 steps:
-    - name: slack
+  - name: slack
     image: plugins/slack
     settings:
-        webhook: https://hooks.slack.com/services/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
-        channel: software
-        template: >
+      webhook: https://hooks.slack.com/services/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
+      channel: software
+      template: >
         {{#if build.pull }}
-            *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}>
+          *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}>
         {{else}}
-            *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`)
+          *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`)
         {{/if}}
         Commit: <https://git.rapidia.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
         Message: {{ build.message }}
@@ -34,10 +34,9 @@ steps:
         <{{ build.link }}|Visit build page ↗>
 
 depends_on:
-    - build
+  - build
 
 trigger:
-    status:
+  status:
     - success
     - failure
-
