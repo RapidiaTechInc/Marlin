@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "src/core/macros.h"
+
 // target configurations
 //#define EMULATOR
 
@@ -34,6 +36,7 @@
     #define RAPIDIA_METAL
 #endif
 
+// rapidia features
 #define RAPIDIA_BLOCK_SOURCE
 #define RAPIDIA_PAUSE
 #define RAPIDIA_LAMP_ALIAS

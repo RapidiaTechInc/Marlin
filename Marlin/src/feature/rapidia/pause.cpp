@@ -18,13 +18,13 @@ static void report_xyzet(const xyze_pos_t &pos, const uint8_t extruder, const ui
   
   // position.
   LOOP_L_N(a, n) {
-    SERIAL_CHAR(axis_codes[a], ':');
+    echo_key(axis_codes[a]);
     SERIAL_ECHO(dtostrf(pos[a], 1, precision, str));
     SERIAL_CHAR(',');
   }
   
   // extruder number
-  SERIAL_CHAR('T', ':');
+  echo_key('T');
   SERIAL_CHAR('0' + extruder);
 }
 
@@ -60,7 +60,7 @@ void Pause::pause(bool hard)
   // cancel any gcode higher-up on the callstack.
   planner.prevent_block_buffering = true;
   
-  // Wait for the pause to complete.
+  // Wait for the toolhead to decelerate and come to a complete rest.
   planner.synchronize();
   
   // new plan position = calculated position from stepper.
@@ -69,40 +69,60 @@ void Pause::pause(bool hard)
   
   // report pause result.
   SERIAL_ECHO("pause:{");
+
+  // separator accumulator
+  bool sep = true;
+
+  // line number to report?
   if (qline != -1)
   {
-    SERIAL_ECHO("N:");
+    echo_separator(sep);
+    echo_key('N');
     SERIAL_ECHO(qline);
-    SERIAL_CHAR(',');
   }
+
+  // report gcode line that was completed?
   if (result.line >= 0)
   {
-    SERIAL_ECHO("G:");
+    echo_separator(sep);
+    echo_key('G');
     SERIAL_ECHO(result.line);
-    SERIAL_CHAR(',');
   }
+
+  // did deceleration occur?
+  echo_separator(sep);
+  echo_key_str("deceleration");
   if (!result.deceleration_block)
   {
-    SERIAL_ECHO("deceleration:false");
+    SERIAL_ECHO("false");
+
+    // for debugging purposes
+    echo_separator(sep);
+    echo_key_str("cropped");
     if (result.deceleration_cropped)
     {
-      SERIAL_ECHO(",cropped:false");
+      SERIAL_ECHO("false");
     }
     else
     {
-      SERIAL_ECHO(",cropped:true");
+      SERIAL_ECHO("true");
     }
-    SERIAL_CHAR(',');
   }
   else
   {
-    SERIAL_ECHO("deceleration:true,");
-    SERIAL_ECHO("distance:");
+    SERIAL_ECHO("true");
+
+    // distance travelled during deceleration.
+    echo_separator(sep);
+    echo_key_str("distance");
     SERIAL_ECHO(result.deceleration_mm);
-    SERIAL_CHAR(',');
   }
+
   #if ENABLED(SDSUPPORT)
-    SERIAL_ECHO("sd:");
+    // report if the pause occured during an SD print.
+    // (if true, this means the sd print was auto-paused.)
+    echo_separator(sep);
+    echo_key_str("sd");
     if (was_printing_sd)
     {
       SERIAL_ECHO("true");
@@ -111,13 +131,12 @@ void Pause::pause(bool hard)
     {
       SERIAL_ECHO("false");
     }
-    SERIAL_CHAR(',');
     was_printing_sd = false;
   #endif
   
-  // pre-pause position
-  SERIAL_CHAR('P');
-  SERIAL_CHAR(':');
+  // report the position from immediately before pausing.
+  echo_separator(sep);
+  echo_key('P');
   SERIAL_CHAR('{');
   
   xyze_pos_t position;
@@ -127,11 +146,11 @@ void Pause::pause(bool hard)
   }
 
   report_xyzet(position.asLogical(), pause_state.extruder);
-  SERIAL_CHAR('}', ',');
+  SERIAL_CHAR('}');
   
-  // position
-  SERIAL_CHAR('C');
-  SERIAL_CHAR(':');
+  // current position after pausing
+  echo_separator(sep);
+  echo_key('C');
   SERIAL_CHAR('{');
   report_xyzet(current_position.asLogical(), active_extruder);
   SERIAL_CHAR('}');
