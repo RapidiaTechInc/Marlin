@@ -10,8 +10,8 @@
 
 namespace Rapidia
 {
-static uint16_t heartbeat_interval = 0;
-static const uint16_t min_heartbeat_interval = 80;
+static uint16_t heartbeat_interval_ms = 0;
+static const uint16_t min_heartbeat_interval_ms = 80;
 static millis_t next_heartbeat_report_ms = 0;
 Heartbeat heartbeat; // singleton
 
@@ -20,16 +20,16 @@ HeartbeatSelectionUint Heartbeat::selection
 
 void Heartbeat::set_interval(uint16_t v)
 {
-  if (v && v < min_heartbeat_interval)
+  if (v && v < min_heartbeat_interval_ms)
   {
-    v = min_heartbeat_interval;
+    v = min_heartbeat_interval_ms;
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM("Heartbeat interval is lower than minimum ");
-    SERIAL_ECHO(min_heartbeat_interval);
+    SERIAL_ECHO(min_heartbeat_interval_ms);
     SERIAL_ECHOLNPGM(" ms. Using minimum instead.");
   }
 
-  heartbeat_interval = v;
+  heartbeat_interval_ms = v;
   next_heartbeat_report_ms = millis() + v;
 }
 
@@ -186,8 +186,8 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 
 void Heartbeat::auto_report()
 {
-  if (heartbeat_interval && ELAPSED(millis(), next_heartbeat_report_ms)) {
-    next_heartbeat_report_ms = millis() + heartbeat_interval;
+  if (heartbeat_interval_ms && ELAPSED(millis(), next_heartbeat_report_ms)) {
+    next_heartbeat_report_ms = millis() + heartbeat_interval_ms;
 
     PORT_REDIRECT(SERIAL_BOTH);
     serial_info(static_cast<HeartbeatSelection>(Heartbeat::selection));
