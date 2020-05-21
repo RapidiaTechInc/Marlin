@@ -300,3 +300,29 @@ inline void print_xyz(const xyz_pos_t &xyz, PGM_P const prefix=nullptr, PGM_P co
 
 #define SERIAL_POS(SUFFIX,VAR) do { print_xyz(VAR, PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n")); }while(0)
 #define SERIAL_XYZ(PREFIX,V...) do { print_xyz(V, PSTR(PREFIX), nullptr); }while(0)
+
+// echoes json key with quotes and colon
+inline void echo_key(char c)
+{
+  SERIAL_CHAR('"');
+  SERIAL_CHAR(c);
+  SERIAL_CHAR('"', ':');
+}
+
+// echoes json key with quotes and colon
+// (macro facilitates use of progmem)
+#define echo_key_str(s)                 \
+{                                       \
+  SERIAL_CHAR('"');                     \
+  SERIAL_ECHOPGM(s);                    \
+  SERIAL_CHAR('"', ':');                \
+}
+
+inline void echo_separator(bool& io_first_separator)
+{
+  if (!io_first_separator)
+  {
+    SERIAL_CHAR(',');
+  }
+  io_first_separator = false;
+}

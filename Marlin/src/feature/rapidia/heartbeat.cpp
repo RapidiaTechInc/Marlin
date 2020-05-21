@@ -11,6 +11,7 @@
 namespace Rapidia
 {
 static uint16_t heartbeat_interval = 0;
+static const uint16_t min_heartbeat_interval = 80;
 static millis_t next_heartbeat_report_ms = 0;
 Heartbeat heartbeat; // singleton
 
@@ -19,6 +20,15 @@ HeartbeatSelectionUint Heartbeat::selection
 
 void Heartbeat::set_interval(uint16_t v)
 {
+  if (v && v < min_heartbeat_interval)
+  {
+    v = min_heartbeat_interval;
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPGM("Heartbeat interval is lower than minimum ");
+    SERIAL_ECHO(min_heartbeat_interval);
+    SERIAL_ECHOLNPGM(" ms. Using minimum instead.");
+  }
+
   heartbeat_interval = v;
   next_heartbeat_report_ms = millis() + v;
 }
@@ -28,20 +38,20 @@ static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const b
   
   // position.
   LOOP_L_N(a, n) {
-    SERIAL_CHAR(axis_codes[a], ':');
+    echo_key(axis_codes[a]);
     SERIAL_ECHO(dtostrf(pos[a], 1, precision, str));
     SERIAL_CHAR(',');
   }
   
   if (feedrate)
   {
-    SERIAL_CHAR('F', ':');
+    echo_key('F');
     SERIAL_ECHO(dtostrf(feedrate_mm_s, 1, precision, str));
     SERIAL_CHAR(',');
   }
   
   // extruder number
-  SERIAL_CHAR('T', ':');
+  echo_key('T');
   SERIAL_CHAR('0' + extruder);
 }
 
@@ -54,20 +64,27 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
   {
     SERIAL_ECHOPGM(" H:{");
   }
+
+  // separator accumulator
+  bool sep = true;
   
   // plan position
   if (TEST_FLAG(selection, HeartbeatSelection::PLAN_POSITION))
   {
-    SERIAL_ECHOPGM("P:{");
+    echo_separator(sep);
+    echo_key('P');
+    SERIAL_CHAR('{');
     
     report_xyzetf(current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
-    SERIAL_CHAR('}', ',');
+    SERIAL_CHAR('}');
   }
   
   // actual position
   if (TEST_FLAG(selection, HeartbeatSelection::ABS_POSITION))
   {
-    SERIAL_ECHOPGM("C:{");
+    echo_separator(sep);
+    echo_key('C');
+    SERIAL_CHAR('{');
     
     // unit conversion steps -> logical
     Stepper::State state = stepper.report_state();
@@ -78,13 +95,15 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     }
   
     report_xyzetf(position.asLogical(), state.extruder);
-    SERIAL_CHAR('}', ',');
+    SERIAL_CHAR('}');
   }
   
   // relative mode axes:
   if (TEST_FLAG(selection, HeartbeatSelection::RELMODE))
   {
-   SERIAL_ECHOPGM("R:\"");
+    echo_separator(sep);
+    echo_key('R');
+    SERIAL_CHAR('"');
     LOOP_XYZE(axis)
     {
       if (gcode.axis_is_relative(AxisEnum(axis)))
@@ -93,40 +112,42 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       }
     }
     SERIAL_CHAR('"');
-    SERIAL_CHAR(',');
   }
   
   // dualx info
   if (TEST_FLAG(selection, HeartbeatSelection::DUALX))
   {
-    SERIAL_ECHOPGM("X:{");
+    echo_separator(sep);
+    echo_key('X');
+    SERIAL_CHAR('{');
     {
       char str[12];
       
       // dual_x_carriage_mode
-      SERIAL_CHAR('S', ':');
+      echo_key('S');
       SERIAL_CHAR('0' + (int32_t)(dual_x_carriage_mode));
       SERIAL_CHAR(',');
       
       // active toolhead
-      SERIAL_CHAR('T', ':');
+      echo_key('T');
       SERIAL_CHAR('0' + (int32_t)(active_extruder));
       SERIAL_CHAR(',');
       
       // stored x position
-      SERIAL_CHAR('X', ':');
+      echo_key('X');
       SERIAL_ECHO(dtostrf(inactive_extruder_x_pos, 1, 3, str));
       
       // TODO: stored feedrate.
     }
-    SERIAL_CHAR('}', ',');
+    SERIAL_CHAR('}');
   }
   
-  // endstops
+  // endstops -- report endstops closed state (at this moment)
   if (TEST_FLAG(selection, HeartbeatSelection::ENDSTOPS))
   {
-    // report endstops closed state (at this moment)
-    SERIAL_ECHOPGM("E:\"");
+    echo_separator(sep);
+    echo_key('E');
+    SERIAL_CHAR('"');
     
     // read from the endstop pins directly.
     // (this info doesn't seem to be cached in the Endstops class.)
@@ -153,13 +174,12 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       ES_REPORT(Z_MAX, 'Z');
     #endif
    
-    SERIAL_CHAR('"', ',');
+    SERIAL_CHAR('"');
   }
   
-  // dummy data at end of json so that we don't have to worry about separators.
   if (!bare)
   {
-    SERIAL_ECHOPGM("_:0}");
+    SERIAL_ECHOPGM("}");
   }
   // end heartbeat
 }
