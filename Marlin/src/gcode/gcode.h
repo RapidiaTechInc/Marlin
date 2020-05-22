@@ -901,7 +901,15 @@ private:
   #endif
 
   #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+      static void M734(); // begin recording nozzle plug data.
+    #endif
     static void M735(); // set z_max hysteresis threshold.
+  #endif
+
+  #if ENABLED(RAPIDIA_LAMP_ALIAS)
+    // M736  --  alias for M106
+    // M737  --  alias for M107
   #endif
   
   #if ENABLED(RAPIDIA_PAUSE)

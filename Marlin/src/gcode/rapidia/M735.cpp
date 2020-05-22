@@ -3,7 +3,7 @@
 #include "../gcode.h"
 #include "../../module/endstops.h"
 
-#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+#if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
 
 void GcodeSuite::M735()
 {
@@ -52,5 +52,12 @@ void GcodeSuite::M735()
     SERIAL_ECHO(endstops.z_max_hysteresis_min_interval_ms);
     SERIAL_ECHOLNPGM(" ms.");
 }
-#endif // CONDITIONAL_GCODE
+
+#if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+  void GcodeSuite::M734()
+  {
+    endstops.start_z_max_hysteresis_record();
+  }
+#endif // ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+#endif
 

@@ -792,6 +792,9 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+        #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+          case 734: M734(); break;                                // M734: begin z-max recording
+        #endif
         case 735: M735(); break;                                  // M735: z-max hysteresis threshold
       #endif
       
