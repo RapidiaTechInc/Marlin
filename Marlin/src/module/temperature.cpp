@@ -3008,6 +3008,8 @@ void Temperature::tick() {
       SERIAL_ECHOPAIR(" (", r * RECIPROCAL(OVERSAMPLENR));
       SERIAL_CHAR(')');
     #endif
+
+    // this delay is long enough for the temperature ISR to run once.
     delay(2);
   }
 
