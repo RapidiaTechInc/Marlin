@@ -62,6 +62,13 @@ Endstops::esbits_t Endstops::live_state = 0;
   uint8_t Endstops::endstop_poll_count;
 #endif
 
+#if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+  uint8_t Endstops::z_max_hysteresis_count = 0;
+  uint8_t Endstops::z_max_hysteresis_threshold = 1;
+  uint16_t Endstops::z_max_hysteresis_prev_ms = 0;
+  uint16_t Endstops::z_max_hysteresis_min_interval_ms = 0;
+#endif
+
 #if HAS_BED_PROBE
   volatile bool Endstops::z_probe_enabled = false;
 #endif
@@ -90,9 +97,132 @@ Endstops::esbits_t Endstops::live_state = 0;
   millis_t sg_guard_period; // = 0
 #endif
 
+#define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
+
+#define READ_ENDSTOP(S) (READ(S ##_PIN) != S ##_ENDSTOP_INVERTING)
+
+template<EndstopEnum e>
+FORCE_INLINE bool Endstops::_endstop_state()
+{
+  #define ENDSTOP_STATE_CASE(AXIS, MINMAX)                                              \
+  case AXIS ##_## MINMAX:                                                               \
+    return (READ_ENDSTOP(AXIS ##_## MINMAX));  \
+
+  // this switch gets optimized out in any given instantiation (theoretically).
+  switch(e)
+  {
+  #if HAS_X_MIN
+    ENDSTOP_STATE_CASE(X, MIN)
+  #endif
+  #if HAS_Y_MIN
+    ENDSTOP_STATE_CASE(Y, MIN)
+  #endif
+  #if HAS_Z_MIN
+    ENDSTOP_STATE_CASE(Z, MIN)
+  #endif
+  #if HAS_Z_MIN_PROBE
+    ENDSTOP_STATE_CASE(Z, MIN_PROBE)
+  #endif
+  #if HAS_X_MAX
+    ENDSTOP_STATE_CASE(X, MAX)
+  #endif
+  #if HAS_Y_MAX
+    ENDSTOP_STATE_CASE(Y, MAX)
+  #endif
+  #if HAS_Z_MAX
+    #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+      case Z_MAX:
+        return z_max_hysteresis_count >= z_max_hysteresis_threshold;
+    #else
+      ENDSTOP_STATE_CASE(Z, MAX)
+    #endif
+  #endif
+  #if HAS_X2_MIN
+    ENDSTOP_STATE_CASE(X2, MIN)
+  #endif
+  #if HAS_X2_MAX
+    ENDSTOP_STATE_CASE(X2, MAX)
+  #endif
+  #if HAS_Y2_MIN
+    ENDSTOP_STATE_CASE(Y2, MIN)
+  #endif
+  #if HAS_Y2_MAX
+    ENDSTOP_STATE_CASE(Y2, MAX)
+  #endif
+  #if HAS_Z2_MIN
+    ENDSTOP_STATE_CASE(Z2, MIN)
+  #endif
+  #if HAS_Z2_MAX
+    ENDSTOP_STATE_CASE(Z2, MAX)
+  #endif
+  #if HAS_Z3_MIN
+    ENDSTOP_STATE_CASE(Z3, MIN)
+  #endif
+  #if HAS_Z3_MAX
+    ENDSTOP_STATE_CASE(Z3, MAX)
+  #endif
+  #if HAS_Z4_MIN
+    ENDSTOP_STATE_CASE(Z4, MIN)
+  #endif
+  #if HAS_Z4_MAX
+    ENDSTOP_STATE_CASE(Z4, MAX)
+  #endif
+
+  default:
+    // pin does not exist.
+    return false;
+  }
+}
+
 /**
  * Class and Instance Methods
  */
+
+// public access.
+bool Endstops::endstop_state(EndstopEnum e)
+{
+  // dynamic -> template
+  switch (e)
+  {
+  case X_MIN:
+    return _endstop_state<X_MIN>();
+  case Y_MIN:
+    return _endstop_state<Y_MIN>();
+  case Z_MIN:
+    return _endstop_state<Z_MIN>();
+  case Z_MIN_PROBE:
+    return _endstop_state<Z_MIN_PROBE>();
+  case X_MAX:
+    return _endstop_state<X_MAX>();
+  case Y_MAX:
+    return _endstop_state<Y_MAX>();
+  case Z_MAX:
+    return _endstop_state<Z_MAX>();
+  case X2_MIN:
+    return _endstop_state<X2_MIN>();
+  case X2_MAX:
+    return _endstop_state<X2_MAX>();
+  case Y2_MIN:
+    return _endstop_state<Y2_MIN>();
+  case Y2_MAX:
+    return _endstop_state<Y2_MAX>();
+  case Z2_MIN:
+    return _endstop_state<Z2_MIN>();
+  case Z2_MAX:
+    return _endstop_state<Z2_MAX>();
+  case Z3_MIN:
+    return _endstop_state<Z3_MIN>();
+  case Z3_MAX:
+    return _endstop_state<Z3_MAX>();
+  case Z4_MIN:
+    return _endstop_state<Z4_MIN>();
+  case Z4_MAX:
+    return _endstop_state<Z4_MAX>();
+  default:
+    // probe does not exist.
+    return false;
+  }
+}
 
 void Endstops::init() {
 
@@ -424,7 +554,7 @@ void _O2 Endstops::report_states() {
     bltouch._set_SW_mode();
   #endif
   SERIAL_ECHOLNPGM(STR_M119_REPORT);
-  #define ES_REPORT(S) print_es_state(READ(S##_PIN) != S##_ENDSTOP_INVERTING, PSTR(STR_##S))
+  #define ES_REPORT(S) print_es_state(_endstop_state<S>(), PSTR(STR_##S))
   #if HAS_X_MIN
     ES_REPORT(X_MIN);
   #endif
@@ -507,9 +637,48 @@ void _O2 Endstops::report_states() {
 // The following routines are called from an ISR context. It could be the temperature ISR, the
 // endstop ISR or the Stepper ISR.
 
-#define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
-#define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
-#define _ENDSTOP_INVERTING(AXIS, MINMAX) AXIS ##_## MINMAX ##_ENDSTOP_INVERTING
+#if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+  void Endstops::update_z_max_hysteresis()
+  {
+    const bool poll_result = READ_ENDSTOP(Z_MAX);
+    if (poll_result)
+    {
+      if (z_max_hysteresis_count < 0xff)
+      {
+        // prevent update in the same ms twice
+        // (due to 16-bit truncation, this sometimes can give a false negative -- that's fine.)
+        const uint16_t now = millis() / z_max_hysteresis_min_interval_ms;
+        if (now != z_max_hysteresis_prev_ms)
+        {
+          z_max_hysteresis_count++;
+          z_max_hysteresis_prev_ms = now;
+        }
+      }
+    }
+    else
+    {
+      z_max_hysteresis_count = 0;
+      z_max_hysteresis_prev_ms = millis();
+    }
+  }
+
+  void Endstops::update_z_max_hysteresis_core()
+  {
+    // if ISRs are being called frequently, these checks allow us to prune most of the
+    // redundant updates we would make (each of which would require temporarily disabling ISRs.)
+    const uint16_t now = millis() / z_max_hysteresis_min_interval_ms;
+    if (now != z_max_hysteresis_prev_ms)
+    {
+      if (z_max_hysteresis_count < 0xff || !READ_ENDSTOP(Z_MAX))
+      {
+        // disable ISRs and then perform the usual update.
+        DISABLE_ISRS();
+        update_z_max_hysteresis();
+        ENABLE_ISRS();
+      }
+    }
+  }
+#endif
 
 // Check endstops - Could be called from Temperature ISR!
 void Endstops::update() {
@@ -518,7 +687,9 @@ void Endstops::update() {
     if (!abort_enabled()) return;
   #endif
 
-  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
+  update_z_max_hysteresis();
+
+  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), _endstop_state<_ENDSTOP(AXIS, MINMAX)>())
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT_TO(live_state, DST_BIT, TEST(live_state, SRC_BIT))
 
   #if ENABLED(G38_PROBE_TARGET) && PIN_EXISTS(Z_MIN_PROBE) && !(CORE_IS_XY || CORE_IS_XZ)

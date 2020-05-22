@@ -899,6 +899,10 @@ private:
     static void M730(); // enable line finished reporting
     static void M731(); // disable line finished reporting
   #endif
+
+  #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    static void M735(); // set z_max hysteresis threshold.
+  #endif
   
   #if ENABLED(RAPIDIA_PAUSE)
   #if DISABLED(EMERGENCY_PARSER)

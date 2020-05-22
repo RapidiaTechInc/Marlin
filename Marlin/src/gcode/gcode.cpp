@@ -794,6 +794,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 730: M730(); break;                                  // M730: enable report on line finish
         case 731: M731(); break;                                  // M731: disable report on line finish
       #endif
+
+      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+        case 735: M735(); break;                                  // M735: z-max hysteresis threshold
+      #endif
       
       #if ENABLED(RAPIDIA_LAMP_ALIAS)
         case 736: M106(); break;                                  // M736: alias for M106

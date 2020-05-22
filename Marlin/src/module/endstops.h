@@ -38,7 +38,21 @@ enum EndstopEnum : char {
   Z4_MIN, Z4_MAX
 };
 
+#ifdef RAPIDIA_HEARTBEAT
+// forward declaration
+namespace Rapidia
+{
+  class Heartbeat;
+}
+#endif
+
 class Endstops {
+
+  #ifdef RAPIDIA_HEARTBEAT
+    // for debugging output
+    friend class Rapidia::Heartbeat;
+  #endif
+
   public:
     #if HAS_EXTRA_ENDSTOPS
       typedef uint16_t esbits_t;
@@ -71,6 +85,28 @@ class Endstops {
       static uint8_t endstop_poll_count;    // Countdown from threshold for polling
     #endif
 
+    // as endstop_state(), but by template argument.
+    template<EndstopEnum>
+    static bool _endstop_state();
+
+    #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+      // current # of z max encountered.
+      static uint8_t z_max_hysteresis_count;
+
+    public:
+      // required # of detections in a row to trigger endstop.
+      // (default is 1.)
+      static uint8_t z_max_hysteresis_threshold;
+
+      // previous timestamp hysteresis was updated
+      // (allowed to update at most once per millisecond
+      // to prevent duplicate samples)
+      static uint16_t z_max_hysteresis_prev_ms;
+
+      // hysteresis update occurs *no more rapidly than* this value.
+      static uint16_t z_max_hysteresis_min_interval_ms;
+    #endif
+
   public:
     Endstops() {};
 
@@ -97,6 +133,15 @@ class Endstops {
      */
     static void poll();
 
+    #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+      // checks z_max pin and updates hysteresis count.
+      // (Only safe to call from ISR context.)
+      static void update_z_max_hysteresis();
+
+      // as above, but safe to call from non-ISR context.
+      static void update_z_max_hysteresis_core();
+    #endif
+
     /**
      * Update endstops bits from the pins. Apply filtering to get a verified state.
      * If abort_enabled() and moving towards a triggered switch, abort the current move.
@@ -121,6 +166,9 @@ class Endstops {
         #endif
       ;
     }
+
+    // directly checks a particular endstop.
+    static bool endstop_state(EndstopEnum);
 
     /**
      * Report endstop hits to serial. Called from loop().
