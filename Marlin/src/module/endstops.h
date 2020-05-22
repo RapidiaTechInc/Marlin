@@ -105,6 +105,22 @@ class Endstops {
 
       // hysteresis update occurs *no more rapidly than* this value.
       static uint16_t z_max_hysteresis_min_interval_ms;
+
+      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+        static bool z_max_hysteresis_recording;
+        static millis_t z_max_hysteresis_record_begin_ms;
+        static millis_t z_max_hysteresis_record_end_ms;
+        static const uint8_t z_max_hysteresis_record_time_interval;
+        static uint8_t* const z_max_hysteresis_record_buffer;
+        static const uint16_t z_max_hysteresis_record_buffer_size;
+        static uint16_t z_max_hysteresis_record_buffer_bit_index;
+
+        static void update_z_max_hysteresis_record(bool high, uint16_t now_ms);
+
+        static void start_z_max_hysteresis_record();
+
+        static void z_max_hysteresis_event_update();
+      #endif
     #endif
 
   public:

@@ -66,7 +66,7 @@ Endstops::esbits_t Endstops::live_state = 0;
   uint8_t Endstops::z_max_hysteresis_count = 0;
   uint8_t Endstops::z_max_hysteresis_threshold = 1;
   uint16_t Endstops::z_max_hysteresis_prev_ms = 0;
-  uint16_t Endstops::z_max_hysteresis_min_interval_ms = 0;
+  uint16_t Endstops::z_max_hysteresis_min_interval_ms = 1;
 #endif
 
 #if HAS_BED_PROBE
@@ -492,6 +492,11 @@ void Endstops::resync() {
 #endif
 
 void Endstops::event_handler() {
+
+  #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+    z_max_hysteresis_event_update();
+  #endif
+
   static uint8_t prev_hit_state; // = 0
   if (hit_state == prev_hit_state) return;
   prev_hit_state = hit_state;
@@ -638,27 +643,111 @@ void _O2 Endstops::report_states() {
 // endstop ISR or the Stepper ISR.
 
 #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+
+#if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+  bool Endstops::z_max_hysteresis_recording = false;
+  millis_t Endstops::z_max_hysteresis_record_begin_ms = 0;
+  millis_t Endstops::z_max_hysteresis_record_end_ms = 0;
+  const uint8_t Endstops::z_max_hysteresis_record_time_interval = 0x80;
+  const uint16_t Endstops::z_max_hysteresis_record_buffer_size = 1024;
+  namespace
+  {
+    uint8_t _buff[Endstops::z_max_hysteresis_record_buffer_size];
+  }
+  uint8_t* const Endstops::z_max_hysteresis_record_buffer = _buff;
+  uint16_t Endstops::z_max_hysteresis_record_buffer_bit_index = 0;
+
+  void Endstops::start_z_max_hysteresis_record()
+  {
+    if (!z_max_hysteresis_recording)
+    {
+      z_max_hysteresis_recording = true;
+      z_max_hysteresis_record_buffer_bit_index = 0;
+      z_max_hysteresis_record_begin_ms = millis();
+
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPGM("Recording. Will report back after ");
+      SERIAL_ECHO(8 * z_max_hysteresis_record_buffer_size);
+      SERIAL_ECHOLNPGM(" samples are collected.");
+    }
+  }
+
+  void Endstops::update_z_max_hysteresis_record(bool high, uint16_t now_ms)
+  {
+    if (!z_max_hysteresis_recording) return;
+
+    if (z_max_hysteresis_record_buffer_bit_index < z_max_hysteresis_record_buffer_size * 8)
+    {
+      SET_BIT_TO(
+        z_max_hysteresis_record_buffer[z_max_hysteresis_record_buffer_bit_index / 8],
+        z_max_hysteresis_record_buffer_bit_index % 8,
+        high
+      );
+      ++z_max_hysteresis_record_buffer_bit_index;
+
+      if (z_max_hysteresis_record_buffer_bit_index == 8 * z_max_hysteresis_record_buffer_size)
+      // This is the end of the recording.
+      {
+        z_max_hysteresis_record_end_ms = millis();
+      }
+    }
+  }
+
+  void Endstops::z_max_hysteresis_event_update()
+  {
+    if (z_max_hysteresis_recording && z_max_hysteresis_record_buffer_bit_index == 8 * z_max_hysteresis_record_buffer_size)
+    {
+      // done recording.
+      z_max_hysteresis_recording = false;
+
+      // print logs
+      SERIAL_ECHO_START();
+      SERIAL_ECHOPGM("Recording complete. Time elapsed: ");
+      SERIAL_ECHO(z_max_hysteresis_record_end_ms - z_max_hysteresis_record_begin_ms);
+      SERIAL_ECHOLNPGM(" ms.");
+      SERIAL_ECHOLNPGM("Data: ");
+      for (uint16_t bit_index = 0; bit_index < z_max_hysteresis_record_buffer_size * 8; ++bit_index)
+      {
+        bool value = TEST(
+          z_max_hysteresis_record_buffer[bit_index / 8],
+          bit_index % 8
+        );
+
+        SERIAL_CHAR('0' + value);
+        if (bit_index % 8 == 0) SERIAL_CHAR(" ");
+        if (bit_index % 0x80 == 0) SERIAL_ECHOLN();
+      }
+      SERIAL_ECHOLN();
+    }
+  }
+#endif
+
   void Endstops::update_z_max_hysteresis()
   {
-    const bool poll_result = READ_ENDSTOP(Z_MAX);
-    if (poll_result)
+
+    const uint16_t now = millis() / z_max_hysteresis_min_interval_ms;
+
+    // prevent update in the same ms twice
+    if (now != z_max_hysteresis_prev_ms)
     {
-      if (z_max_hysteresis_count < 0xff)
+      const bool poll_result = READ_ENDSTOP(Z_MAX);
+      if (poll_result)
       {
-        // prevent update in the same ms twice
-        // (due to 16-bit truncation, this sometimes can give a false negative -- that's fine.)
-        const uint16_t now = millis() / z_max_hysteresis_min_interval_ms;
-        if (now != z_max_hysteresis_prev_ms)
+        if (z_max_hysteresis_count < 0xff)
         {
           z_max_hysteresis_count++;
           z_max_hysteresis_prev_ms = now;
         }
       }
-    }
-    else
-    {
-      z_max_hysteresis_count = 0;
-      z_max_hysteresis_prev_ms = millis();
+      else
+      {
+        z_max_hysteresis_count = 0;
+        z_max_hysteresis_prev_ms = now;
+      }
+
+      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+        update_z_max_hysteresis_record(poll_result, now);
+      #endif
     }
   }
 
@@ -683,11 +772,12 @@ void _O2 Endstops::report_states() {
 // Check endstops - Could be called from Temperature ISR!
 void Endstops::update() {
 
+  // We want the z max hysteresis to run even if endstops are disabled.
+  update_z_max_hysteresis();
+
   #if !ENDSTOP_NOISE_THRESHOLD
     if (!abort_enabled()) return;
   #endif
-
-  update_z_max_hysteresis();
 
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), _endstop_state<_ENDSTOP(AXIS, MINMAX)>())
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT_TO(live_state, DST_BIT, TEST(live_state, SRC_BIT))
