@@ -152,29 +152,47 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     // read from the endstop pins directly.
     // (this info doesn't seem to be cached in the Endstops class.)
     
-    #define ES_TRIGGERED(S) READ(S##_PIN) != S##_ENDSTOP_INVERTING
-    #define ES_REPORT(S, N) if (ES_TRIGGERED(S)) SERIAL_CHAR(N);
+    #define ES_REPORT(S, N) if (endstops.endstop_state(S)) SERIAL_CHAR(N);
     
-    #if HAS_X_MIN
-      ES_REPORT(X_MIN, 'x');
-    #endif
-    #if HAS_X_MAX
-      ES_REPORT(X_MAX, 'X');
-    #endif
-    #if HAS_Y_MIN
-      ES_REPORT(Y_MIN, 'y');
-    #endif
-    #if HAS_Y_MAX
-      ES_REPORT(Y_MAX, 'Y');
-    #endif
-    #if HAS_Z_MIN
-      ES_REPORT(Z_MIN, 'z');
-    #endif
-    #if HAS_Z_MAX
-      ES_REPORT(Z_MAX, 'Z');
-    #endif
+    ES_REPORT(X_MIN, 'x');
+    ES_REPORT(Y_MIN, 'y');
+    ES_REPORT(Z_MIN, 'z');
+    ES_REPORT(X_MAX, 'X');
+    ES_REPORT(Y_MAX, 'Y');
+    ES_REPORT(Z_MAX, 'Z');
    
     SERIAL_CHAR('"');
+
+    if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
+    {
+      echo_separator(sep);
+      echo_key_str("dbg-live-state");
+      SERIAL_ECHO(static_cast<int32_t>(endstops.live_state));
+
+      echo_separator(sep);
+      echo_key_str("dbg-state()");
+      SERIAL_ECHO(static_cast<int32_t>(endstops.state()));
+
+      echo_separator(sep);
+      echo_key_str("dbg-enable");
+      SERIAL_ECHO(endstops.enabled);
+
+      echo_separator(sep);
+      echo_key_str("dbg-enable-globally");
+      SERIAL_ECHO(endstops.enabled_globally);
+
+      echo_separator(sep);
+      echo_key_str("dbg-hit-state");
+      SERIAL_ECHO(static_cast<int32_t>(endstops.hit_state));
+
+      echo_separator(sep);
+      echo_key_str("dbg-zmax-hyst-count");
+      SERIAL_ECHO(static_cast<int32_t>(endstops.z_max_hysteresis_count));
+
+      echo_separator(sep);
+      echo_key_str("dbg-zmax-hyst-threshold");
+      SERIAL_ECHO(static_cast<int32_t>(endstops.z_max_hysteresis_threshold));
+    }
   }
   
   if (!bare)

@@ -702,7 +702,11 @@ void idle(
   #endif
   
   #if ENABLED(RAPIDIA_PAUSE)
-  Rapidia::pause.process_deferred();
+    Rapidia::pause.process_deferred();
+  #endif
+
+  #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    endstops.update_z_max_hysteresis_core();
   #endif
 
   #if ENABLED(MAX7219_DEBUG)

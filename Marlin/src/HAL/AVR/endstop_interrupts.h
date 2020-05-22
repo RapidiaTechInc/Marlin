@@ -154,7 +154,10 @@ void setup_endstop_interrupts() {
   #endif
   #if HAS_Z_MAX
     #if (digitalPinToInterrupt(Z_MAX_PIN) != NOT_AN_INTERRUPT)
-      _ATTACH(Z_MAX_PIN);
+      // no need for an interrupt here when using hysteresis
+      #if DISABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+        _ATTACH(Z_MAX_PIN);
+      #endif
     #else
       static_assert(digitalPinHasPCICR(Z_MAX_PIN), "Z_MAX_PIN is not interrupt-capable");
       pciSetup(Z_MAX_PIN);
