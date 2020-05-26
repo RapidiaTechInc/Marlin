@@ -1,82 +1,85 @@
-# Marlin 3D Printer Firmware
+# Rapidia 3D Printer Firmware
 
-![GitHub](https://img.shields.io/github/license/marlinfirmware/marlin.svg)
-![GitHub contributors](https://img.shields.io/github/contributors/marlinfirmware/marlin.svg)
-![GitHub Release Date](https://img.shields.io/github/release-date/marlinfirmware/marlin.svg)
-[![Build Status](https://github.com/MarlinFirmware/Marlin/workflows/CI/badge.svg?branch=bugfix-2.0.x)](https://github.com/MarlinFirmware/Marlin/actions)
+Marlin is an open source project which drives many of the world's 3D printers. It is considered to be a reliable and professional-grade firwmare project. Additional documentation can be found at the [Marlin Home Page](http://marlinfw.org/).
 
-<img align="right" width=175 src="buildroot/share/pixmaps/logo/marlin-250.png" />
+Rapidia has made some modifications to Marlin to work better with our hardware and host software. Because this project is licensed under [version 3.0 of the GNU General Public License](./LICENSE), the source code and license must be made available with every distribution of the Marlin firmware. 
 
-Additional documentation can be found at the [Marlin Home Page](http://marlinfw.org/).
-Please let us know if Marlin misbehaves in any way. Volunteers are standing by!
+Most Rapidia-specific changes to the code can be identified by the surrounding RAPIDIA_* macros. A list of the new g-code commands created for and existing commands modified for Rapidia use has been provided below.
 
-## Marlin 2.0
+## Changes
 
-Marlin 2.0 takes this popular RepRap firmware to the next level by adding support for much faster 32-bit and ARM-based boards while improving support for 8-bit AVR boards. Read about Marlin's decision to use a "Hardware Abstraction Layer" below.
+### M155 [S(u8:seconds)] [H(s32:milliseconds)] [P,C,R,X,E(0,1)]
+Auto-reporting. In the original firmware, only the S option is available. S sets the interval at which temperature auto-reporting occurs. H sets the interval at which the heartbeat status update occurs. Temperature and heartbeat reports occur separately, but they are both enabled by this command. P,C,R, etc. can enable/disable individual status updates in that heartbeat. Some of these options are disabled by default (*). The report is issued as a json object and can contain the following entries:
 
-Download earlier versions of Marlin on the [Releases page](https://github.com/MarlinFirmware/Marlin/releases).
+- P: current plan position. (After executing all the plans in the buffer, - the toolhead will be here.)
+- C: actual current position. (May not be very useful for logic, but could be nifty for UI reasons.)
+- F: feedrate shown with plan position.
+- R: per-axis relative mode flag enabled/disabled. (Reported as a string containing the axes in relative mode, e.g. “XYZ")
+- X*: dualx state
+- E: Endstops states. Reported as a string: endstop state for X_MIN through Z_MIN (reported as ‘x’, ‘y’, ‘z’ in lower case), and X_MAX through Z_MAX (reported as ‘X’, ‘Y’, ‘Z’ in upper case)
 
-## Building Marlin 2.0
+Example command:
+`M155 S3 H2000 P1 C0 R1 X0`
 
-To build Marlin 2.0 you'll need [Arduino IDE 1.8.8 or newer](https://www.arduino.cc/en/main/software) or [PlatformIO](http://docs.platformio.org/en/latest/ide.html#platformio-ide). Detailed build and install instructions are posted at:
+**Example report [H]**
+```
+H:{"P":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"F":33.333,"T":0},"C":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"R":"","ES":"xXZ"}
+```
 
-- [Installing Marlin (Arduino)](http://marlinfw.org/docs/basics/install_arduino.html)
-- [Installing Marlin (VSCode)](http://marlinfw.org/docs/basics/install_platformio_vscode.html).
+Note that the “F" and “T" entries in the position object refer to the current feedrate and tool respectively.
 
-### Supported Platforms
+### M710 T(0-3)
+Set Timer. There are 4 timers which can be used in conditional gcode execution (see M711). This command resets the specified timer.
 
-| Platform                                                                                                                                                                                                  | MCU            | Example Boards                                  |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------------------------------- |
-| [Arduino AVR](https://www.arduino.cc/)                                                                                                                                                                    | ATmega         | RAMPS, Melzi, RAMBo                             |
-| [Teensy++ 2.0](http://www.microchip.com/wwwproducts/en/AT90USB1286)                                                                                                                                       | AT90USB1286    | Printrboard                                     |
-| [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)                                                                                                                                                 | SAM3X8E        | RAMPS-FD, RADDS, RAMPS4DUE                      |
-| [LPC1768](http://www.nxp.com/products/microcontrollers-and-processors/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1768FBD100) | ARM® Cortex-M3 | MKS SBASE, Re-ARM, Selena Compact               |
-| [LPC1769](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1769FBD100)      | ARM® Cortex-M3 | Smoothieboard, Azteeg X5 mini, TH3D EZBoard     |
-| [STM32F103](https://www.st.com/en/microcontrollers-microprocessors/stm32f103.html)                                                                                                                        | ARM® Cortex-M3 | Malyan M200, GTM32 Pro, MKS Robin, BTT SKR Mini |
-| [STM32F401](https://www.st.com/en/microcontrollers-microprocessors/stm32f401.html)                                                                                                                        | ARM® Cortex-M4 | ARMED, Rumba32, SKR Pro, Lerdge, FYSETC S6      |
-| [STM32F7x6](https://www.st.com/en/microcontrollers-microprocessors/stm32f7x6.html)                                                                                                                        | ARM® Cortex-M7 | The Borg, RemRam V1                             |
-| [SAMD51P20A](https://www.adafruit.com/product/4064)                                                                                                                                                       | ARM® Cortex-M4 | Adafruit Grand Central M4                       |
-| [Teensy 3.5](https://www.pjrc.com/store/teensy35.html)                                                                                                                                                    | ARM® Cortex-M4 |
-| [Teensy 3.6](https://www.pjrc.com/store/teensy36.html)                                                                                                                                                    | ARM® Cortex-M4 |
+### M711 T(0-3) [A(u32)] [B(u32)] [N(u8)]
+Conditional Execution (on Timer). This command checks if the specified timer T has elapsed at least (A) or fewer than (B) the specified number of milliseconds. If it has not -- that is, if the condition evaluates to false -- then the next specified number N lines of gcode received will be skipped. Only gcode which starts with a ‘G’ or ‘T’ will be skipped; ‘M’ code will neither be skipped nor will it count toward the number of lines which are to be skipped.
 
-## Build with Docker
+### M730; M731
+Enable/Disable movement-complete auto-reporting.
+These respectively enable and disable reporting when individual lines of gcode have completed execution. (Note that this does not enable synchronous movement.)
 
-- [Install Docker](https://docs.docker.com/get-docker/)
-- Run `docker build . --tag arduino-cli`
-- Run `docker run --rm -v ${PWD}:/Marlin -w /Marlin arduino-cli:latest /bin/sh ./arduino-build.sh`
+### M735 [S(u8)] [I(u16:milliseconds)]
+Z_MAX (nozzle plug) signal processing.
 
-## Submitting Changes
+Arguments:
+- S: sample threshold.
+- I: minimum sample interval.
 
-- Submit **Bug Fixes** as Pull Requests to the ([bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x)) branch.
-- Submit **New Features** to the ([dev-2.1.x](https://github.com/MarlinFirmware/Marlin/tree/dev-2.1.x)) branch.
-- Follow the [Coding Standards](http://marlinfw.org/docs/development/coding_standards.html) to gain points with the maintainers.
-- Please submit your questions and concerns to the [Issue Queue](https://github.com/MarlinFirmware/Marlin/issues).
+Setting S to an integer greater than 1 makes it so that Marlin must read S positive reads on the Z_MAX endstop pin (i.e. the nozzle plug pin) in a row for it to properly count as triggered. By default, it will sample no faster than once per ms. Setting I to a value greater than 1 means that the endstop will be sampled (no faster than) every I milliseconds.
 
-## Marlin Support
+Warning: setting S0 means that Marlin requires 0 positive reads for the endstop to count as “triggered". In other words, the endstop will always be triggered. This is likely to be useful only for debugging nozzle plug detection.
 
-For best results getting help with configuration and troubleshooting, please use the following resources:
+### M736; M737
+Lamp on/Lamp off
+For now, these commands are aliases of M106 and M107.
+M751/M752
 
-- [Marlin Documentation](http://marlinfw.org) - Official Marlin documentation
-- [Marlin Discord](https://discord.gg/n5NJ59y) - Discuss issues with Marlin users and developers
-- Facebook Group ["Marlin Firmware"](https://www.facebook.com/groups/1049718498464482/)
-- RepRap.org [Marlin Forum](http://forums.reprap.org/list.php?415)
-- [Tom's 3D Forums](https://discuss.toms3d.org/)
-- Facebook Group ["Marlin Firmware for 3D Printers"](https://www.facebook.com/groups/3Dtechtalk/)
-- [Marlin Configuration](https://www.youtube.com/results?search_query=marlin+configuration) on YouTube
+### M751; M752
+Emergency-priority parsing.
+Immediately stops extrusion.
+Decelerates to a smooth stop.
 
-## Credits
+- M751: finishes the currently-executing gcode, and then stops.
+- M752: decelerates to a smooth stop at the next buffered move.
+Clears command buffer and movement planning buffer.
 
-The current Marlin dev team consists of:
+After the pause completes (i.e. when the print head stops moving), the following report is issued:
 
-- Scott Lahteine [[@thinkyhead](https://github.com/thinkyhead)] - USA &nbsp; [Donate](http://www.thinkyhead.com/donate-to-marlin) / Flattr: [![Flattr Scott](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=thinkyhead&url=https://github.com/MarlinFirmware/Marlin&title=Marlin&language=&tags=github&category=software)
-- Roxanne Neufeld [[@Roxy-3D](https://github.com/Roxy-3D)] - USA
-- Chris Pepper [[@p3p](https://github.com/p3p)] - UK
-- Bob Kuhn [[@Bob-the-Kuhn](https://github.com/Bob-the-Kuhn)] - USA
-- João Brazio [[@jbrazio](https://github.com/jbrazio)] - Portugal
-- Erik van der Zalm [[@ErikZalm](https://github.com/ErikZalm)] - Netherlands &nbsp; [![Flattr Erik](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ErikZalm&url=https://github.com/MarlinFirmware/Marlin&title=Marlin&language=&tags=github&category=software)
+Report format [pause]
+- N: line number for first command cleared from command queue (e.g. N154). [Requires line numbers to be used.] If the queue was empty or no line numbers were used, this is not reported.
+- G: last movement command that finished. (e.g. G152). [Requires line numbers.]. If there were no movement commands with line numbers recorded on the queue, this is not reported.
+- P: exact position of where the printhead was when the pause command was received.
+- C: exact position at the end of the pause.
+- deceleration: bool. Did the pause require a deceleration move?
+- cropped: bool. (intended for debugging.) A deceleration move would have been planned, but it was small enough that it fell below the minimum movement threshold.
+- distance: (omitted if no deceleration occurred): how long (in mm) was the deceleration move?
+- sd: (omitted if SD card is not enabled): if true, this means that an sd card print was in progress and this command paused it (like M24).
+- *Notable omission:* the position at the end of the last gcode executed (G) is not reported. (However, if “deceleration" is false, the position would be exactly the reported C position.).
 
-## License
+Example command: `M751`
 
-Marlin is published under the [GPL license](/LICENSE) because we believe in open development. The GPL comes with both rights and obligations. Whether you use Marlin firmware as the driver for your open or closed-source product, you must keep Marlin open, and you must provide your compatible Marlin source code to end users upon request. The most straightforward way to comply with the Marlin license is to make a fork of Marlin on Github, perform your modifications, and direct users to your modified fork.
+**Example report [pause]**
 
-While we can't prevent the use of this code in products (3D printers, CNC, etc.) that are closed source or crippled by a patent, we would prefer that you choose another firmware or, better yet, make your own.
+```
+pause:{"N":3,"G":2,"deceleration":true,"cropped":false,"distance":13.93,"sd":false,"P":{"X":100.324,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"C":{"X":114.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0}}
+```
