@@ -76,9 +76,22 @@ class Endstops {
     #endif
 
   private:
+    // enabled: if false, aborts update checks.
+    // enabled_globally: stored value for "enabled"; loaded from eeprom and 
+    // is used as the stored value during homing sequences (when enabled is set to true regardless
+    // of enabled_globally.)
     static bool enabled, enabled_globally;
+
+    // last recorded value for the endstops
+    // note that if enabled is false, this will not update.
+    // Otherwise, it should update rapidly (at least every temperature ISR.)
     static esbits_t live_state;
-    static volatile uint8_t hit_state;      // Use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT index
+
+    // records if an endstop was hit at all; stays positive until cleared.
+    // requires motion in the direction of that endstop in order to be set.
+    // Set per-axis (as opposed to per-endstop).
+    // Use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT index
+    static volatile uint8_t hit_state;
 
     #if ENDSTOP_NOISE_THRESHOLD
       static esbits_t validated_live_state;
@@ -132,20 +145,8 @@ class Endstops {
     static void init();
 
     /**
-     * Are endstops or the probe set to abort the move?
-     */
-    FORCE_INLINE static bool abort_enabled() {
-      return (enabled
-        #if HAS_BED_PROBE
-          || z_probe_enabled
-        #endif
-      );
-    }
-
-    static inline bool global_enabled() { return enabled_globally; }
-
-    /**
-     * Periodic call to poll endstops if required. Called from temperature ISR
+     * Periodic call to poll endstops if required. Called from temperature ISR.
+     * Depending on implementation, calls update() or does nothing.
      */
     static void poll();
 
@@ -186,21 +187,19 @@ class Endstops {
     // directly checks a particular endstop.
     static bool endstop_state(EndstopEnum);
 
-    /**
-     * Report endstop hits to serial. Called from loop().
-     */
-    static void event_handler();
+    // Enable / disable endstop checking
+    static void enable(const bool onoff=true);
 
-    /**
-     * Report endstop states in response to M119
-     */
-    static void report_states();
+    // Enable / disable endstop z-probe checking
+    #if HAS_BED_PROBE
+      static volatile bool z_probe_enabled;
+      static void enable_z_probe(const bool onoff=true);
+    #endif
 
     // Enable / disable endstop checking globally
     static void enable_globally(const bool onoff=true);
 
-    // Enable / disable endstop checking
-    static void enable(const bool onoff=true);
+    static inline bool global_enabled() { return enabled_globally; }
 
     // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     static void not_homing();
@@ -214,14 +213,6 @@ class Endstops {
 
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
     FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
-
-    // Enable / disable endstop z-probe checking
-    #if HAS_BED_PROBE
-      static volatile bool z_probe_enabled;
-      static void enable_z_probe(const bool onoff=true);
-    #endif
-
-    static void resync();
 
     // Debugging of endstops
     #if ENABLED(PINS_DEBUGGING)
@@ -241,6 +232,32 @@ class Endstops {
       static void clear_endstop_state();
       static bool tmc_spi_homing_check();
     #endif
+
+    /**
+     * Report endstop hits to serial. Called from loop().
+     */
+    static void event_handler();
+
+    /**
+     * Report endstop states in response to M119
+     */
+    static void report_states();
+
+  private:
+
+    // depending on implementation, either calls update() or waits for temperature ISR to call update().
+    static void resync();
+
+    /**
+     * Are endstops or the probe set to abort the move?
+     */
+    FORCE_INLINE static bool abort_enabled() {
+      return (enabled
+        #if HAS_BED_PROBE
+          || z_probe_enabled
+        #endif
+      );
+    }
 };
 
 extern Endstops endstops;
