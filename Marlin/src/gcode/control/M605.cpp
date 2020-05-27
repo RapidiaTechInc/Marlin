@@ -108,6 +108,9 @@
     else if (!parser.seen('W'))  // if no S or W parameter, the DXC mode gets reset to the user's default
       dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
+    // the carriage mode can affect the software endstops.
+    update_software_endstops(X_AXIS);
+
     #ifdef DEBUG_DXC_MODE
 
       if (parser.seen('W')) {

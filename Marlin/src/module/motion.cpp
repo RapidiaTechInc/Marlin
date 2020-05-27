@@ -576,7 +576,7 @@ void restore_feedrate_and_scaling() {
     #if ENABLED(DUAL_X_CARRIAGE)
 
       if (axis == X_AXIS) {
-
+        SERIAL_ECHOLNPGM("soft endstop set.");
         // In Dual X mode hotend_offset[X] is T1's home position
         const float dual_max_x = _MAX(hotend_offset[1].x, X2_MAX_POS);
 
@@ -597,6 +597,19 @@ void restore_feedrate_and_scaling() {
           soft_endstop.max.x = X1_MAX_POS;
         }
 
+        // we clamp the endstops to the current position of the other extruder
+        // to prevent the carriages from colliding.
+        if (!dxc_is_duplicating())
+        {
+          if (new_tool_index == 0)
+          {
+            NOMORE(soft_endstop.max.x, inactive_extruder_x_pos - RAPIDIA_CARRIAGE_INTERVAL);
+          }
+          else if (new_tool_index == 1)
+          {
+            NOLESS(soft_endstop.min.x, inactive_extruder_x_pos + RAPIDIA_CARRIAGE_INTERVAL);
+          }
+        }
       }
 
     #elif ENABLED(DELTA)
