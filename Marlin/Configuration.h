@@ -45,7 +45,7 @@
 // pause feature is enabled (requires RAPIDIA_BLOCK_SOURCE)
 #define RAPIDIA_PAUSE
 
-// M736/M737 alias for M106/M107 
+// M736/M737 alias for M106/M107
 #define RAPIDIA_LAMP_ALIAS
 
 // Z_MAX_PIN (nozzle plug pin) requires N positive reads in a row to trigger.
@@ -799,7 +799,7 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-//#define CLASSIC_JERK
+#define CLASSIC_JERK
 #if ENABLED(CLASSIC_JERK)
   #define DEFAULT_XJERK 5.0
   #define DEFAULT_YJERK 5.0
