@@ -6,15 +6,21 @@
 # Use with caution as this will directly git commit and git push!!
 # Make sure your RapidiaHost git directory is clean before doing this
 #
+import sys
 import os
 from os import walk
+from os import path
 import shutil
 Import("env", "projenv")
 
 rapidia_export_dir = '.pio/build/rapidia_export'
-rapidia_host_dir = '../RapidiaHost-V1' # This is assumed!
+rapidia_host_dir = '../RapidiaHost-V1'
 
 print "Running Rapidia Firmware Export Script"
+
+if not(path.exists(rapidia_host_dir)):
+	print('../RapidiaHost-V1 directory not found!')
+	sys.exit()
 
 def after_build(source, target, env):
 	print "Starting after-build export process.."
@@ -25,19 +31,19 @@ def after_build(source, target, env):
 		for filename in filenames:
 			if filename == "firmware.hex":
 				has_hex = True
-				print "firmware.hex found!"
+				print "firmware.hex found."
 		break
 
 	if has_hex:
 		# copy firmware files over to RapidiaHost
-		hex_source_path = rapidia_export_dir + '/firmware.hex' 
-		hex_destination_path = rapidia_host_dir + '/firmware/firmware.hex'
+		hex_source_path = path.join(rapidia_export_dir, 'firmware.hex') 
+		hex_destination_path = path.join(rapidia_host_dir, 'firmware','firmware.hex')
 		shutil.copyfile(hex_source_path, hex_destination_path)
-		print 'Copied {hex_source_path} to {hex_destination_path}'
+		print "Copied " + hex_source_path + " to " + hex_destination_path
 
 		# change directory to rapidiahost
 		os.chdir(rapidia_host_dir)
-		print 'Changed dir to {rapidia_host_dir}'
+		print "Changed dir to " + rapidia_host_dir
 
 		# update package.json with firmware version
 
@@ -45,7 +51,7 @@ def after_build(source, target, env):
 		os.system('git pull')
 		os.system('git add -A')
 		os.system('git commit -m "update firmware"')
-		os.system('git push')
+		os.system('git push origin master')
 
 		print "SUCCESS"
 	else:
