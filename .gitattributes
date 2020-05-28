@@ -17,3 +17,5 @@
 *.png binary
 *.jpg binary
 *.fon binary
+*.hex binary
+*.elf binary
