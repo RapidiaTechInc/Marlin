@@ -40,6 +40,14 @@ echo "// Do not edit by hand." >> "$RAPIDIA_VERSION_H"
 echo "" >> "$RAPIDIA_VERSION_H"
 echo "#pragma once" >> "$RAPIDIA_VERSION_H"
 echo "" >> "$RAPIDIA_VERSION_H"
+
+# source revision default (git SHA)
+echo "#ifndef RAPIDIA_SRC_REV" >> "$RAPIDIA_VERSION_H"
+echo "  #define RAPIDIA_SRC_REV" >> "$RAPIDIA_VERSION_H"
+echo "#endif" >> "$RAPIDIA_VERSION_H"
+echo "" >> "$RAPIDIA_VERSION_H"
+
+# version tag
 echo "#define MARLIN_SHORT_BUILD_VERSION \"$marlin_short_version\"" >> "$RAPIDIA_VERSION_H"
 echo "#define RAPIDIA_SHORT_BUILD_VERSION \"$rapidia_version\"" >> "$RAPIDIA_VERSION_H"
 echo "#define SHORT_BUILD_VERSION \"R\" RAPIDIA_SHORT_BUILD_VERSION \"/M\" MARLIN_SHORT_BUILD_VERSION" >> "$RAPIDIA_VERSION_H"
