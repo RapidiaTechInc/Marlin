@@ -795,60 +795,6 @@ G29_TYPE GcodeSuite::G29() {
   // return or loop before this point.
   //
 
-  // calculate screw adjustments to level bed
-  #if ENABLED(AUTO_BED_LEVELING_3POINT)
-  //#if ENABLED(MESH_BED_LEVELING)
-  {
-    #ifdef RAPIDIA_METAL
-    {
-        // bed levelling without plane normals
-        // calculate the bed slope along bed X and Y axes (averaged over both measurments)
-        // (+)X angle is when front is lower than rear of bed
-        float z_back_average = (points[0].z + points[1].z)/2;
-
-        float X_slope_angle, Y_slope_angle;
-        Y_slope_angle = atan((z_back_average - points[2].z)/(points[0].y - points[2].y));
-        X_slope_angle = atan((points[0].z - points[1].z)/(points[1].x - points[0].x));
-
-        SERIAL_ECHOLN("*** bed angles (deg):");
-        SERIAL_ECHOLN(Y_slope_angle*180.0/M_PI);
-        SERIAL_ECHOLN(X_slope_angle*180.0/M_PI);
-
-        double X_screw_arm = 78; // X distance between rear screw and bed centerline
-        double Y_screw_arm = 253.5; // Y distance between front and back screws
-        double pitch = 0.7  ; // mm per revolution
-
-        // front adjustment screw
-        {
-        double front_adjust = Y_screw_arm*tan(Y_slope_angle);
-        double turns = front_adjust/pitch; // positive for raising, negative for lowering
-
-        SERIAL_ECHOLN("*** front screw adjust (turns, positive for raising, negative for lowering):");
-        SERIAL_ECHOLN(turns);
-            }
-
-            // back left adjustment screw
-            {
-        double back_left_adjust = -X_screw_arm*tan(X_slope_angle); // negative sign because it's from centre towards -x direction
-        double back_left_turns = back_left_adjust/pitch;
-
-        SERIAL_ECHOLN("*** back left adjust (turns, positive for raising, negative for lowering):");
-        SERIAL_ECHOLN(back_left_turns);
-            }
-
-            // back right adjustment screw
-            {
-        double back_right_adjust = X_screw_arm*tan(X_slope_angle);
-        double back_right_turns = back_right_adjust/pitch;
-
-        SERIAL_ECHOLN("*** back right adjust (turns, positive for raising, negative for lowering):");
-        SERIAL_ECHOLN(back_right_turns);
-      }
-    }
-    #endif
-  }
-  #endif
-
   if (DEBUGGING(LEVELING)) DEBUG_POS("> probing complete", current_position);
 
   #if ENABLED(PROBE_MANUALLY)
@@ -899,11 +845,6 @@ G29_TYPE GcodeSuite::G29() {
         if (verbose_level > 2)
           SERIAL_ECHOPAIR_F("\nMean of sampled points: ", mean, 8);
         SERIAL_EOL();
-        if (verbose_level > 2) {
-          SERIAL_ECHOPGM("Mean of sampled points: ");
-          SERIAL_ECHO_F(mean, 8);
-          SERIAL_EOL();
-        }
       }
 
       // Create the matrix but don't correct the position yet
@@ -949,27 +890,6 @@ G29_TYPE GcodeSuite::G29() {
                                " (0,0)\n"), true);
         if (verbose_level > 3)
           print_topo_map(PSTR("\nCorrected Bed Height vs. Bed Topology:\n"), false);
-          for (int8_t yy = abl_grid_points_y - 1; yy >= 0; yy--) {
-            for (uint8_t xx = 0; xx < abl_grid_points_x; xx++) {
-              int ind = indexIntoAB[xx][yy];
-              float x_tmp = eqnAMatrix[ind + 0 * abl_points],
-                    y_tmp = eqnAMatrix[ind + 1 * abl_points],
-                    z_tmp = 0;
-
-              apply_rotation_xyz(planner.bed_level_matrix, x_tmp, y_tmp, z_tmp);
-
-              float diff = eqnBVector[ind] - z_tmp - min_diff;
-              if (diff >= 0.0)
-                SERIAL_ECHOPGM(" +");
-              // AUTO_BED_LEVELING_LINEARInclude + for column alignment
-              else
-                SERIAL_ECHOCHAR(' ');
-              SERIAL_ECHO_F(diff, 5);
-            } // xx
-            SERIAL_EOL();
-          } // yy
-          SERIAL_EOL();
-        }
 
       } //do_topography_map
 
@@ -1029,7 +949,6 @@ G29_TYPE GcodeSuite::G29() {
     // Auto Bed Leveling is complete! Enable if possible.
     planner.leveling_active = dryrun ? abl_should_enable : true;
   } // !isnan(measured_z)
-  #endif
 
   // Restore state after probing
   if (!faux) restore_feedrate_and_scaling();
