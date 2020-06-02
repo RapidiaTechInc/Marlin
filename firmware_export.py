@@ -23,13 +23,13 @@ hex_source_path = path.join(rapidia_export_path, 'firmware.hex')
 hex_destination_path = path.join(rapidia_host_path, 'firmware','firmware.hex')
 package_json_path = './package.json'
 
-print "Running Rapidia Firmware Export Script"
+print("Running Rapidia Firmware Export Script")
 
 if not(path.exists(rapidia_host_path)):
 	raise Exception('../RapidiaHost-V1 directory not found!')
 
 def after_build(source, target, env):
-	print "Starting after-build export process.."
+	print("Starting after-build export process..")
 	f = []
 	has_hex = False
 	# Check that firmware files exist
@@ -37,7 +37,7 @@ def after_build(source, target, env):
 		for filename in filenames:
 			if filename == "firmware.hex":
 				has_hex = True
-				print "firmware.hex found."
+				print("firmware.hex found.")
 		break
 
 	if not(has_hex):
@@ -59,7 +59,7 @@ def after_build(source, target, env):
 
 	# change directory to rapidiahost
 	os.chdir(rapidia_host_path)
-	print "Changed dir to " + rapidia_host_path
+	print("Changed dir to " + rapidia_host_path)
 
 	# Check for unstaged/uncommitted changes
 	git_status = os.popen('git status -s').read()
@@ -71,7 +71,7 @@ def after_build(source, target, env):
 
 	# copy firmware files over to RapidiaHost
 	shutil.copyfile(hex_source_path, hex_destination_path)
-	print "Copied " + hex_source_path + " to " + hex_destination_path
+	print("Copied " + hex_source_path + " to " + hex_destination_path)
 
 	# update package.json with firmware version
 	if not(path.exists(package_json_path)):
@@ -88,6 +88,6 @@ def after_build(source, target, env):
 	# os.system('git commit -m "update firmware"')
 	# os.system('git push origin master')
 
-	print "SUCCESS"
+	print("SUCCESS")
 
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.hex", after_build)
