@@ -359,6 +359,7 @@ void GcodeSuite::G28() {
 
         // Remember this extruder's position for later tool change
         inactive_extruder_x_pos = current_position.x;
+        update_software_endstops(X_AXIS);
 
         // Home the 1st (left) extruder
         active_extruder = 0;
@@ -544,6 +545,7 @@ void GcodeSuite::G28() {
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
+      update_software_endstops(X_AXIS);
 
       // Home the 1st (left) extruder
       active_extruder = 0;
