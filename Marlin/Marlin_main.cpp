@@ -4141,8 +4141,8 @@ inline void gcode_G4() {
     /**
      * Move the Z probe (or just the nozzle) to the safe homing point
      */
-    destination[X_AXIS] = Z_SAFE_HOMING_X_POINT;
-    destination[Y_AXIS] = Z_SAFE_HOMING_Y_POINT;
+    destination[X_AXIS] = Z_HOMING_X_POINT;
+    destination[Y_AXIS] = Z_HOMING_Y_POINT;
     destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
     #if HOMING_Z_WITH_PROBE
