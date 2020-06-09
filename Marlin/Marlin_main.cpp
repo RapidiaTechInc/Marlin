@@ -4315,7 +4315,7 @@ inline void gcode_G28(const bool always_home_all) {
               (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
         );
 
-        if (z_homing_height && (home_all || homeX || homeY)) {
+        if (z_homing_height && home_z) {
           // Raise Z before homing any other axes and z is not already high enough (never lower z)
           destination[Z_AXIS] = z_homing_height;
           if (destination[Z_AXIS] > current_position[Z_AXIS]) {
