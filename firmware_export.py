@@ -20,7 +20,7 @@ firmware_root_path = os.getcwd()
 rapidia_export_path = path.join(firmware_root_path, '.pio/build/rapidia_export')
 rapidia_host_path = path.join(firmware_root_path, '../RapidiaHost-V1')
 hex_source_path = path.join(rapidia_export_path, 'firmware.hex') 
-hex_destination_path = path.join(rapidia_host_path, 'firmware','firmware.hex')
+hex_destination_path = path.join(rapidia_host_path, 'firmware','firmwareV2.hex')
 package_json_path = './package.json'
 
 print("Running Rapidia Firmware Export Script")
