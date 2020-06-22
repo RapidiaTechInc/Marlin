@@ -324,6 +324,7 @@ void GcodeSuite::G28() {
 
     #endif
 
+#ifdef HOMING_RAISE_Z
     const float z_homing_height =
       (DISABLED(UNKNOWN_Z_NO_RAISE) || TEST(axis_known_position, Z_AXIS))
         ? (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT)
@@ -337,7 +338,7 @@ void GcodeSuite::G28() {
         do_blocking_move_to_z(destination.z);
       }
     }
-
+#endif
     #if ENABLED(QUICK_HOME)
 
       if (doX && doY) quick_home_xy();
