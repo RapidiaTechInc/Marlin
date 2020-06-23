@@ -583,13 +583,13 @@ void restore_feedrate_and_scaling() {
         if (new_tool_index != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
           soft_endstop.min.x = X2_MIN_POS;
-          soft_endstop.max.x = dual_max_x;
+          soft_endstop.max.x = X2_MAX_POS;
         }
         else if (dxc_is_duplicating()) {
           // In Duplication Mode, T0 can move as far left as X1_MIN_POS
           // but not so far to the right that T1 would move past the end
           soft_endstop.min.x = X1_MIN_POS;
-          soft_endstop.max.x = _MIN(X1_MAX_POS, dual_max_x - duplicate_extruder_x_offset);
+          soft_endstop.max.x = _MIN(X1_MAX_POS, X2_MAX_POS - duplicate_extruder_x_offset);
         }
         else {
           // In other modes, T0 can move from X1_MIN_POS to X1_MAX_POS
@@ -1558,7 +1558,7 @@ void homeaxis(const AxisEnum axis) {
   );
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
-  #if HOMING_Z_WITH_PROBE
+  #if HOMING_Z_WITH_PROBE 
     if (axis == Z_AXIS && probe.deploy()) return;
   #endif
 
@@ -1601,7 +1601,7 @@ void homeaxis(const AxisEnum axis) {
 
   // When homing Z with probe respect probe clearance
   const float bump = axis_home_dir * (
-    #if HOMING_Z_WITH_PROBE
+    #if HOMING_Z_WITH_PROBE && 0
       (axis == Z_AXIS && (Z_HOME_BUMP_MM)) ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
     #endif
     home_bump_mm(axis)

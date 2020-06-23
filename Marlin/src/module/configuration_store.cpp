@@ -158,6 +158,7 @@ extern const char SP_X_STR[], SP_Y_STR[], SP_Z_STR[], SP_E_STR[];
 typedef struct SettingsDataStruct {
   char      version[4];                                 // Vnn\0
   uint16_t  crc;                                        // Data Checksum
+  uint32_t  date;
 
   //
   // DISTINCT_E_FACTORS
@@ -396,6 +397,22 @@ MarlinSettings settings;
 
 uint16_t MarlinSettings::datasize() { return sizeof(SettingsData); }
 
+static uint32_t charv(char a) { return (a > '0') ? (a - '0') : 0; }
+static uint32_t timeval()
+{
+    uint32_t acc;
+    const char* time = __TIME__;
+    for (size_t i = 0; i < strlen(__TIME__); ++i)
+    {
+        if (time[i] != ':')
+        {
+            acc *= 10;
+            acc += charv(time[i]);
+        }
+    }
+    return acc;
+}
+
 /**
  * Post-process after Retrieve or Reset
  */
@@ -561,6 +578,9 @@ void MarlinSettings::postprocess() {
     TERN(FLASH_EEPROM_EMULATION, EEPROM_SKIP, EEPROM_WRITE)(ver);
 
     EEPROM_SKIP(working_crc); // Skip the checksum slot
+    
+    uint32_t build_date = timeval();
+    EEPROM_WRITE(build_date);
 
     working_crc = 0; // clear before first "real data"
 
@@ -1382,7 +1402,21 @@ void MarlinSettings::postprocess() {
     uint16_t stored_crc;
     EEPROM_READ_ALWAYS(stored_crc);
 
+    uint32_t stored_build_time;
+    EEPROM_READ_ALWAYS(stored_build_time);
+
+    #ifdef EEPROM_LOAD_CHECK_BUILD_DATE_MATCH
     // Version has to match or defaults are used
+    if (stored_build_time != timeval())
+    {
+        #if ENABLED(EEPROM_CHITCHAT)
+          SERIAL_ECHO_START();
+          SERIAL_ECHOLNPGM("EEPROM date mismatch ");
+        #endif
+        eeprom_error = true;
+    }
+    else
+    #endif
     if (strncmp(version, stored_ver, 3) != 0) {
       if (stored_ver[3] != '\0') {
         stored_ver[0] = '?';

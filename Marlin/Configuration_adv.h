@@ -1753,6 +1753,13 @@
   //#define SERIAL_XON_XOFF
 #endif
 
+#define CONDITIONAL_GCODE
+#if ENABLED(CONDITIONAL_GCODE)
+    // number of timers for conditional gcode (M710)
+    #define M710_TIMER_COUNT 4
+#endif
+
+
 // Add M575 G-code to change the baud rate
 //#define BAUD_RATE_GCODE
 

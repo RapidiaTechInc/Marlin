@@ -1584,7 +1584,12 @@ void Temperature::updateTemperaturesFromRawValues() {
     temp_hotend[1].raw = READ_MAX6675(1);
   #endif
   #if HOTENDS
-    HOTEND_LOOP() temp_hotend[e].celsius = analog_to_celsius_hotend(temp_hotend[e].raw, e);
+    HOTEND_LOOP()
+    #if ENABLED(HOTENDS_ENABLED)
+    temp_hotend[e].celsius = analog_to_celsius_hotend(temp_hotend[e].raw, e);
+    #else
+    temp_hotend[e].celsius = 210;
+    #endif
   #endif
   #if HAS_HEATED_BED
     temp_bed.celsius = analog_to_celsius_bed(temp_bed.raw);

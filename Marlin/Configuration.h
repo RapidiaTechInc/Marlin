@@ -164,7 +164,7 @@
 
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
-  #define MOTHERBOARD BOARD_RAMPS_14_EFB
+  #define MOTHERBOARD BOARD_MEGATRONICS_3
 #endif
 
 // Name displayed in the LCD "Ready" message and Info menu
@@ -463,9 +463,9 @@
 //#define TEMP_SENSOR_1_AS_REDUNDANT
 #define MAX_REDUNDANT_TEMP_SENSOR_DIFF 10
 
-#define TEMP_RESIDENCY_TIME     10  // (seconds) Time to wait for hotend to "settle" in M109
-#define TEMP_WINDOW              1  // (°C) Temperature proximity for the "temperature reached" timer
-#define TEMP_HYSTERESIS          3  // (°C) Temperature proximity considered "close enough" to the target
+#define TEMP_RESIDENCY_TIME      1    // (seconds) Time to wait for hotend to "settle" in M109
+#define TEMP_WINDOW              2.5  // (°C) Temperature proximity for the "temperature reached" timer
+#define TEMP_HYSTERESIS          1    // (°C) Temperature proximity considered "close enough" to the target
 
 #define TEMP_BED_RESIDENCY_TIME  1    // (seconds) Time to wait for bed to "settle" in M190
 #define TEMP_BED_WINDOW          0.5  // (°C) Temperature proximity for the "temperature reached" timer
@@ -966,7 +966,7 @@
  *
  * In the following example the X and Y offsets are both positive:
  *
- *   #define NOZZLE_TO_PROBE_OFFSET { 10, 10, 0 }
+ *   #define NOZZLE_TO_PROBE_OFFSET { 20, 24, 2 }
  *
  *     +-- BACK ---+
  *     |           |
@@ -995,7 +995,7 @@
 #define MIN_PROBE_EDGE 0
 
 // X and Y axis travel speed (mm/m) between probes
-#define XY_PROBE_SPEED 8000
+#define XY_PROBE_SPEED 4800
 
 // Feedrate (mm/m) for the first approach when double-probing (MULTIPLE_PROBING == 2)
 #define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
@@ -1037,8 +1037,8 @@
 #define Z_PROBE_LOW_POINT          -2 // Farthest distance below the trigger-point to go before stopping
 
 // For M851 give a range for adjusting the Z probe offset
-#define Z_PROBE_OFFSET_RANGE_MIN -20
-#define Z_PROBE_OFFSET_RANGE_MAX 20
+#define Z_PROBE_OFFSET_RANGE_MIN 0
+#define Z_PROBE_OFFSET_RANGE_MAX 35
 
 // Enable the M48 repeatability test to test probe accuracy
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
@@ -1056,7 +1056,7 @@
  * These options are most useful for the BLTouch probe, but may also improve
  * readings with inductive probes and piezo sensors.
  */
-//#define PROBING_HEATERS_OFF       // Turn heaters off when probing
+#define PROBING_HEATERS_OFF       // Turn heaters off when probing
 #if ENABLED(PROBING_HEATERS_OFF)
   //#define WAIT_FOR_BED_HEATER     // Wait for bed to heat back up between probes (to improve accuracy)
 #endif
@@ -1446,14 +1446,12 @@
         #define NOZZLETIP_RIGHT_X 263
         #define NOZZLETIP_RIGHT_Y 255
     #endif
-
     #ifdef RAPIDIA_PLASTIC
         #define NOZZLETIP_LEFT_X -9
         #define NOZZLETIP_LEFT_Y (Y_BED_SIZE - 60)
         #define NOZZLETIP_RIGHT_X (X_BED_SIZE + 9)
         #define NOZZLETIP_RIGHT_Y NOZZLETIP_LEFT_Y
     #endif
-
     // absolute vertical offset between zeroed nozzletip and top of print bed
     #define NOZZLETIP_ENDSTOP_ABSDISTANCE 14.73
 #endif
@@ -1609,7 +1607,7 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
   // Specify a park position as { X, Y, Z_raise }
-  #define NOZZLE_PARK_POINT { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
+  #define NOZZLE_PARK_POINT { 10, -2.5, 20 }
   #define NOZZLE_PARK_XY_FEEDRATE 100   // (mm/s) X and Y axes feedrate (also used for delta Z axis)
   #define NOZZLE_PARK_Z_FEEDRATE 5      // (mm/s) Z axis feedrate (not used for delta printers)
 #endif

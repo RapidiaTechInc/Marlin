@@ -151,10 +151,7 @@ void GcodeSuite::M109() {
 
   if (set_temp)
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling);
-
-    #else // HOTENDS_ENABLED
-
-  #endif
+  #endif // HOTENDS_ENABLED
 }
 
 #endif // EXTRUDERS

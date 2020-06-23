@@ -379,8 +379,10 @@ bool Probe::set_deployed(const bool deploy) {
     constexpr float unknown_condition = true;
   #endif
 
+  #if 0
   if (deploy_stow_condition && unknown_condition)
     do_z_raise(_MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_CLEARANCE_DEPLOY_PROBE));
+  #endif
 
   #if EITHER(Z_PROBE_SLED, Z_PROBE_ALLEN_KEY)
     if (axis_unhomed_error(
