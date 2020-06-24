@@ -15,5 +15,5 @@ class Pause
 };
   
 extern Pause pause;
-#endif
 }
+#endif
