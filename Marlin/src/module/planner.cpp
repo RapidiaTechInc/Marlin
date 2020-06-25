@@ -2788,6 +2788,7 @@ Planner::pause_result Planner::pause_decelerate(bool force)
 }
 #endif
 
+#if ENABLED(RAPIDIA_BLOCK_SOURCE)
 void Planner::mark_block(source_line_t source_line) {
   if (block_buffer_head == block_buffer_tail) {
     // the queue is empty, so we've already reached finished every gcode, including
@@ -2802,6 +2803,7 @@ void Planner::mark_block(source_line_t source_line) {
       : source_line;
   }
 } // mark_block()
+#endif
 
 /**
  * Planner::buffer_segment
