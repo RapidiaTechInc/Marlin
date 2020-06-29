@@ -40,10 +40,10 @@
 
 // planner blocks are marked with their gcode source line
 // (only for the last block in any given move)
-#define RAPIDIA_BLOCK_SOURCE
+// #define RAPIDIA_BLOCK_SOURCE
 
 // pause feature is enabled (requires RAPIDIA_BLOCK_SOURCE)
-#define RAPIDIA_PAUSE
+// #define RAPIDIA_PAUSE
 
 // M736/M737 alias for M106/M107
 #define RAPIDIA_LAMP_ALIAS
