@@ -790,7 +790,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 711: M711(); break;                                  // timer-predicate conditional execution
       #endif
 
-      #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
         case 730: M730(); break;                                  // M730: enable report on line finish
         case 731: M731(); break;                                  // M731: disable report on line finish
       #endif

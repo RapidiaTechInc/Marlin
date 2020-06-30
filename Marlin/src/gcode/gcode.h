@@ -895,7 +895,7 @@ private:
     static void M711();
   #endif
   
-  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
     static void M730(); // enable line finished reporting
     static void M731(); // disable line finished reporting
   #endif

@@ -5,7 +5,7 @@
 
 #include "../../core/debug_out.h"
 
-#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+#if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
 
 void GcodeSuite::M730()
 {

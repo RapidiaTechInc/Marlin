@@ -724,12 +724,12 @@ void idle(
     HAL_idletask();
   #endif
   
-  #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+  #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
   {
     long last_source_line = planner.clear_last_source_line();
     if (planner.auto_report_line_finished)
     {
-      if (last_source_line != -1)
+      if (last_source_line != NO_SOURCE_LINE)
       {
         SERIAL_ECHOPGM("Finished executing N");
         SERIAL_ECHOLN(last_source_line);

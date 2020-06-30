@@ -42,6 +42,9 @@
 // (only for the last block in any given move)
 // #define RAPIDIA_BLOCK_SOURCE
 
+// allow M730/M731 for enabling gcode line complete auto-reporting.
+// #define RAPIDIA_LINE_AUTO_REPORTING
+
 // pause feature is enabled (requires RAPIDIA_BLOCK_SOURCE)
 // #define RAPIDIA_PAUSE
 

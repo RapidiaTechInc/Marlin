@@ -67,7 +67,12 @@
 
 #if ENABLED(RAPIDIA_BLOCK_SOURCE)
   typedef int32_t source_line_t;
+
+  // indicates the block is not at the boundary of a source line.
   constexpr source_line_t NO_SOURCE_LINE = -1;
+
+  // indicates the block is at the boundary of a source line, but the
+  // actual source line number was not specified in the gcode (Nxxx absent).
   constexpr source_line_t UNSPECIFIED_SOURCE_LINE = -2;
 #endif
 
@@ -246,7 +251,7 @@ class Planner {
     static uint16_t cleaning_buffer_counter;        // A counter to disable queuing of blocks
     static uint8_t delay_before_delivering;         // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
-    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
       // this can be edited by the stepper interrupt,
       // so please access this via get_last_source_line() / clear_last_source_line().
       static volatile long last_source_line;
@@ -874,7 +879,7 @@ public:
     FORCE_INLINE static void discard_current_block() {
       if (has_blocks_queued())
       {
-        #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+        #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
           block_t* block = &block_buffer[block_buffer_tail];
           if (block->source_line != NO_SOURCE_LINE)
           {
@@ -887,7 +892,7 @@ public:
       }
     }
     
-    #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+    #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
       static long get_last_source_line();
       static long clear_last_source_line();
     #endif

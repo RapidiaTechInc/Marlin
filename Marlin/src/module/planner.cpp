@@ -155,7 +155,7 @@ float Planner::steps_to_mm[XYZE_N];           // (mm) Millimeters per step
   bool Planner::abort_on_endstop_hit = false;
 #endif
 
-#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+#if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
   volatile long Planner::last_source_line = -1;
   bool Planner::auto_report_line_finished = false;
 #endif
@@ -3132,22 +3132,38 @@ void Planner::set_max_jerk(const AxisEnum axis, float targetValue) {
   #endif
 }
 
-#if ENABLED(RAPIDIA_BLOCK_SOURCE)
+#if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
   long Planner::get_last_source_line()
   {
-    const bool was_enabled = stepper.suspend();
-    volatile long line = Planner::last_source_line;
-    if (was_enabled) stepper.wake_up();
-    return line;
+    const long precheck_line = Planner::last_source_line;
+    if (precheck_line != NO_SOURCE_LINE)
+    {
+      const bool was_enabled = stepper.suspend();
+      volatile long line = Planner::last_source_line;
+      if (was_enabled) stepper.wake_up();
+      return line;
+    }
+    else
+    {
+      return NO_SOURCE_LINE;
+    }
   }
   
   long Planner::clear_last_source_line()
   {
-    const bool was_enabled = stepper.suspend();
-    volatile long line = Planner::last_source_line;
-    Planner::last_source_line = -1;
-    if (was_enabled) stepper.wake_up();
-    return line;
+    const long precheck_line = Planner::last_source_line;
+    if (precheck_line != NO_SOURCE_LINE)
+    {
+      const bool was_enabled = stepper.suspend();
+      volatile long line = Planner::last_source_line;
+      Planner::last_source_line = NO_SOURCE_LINE;
+      if (was_enabled) stepper.wake_up();
+      return line;
+    }
+    else
+    {
+      return -1;
+    }
   }
 #endif
 
