@@ -2798,9 +2798,21 @@ void Planner::mark_block(source_line_t source_line) {
   else {
     // most recently-added block.
     block_t* block = &block_buffer[prev_block_index(block_buffer_head)];
-    block->source_line = (source_line == NO_SOURCE_LINE)
-      ? UNSPECIFIED_SOURCE_LINE
-      : source_line;
+    if (source_line == NO_SOURCE_LINE)
+    {
+      // marked blocks are differentiated from unmarked blocks by
+      // source line != NO_SOURCE_LINE. The meaning of UNSPECIFIED_SOURCE_LINE
+      // is "marked, but no source line."
+      source_line = UNSPECIFIED_SOURCE_LINE;
+    }
+
+    // set the source line on the block.
+    // (suspending the interrupt is most likely paranoia, because
+    // this function is intended to be called immediately after enqueing,
+    // before the interrupt has time to finish the block.)
+    const bool was_enabled = stepper.suspend();
+    block->source_line = source_line;
+    if (was_enabled) stepper.wake_up();
   }
 } // mark_block()
 #endif
