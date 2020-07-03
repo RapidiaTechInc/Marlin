@@ -56,7 +56,7 @@
 #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS
 
 // record nozzle state for debugging purposes.
-#define RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING
+// #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING
 
 /**
  * Configuration.h
