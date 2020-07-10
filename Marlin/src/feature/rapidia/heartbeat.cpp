@@ -35,21 +35,21 @@ void Heartbeat::set_interval(uint16_t v)
 
 static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const bool feedrate=false, const uint8_t n=XYZE, const uint8_t precision=3) {
   char str[12];
-  
+
   // position.
   LOOP_L_N(a, n) {
     echo_key(axis_codes[a]);
     SERIAL_ECHO(dtostrf(pos[a], 1, precision, str));
     SERIAL_CHAR(',');
   }
-  
+
   if (feedrate)
   {
     echo_key('F');
     SERIAL_ECHO(dtostrf(feedrate_mm_s, 1, precision, str));
     SERIAL_CHAR(',');
   }
-  
+
   // extruder number
   echo_key('T');
   SERIAL_CHAR('0' + extruder);
@@ -67,25 +67,25 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 
   // separator accumulator
   bool sep = true;
-  
+
   // plan position
   if (TEST_FLAG(selection, HeartbeatSelection::PLAN_POSITION))
   {
     echo_separator(sep);
     echo_key('P');
     SERIAL_CHAR('{');
-    
+
     report_xyzetf(current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
     SERIAL_CHAR('}');
   }
-  
+
   // actual position
   if (TEST_FLAG(selection, HeartbeatSelection::ABS_POSITION))
   {
     echo_separator(sep);
     echo_key('C');
     SERIAL_CHAR('{');
-    
+
     // unit conversion steps -> logical
     Stepper::State state = stepper.report_state();
     xyze_pos_t position;
@@ -93,11 +93,11 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     {
       position[axis] = state.position[axis] / planner.settings.axis_steps_per_mm[axis];
     }
-  
+
     report_xyzetf(position.asLogical(), state.extruder);
     SERIAL_CHAR('}');
   }
-  
+
   // relative mode axes:
   if (TEST_FLAG(selection, HeartbeatSelection::RELMODE))
   {
@@ -113,7 +113,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     }
     SERIAL_CHAR('"');
   }
-  
+
   // dualx info
   if (TEST_FLAG(selection, HeartbeatSelection::DUALX))
   {
@@ -122,45 +122,45 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     SERIAL_CHAR('{');
     {
       char str[12];
-      
+
       // dual_x_carriage_mode
       echo_key('S');
       SERIAL_CHAR('0' + (int32_t)(dual_x_carriage_mode));
       SERIAL_CHAR(',');
-      
+
       // active toolhead
       echo_key('T');
       SERIAL_CHAR('0' + (int32_t)(active_extruder));
       SERIAL_CHAR(',');
-      
+
       // stored x position
       echo_key('X');
       SERIAL_ECHO(dtostrf(inactive_extruder_x_pos, 1, 3, str));
-      
+
       // TODO: stored feedrate.
     }
     SERIAL_CHAR('}');
   }
-  
+
   // endstops -- report endstops closed state (at this moment)
   if (TEST_FLAG(selection, HeartbeatSelection::ENDSTOPS))
   {
     echo_separator(sep);
     echo_key('E');
     SERIAL_CHAR('"');
-    
+
     // read from the endstop pins directly.
     // (this info doesn't seem to be cached in the Endstops class.)
-    
+
     #define ES_REPORT(S, N) if (endstops.endstop_state(S)) SERIAL_CHAR(N);
-    
+
     ES_REPORT(X_MIN, 'x');
     ES_REPORT(Y_MIN, 'y');
     ES_REPORT(Z_MIN, 'z');
     ES_REPORT(X_MAX, 'X');
     ES_REPORT(Y_MAX, 'Y');
     ES_REPORT(Z_MAX, 'Z');
-   
+
     SERIAL_CHAR('"');
 
     if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
@@ -185,6 +185,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       echo_key_str("dbg-hit-state");
       SERIAL_ECHO(static_cast<int32_t>(endstops.hit_state));
 
+      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
       echo_separator(sep);
       echo_key_str("dbg-zmax-hyst-count");
       SERIAL_ECHO(static_cast<int32_t>(endstops.z_max_hysteresis_count));
@@ -192,9 +193,10 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       echo_separator(sep);
       echo_key_str("dbg-zmax-hyst-threshold");
       SERIAL_ECHO(static_cast<int32_t>(endstops.z_max_hysteresis_threshold));
+      #endif
     }
   }
-  
+
   if (!bare)
   {
     SERIAL_ECHOPGM("}");

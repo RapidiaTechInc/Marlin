@@ -774,8 +774,10 @@ void _O2 Endstops::report_states() {
 // Check endstops - Could be called from Temperature ISR!
 void Endstops::update() {
 
-  // We want the z max hysteresis to run even if endstops are disabled.
-  update_z_max_hysteresis();
+  #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    // We want the z max hysteresis to run even if endstops are disabled.
+    update_z_max_hysteresis();
+  #endif
 
   #if !ENDSTOP_NOISE_THRESHOLD
     if (!abort_enabled()) return;
