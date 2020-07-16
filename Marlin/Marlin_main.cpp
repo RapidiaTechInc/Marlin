@@ -9374,7 +9374,25 @@ inline void gcode_M114() {
 #endif
 
 inline void gcode_M115() {
-  SERIAL_PROTOCOLLNPGM(MSG_M115_REPORT);
+  // this language-dependent string is human-readable.
+	// please do not attempt to write a host that parses it.
+	SERIAL_PROTOCOLLNPGM(MSG_M115_REPORT);
+	
+	// all that follows is machine-redable.
+	#ifdef GIT_COMMIT_SHA
+	SERIAL_PROTOCOLLNPGM("COMMIT-SHA:"GIT_COMMIT_SHA);
+	#endif
+	
+	#ifdef RAPIDIA_PROTOCOL
+	SERIAL_PROTOCOLLNPGM("RAPIDIA:PROTOCOL:" STRINGIFY(RAPIDIA_PROTOCOL));
+	#endif
+
+  #ifdef RAPIDIA_SRC_REV
+    if (STRINGIFY(RAPIDIA_SRC_REV)[0])
+    {
+      SERIAL_ECHOLNPGM("RAPIDIA:REV:" STRINGIFY(RAPIDIA_SRC_REV));
+    }
+  #endif
 
   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
 
@@ -9476,6 +9494,28 @@ inline void gcode_M115() {
     // THERMAL_PROTECTION
     cap_line(PSTR("THERMAL_PROTECTION")
       #if ENABLED(THERMAL_PROTECTION_HOTENDS) && ENABLED(THERMAL_PROTECTION_BED)
+        , true
+      #endif
+    );
+
+    // RAPIDIA INFO
+    cap_line(PSTR("RAPIDIA_METAL")
+      #if ENABLED(RAPIDIA_METAL)
+        , true
+      #endif
+    );
+    cap_line(PSTR("RAPIDIA_PLASTIC")
+      #if ENABLED(RAPIDIA_PLASTIC)
+        , true
+      #endif
+    );
+    cap_line(PSTR("RAPIDIA_NO_EXTRUDE")
+      #if ENABLED(RAPIDIA_NO_EXTRUDE)
+        , true
+      #endif
+    );
+    cap_line(PSTR("RAPIDIA_NO_HOTENDS")
+      #if ENABLED(RAPIDIA_NO_HOTENDS)
         , true
       #endif
     );

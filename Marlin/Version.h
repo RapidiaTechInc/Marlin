@@ -26,6 +26,8 @@
  * directive USE_AUTOMATIC_VERSIONING.
  */
 
+#include "RapidiaVersion.h"
+
 #if ENABLED(USE_AUTOMATIC_VERSIONING)
 
   #include "_Version.h"
@@ -35,20 +37,26 @@
   /**
    * Marlin release version identifier
    */
-  #define SHORT_BUILD_VERSION "1.1.9"
+  #ifndef SHORT_BUILD_VERSION
+    #define SHORT_BUILD_VERSION "1.1.9"
+  #endif
 
   /**
    * Verbose version identifier which should contain a reference to the location
    * from where the binary was downloaded or the source code was compiled.
    */
-  #define DETAILED_BUILD_VERSION SHORT_BUILD_VERSION " (Github)"
+  #ifndef DETAILED_BUILD_VERSION
+    #define DETAILED_BUILD_VERSION SHORT_BUILD_VERSION " (Github)"
+  #endif
 
   /**
    * The STRING_DISTRIBUTION_DATE represents when the binary file was built,
    * here we define this default string as the date where the latest release
    * version was tagged.
    */
-  #define STRING_DISTRIBUTION_DATE "2018-08-01"
+  #ifndef STRING_DISTRIBUTION_DATE
+    #define STRING_DISTRIBUTION_DATE "2018-08-01"
+  #endif
 
   /**
    * Required minimum Configuration.h and Configuration_adv.h file versions.

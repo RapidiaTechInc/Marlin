@@ -34,6 +34,10 @@
   #define BOARD_NAME "Megatronics v3.0"
 #endif
 
+#ifndef PIN_UNDEFINED
+  #define PIN_UNDEFINED -1
+#endif
+
 //
 // Servos (unused?)
 //
@@ -47,7 +51,7 @@
 //
 #define X_MIN_PIN          77
 #define X_MAX_PIN          79
-#define Y_MIN_PIN          -1
+#define Y_MIN_PIN          PIN_UNDEFINED
 #define Y_MAX_PIN          33
 #define Z_MIN_PIN          34
 #define Z_MAX_PIN          22
@@ -91,7 +95,7 @@
 //
 #define TEMP_0_PIN         9   // Analog Input
 #define TEMP_1_PIN         8   // Analog Input
-#define TEMP_2_PIN         -1   // Analog Input
+#define TEMP_2_PIN         PIN_UNDEFINED // Analog Input
 #define TEMP_BED_PIN       15   // Analog Input
 
 //
@@ -99,7 +103,7 @@
 //
 #define HEATER_0_PIN       44
 #define HEATER_1_PIN       7
-#define HEATER_2_PIN       -1
+#define HEATER_2_PIN       PIN_UNDEFINED
 #define HEATER_BED_PIN     46
 
 //Layer Fans
@@ -110,6 +114,6 @@
 // Misc. Functions
 //
 #define SDSS               53
-#define LED_PIN            -1
-#define PS_ON_PIN          -1
+#define LED_PIN            PIN_UNDEFINED
+#define PS_ON_PIN          PIN_UNDEFINED
 #define CASE_LIGHT_PIN     45   // Try the keypad connector

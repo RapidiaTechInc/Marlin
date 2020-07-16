@@ -47,6 +47,15 @@
     #define RAPIDIA_METAL
 #endif
 
+// this denotes we're using version 1.
+// The emulator and host care about this number.
+#define RAPIDIA_PROTOCOL 1
+
+// allows emulator to hook into some values.
+// cost is minimal, so this can stay enabled even if the
+// emulator is not being used.
+#define RAPIDIA_EMULATOR_HOOKS
+
 //===========================================================================
 //============================= Getting Started =============================
 //===========================================================================
