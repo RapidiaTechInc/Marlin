@@ -1359,7 +1359,7 @@ bool get_target_extruder_from_command(const uint16_t code) {
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
-        SERIAL_ECHOLNPGM("soft endstop set!");
+        SERIAL_ECHOLNPGM("soft endstop set.");
          
         // In Dual X mode hotend_offset[X] is T1's home position
         const float dual_max_x = MAX(hotend_offset[X_AXIS][1], X2_MAX_POS);
@@ -1380,6 +1380,21 @@ bool get_target_extruder_from_command(const uint16_t code) {
           soft_endstop_min[axis] = X1_MIN_POS;
           soft_endstop_max[axis] = X1_MAX_POS;
         }
+
+        // we clamp the endstops to the current position of the other extruder
+        // to prevent the carriages from colliding.
+        if (dual_x_carriage_mode != DXC_DUPLICATION_MODE)
+        {
+          if (active_extruder == 0)
+          {
+            NOMORE(soft_endstop_max[X_AXIS], inactive_extruder_x_pos - RAPIDIA_CARRIAGE_INTERVAL);
+          }
+          else if (active_extruder == 1)
+          {
+            NOLESS(soft_endstop_min[X_AXIS], inactive_extruder_x_pos + RAPIDIA_CARRIAGE_INTERVAL);
+          }
+        }
+          
       }
     #elif ENABLED(DELTA)
       soft_endstop_min[axis] = base_min_pos(axis);
@@ -4362,6 +4377,7 @@ inline void gcode_G28(const bool always_home_all) {
 
         // Remember this extruder's position for later tool change
         inactive_extruder_x_pos = current_position[X_AXIS];
+        update_software_endstops(X_AXIS);
 
         // Home the 1st (left) extruder
         active_extruder = 0;
@@ -9388,7 +9404,7 @@ inline void gcode_M115() {
   #endif
 	
 	#ifdef RAPIDIA_PROTOCOL
-	SERIAL_PROTOCOLLNPGM("RAPIDIA:PROTOCOL:" STRINGIFY(RAPIDIA_PROTOCOL));
+	  SERIAL_PROTOCOLLNPGM("RAPIDIA:PROTOCOL:" STRINGIFY(RAPIDIA_PROTOCOL));
 	#endif
 
   #ifdef RAPIDIA_SRC_REV
@@ -11370,6 +11386,10 @@ inline void gcode_M502() {
         dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
         break;
     }
+
+    // the carriage mode can affect the software endstops.
+    update_software_endstops(X_AXIS);
+
     active_extruder_parked = false;
     extruder_duplication_enabled = false;
     delayed_move_time = 0;
@@ -12799,7 +12819,16 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
           #if HAS_SOFTWARE_ENDSTOPS
             // Update the X software endstops early
             active_extruder = tmp_extruder;
-            update_software_endstops(X_AXIS);
+
+            #if ENABLED(DUAL_X_CARRIAGE)
+              // we temporarily allow motion to be unconstrained during the tool change.
+              soft_endstop_min[X_AXIS] = X1_MIN_POS;
+              soft_endstop_max[X_AXIS] = X2_MAX_POS;
+            #else
+              // legacy behaviour for non-dual-x-carriage
+              update_software_endstops(X_AXIS);
+            #endif
+
             active_extruder = !tmp_extruder;
           #endif
 
@@ -12914,6 +12943,12 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       active_extruder = tmp_extruder;
 
     #endif // HOTENDS <= 1
+
+    #if HAS_SOFTWARE_ENDSTOPS && ENABLED(DUAL_X_CARRIAGE)
+      // after tool-change is complete, update software endstops one last time
+      // for paranoia mostly.
+      update_software_endstops(X_AXIS);
+    #endif
 
     #if DO_SWITCH_EXTRUDER
       planner.synchronize();
