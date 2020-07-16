@@ -628,7 +628,7 @@
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
-#define DEFAULT_MAX_FEEDRATE          { 200, 200, 12, 40 }
+#define DEFAULT_MAX_FEEDRATE          { 200, 200, 12, 50 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -658,8 +658,8 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-#define DEFAULT_XJERK                  5.0
-#define DEFAULT_YJERK                  5.0
+#define DEFAULT_XJERK                  15.0
+#define DEFAULT_YJERK                  15.0
 #define DEFAULT_ZJERK                  0.4
 #define DEFAULT_EJERK                  5.0
 
@@ -1027,10 +1027,10 @@
  *   Probe 3 points on the plane and out put screw adjustment reading
  */
 //#define RAPIDIA_LEVELING_3POINT
-#define AUTO_BED_LEVELING_3POINT
+// #define AUTO_BED_LEVELING_3POINT
 // #define AUTO_BED_LEVELING_LINEAR
 //  #define AUTO_BED_LEVELING_BILINEAR
-//#define AUTO_BED_LEVELING_UBL
+#define AUTO_BED_LEVELING_UBL
 //define MESH_BED_LEVELING
 //#define RAPIDIA_BED_LEVELING
 
