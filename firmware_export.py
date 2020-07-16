@@ -44,8 +44,24 @@ def after_build(source, target, env):
 		raise Exception("FAIL: firmware.hex not found!")
 
 	# Look for rapidia firmware version
-	file = open('Marlin/src/inc/RapidiaVersion.h')
-	firmware_version = "1.0.0"
+	file = open('Marlin/RapidiaVersion.h')
+	firmware_version = 0
+	marlin_version = ''
+	rapidia_version = ''
+	for line in file:
+		if line.startswith('#define MARLIN_SHORT_BUILD_VERSION'):
+			marlin_version = line.replace('#define MARLIN_SHORT_BUILD_VERSION','')
+			marlin_version = marlin_version.replace(' ','')
+			marlin_version = marlin_version.replace('"','')
+		if line.startswith('#define RAPIDIA_SHORT_BUILD_VERSION'):
+			rapidia_version = line.replace('#define RAPIDIA_SHORT_BUILD_VERSION','')
+			rapidia_version = rapidia_version.replace(' ','')
+			rapidia_version = rapidia_version.replace('"','')
+	firmware_version = marlin_version.rstrip() + 'r' + rapidia_version.rstrip()
+	print('Rapidia firmware version found: ' + firmware_version)
+
+	if firmware_version == 0 or firmware_version == '' or firmware_version == 'r':
+		raise Exception("ERROR: Rapidia Firmware Version not found")
 
 	# change directory to rapidiahost
 	os.chdir(rapidia_host_path)
@@ -57,6 +73,7 @@ def after_build(source, target, env):
 		raise Exception('ERROR: Uncommitted changes: ' + git_status)
 
 	# git pull in case of conflicts
+	os.system('git checkout master')
 	os.system('git pull')
 
 	# copy firmware files over to RapidiaHost
@@ -72,11 +89,6 @@ def after_build(source, target, env):
 	with open(package_json_path, 'w') as json_file:
 		json.dump(package_data, json_file, indent=4)
 		json_file.write('\n')
-
-	# git commit and push
-	# os.system('git add -A')
-	# os.system('git commit -m "update firmware"')
-	# os.system('git push origin master')
 
 	print("SUCCESS")
 
