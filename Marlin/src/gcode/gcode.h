@@ -900,6 +900,10 @@ private:
     static void M731(); // disable line finished reporting
   #endif
 
+  #if ENABLED(RAPIDIA_PIN_TEST)
+    static void M733(); // pin test.
+  #endif
+
   #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
     #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
       static void M734(); // begin recording nozzle plug data.

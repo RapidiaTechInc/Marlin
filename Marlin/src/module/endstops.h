@@ -117,7 +117,7 @@ class Endstops {
       static uint16_t z_max_hysteresis_prev_ms;
 
       // hysteresis update occurs *no more rapidly than* this value.
-      static uint16_t z_max_hysteresis_min_interval_ms;
+      const static uint16_t z_max_hysteresis_min_interval_ms;
 
       #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
         static bool z_max_hysteresis_recording;

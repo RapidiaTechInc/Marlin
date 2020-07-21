@@ -66,7 +66,7 @@ Endstops::esbits_t Endstops::live_state = 0;
   uint8_t Endstops::z_max_hysteresis_count = 0;
   uint8_t Endstops::z_max_hysteresis_threshold = 1;
   uint16_t Endstops::z_max_hysteresis_prev_ms = 0;
-  uint16_t Endstops::z_max_hysteresis_min_interval_ms = 1;
+  const uint16_t Endstops::z_max_hysteresis_min_interval_ms = 16;
 #endif
 
 #if HAS_BED_PROBE

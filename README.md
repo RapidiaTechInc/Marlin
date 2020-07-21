@@ -62,6 +62,12 @@ Setting S to an integer greater than 1 makes it so that Marlin must read S posit
 
 Warning: setting S0 means that Marlin requires 0 positive reads for the endstop to count as “triggered". In other words, the endstop will always be triggered. This is likely to be useful only for debugging nozzle plug detection.
 
+### M733
+
+Pin test.
+
+Directly pulses various pins. This will cause the firmware to forget which pins are currently HIGH and LOW, so only use this for testing purposes, never in the context of an actual print job.
+
 ### M736; M737
 
 Lamp on/Lamp off

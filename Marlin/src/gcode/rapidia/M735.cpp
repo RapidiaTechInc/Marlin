@@ -25,19 +25,13 @@ void GcodeSuite::M735()
   if (parser.seenval('I'))
   {
     uint16_t interval = parser.value_ushort();
-
-    // Prevent division by 0.
-    if (interval == 0)
+    if (interval != 16)
     {
-        interval = 1;
-
-        SERIAL_ECHO_START();
-        SERIAL_ECHOLNPGM(
-            "WARNING: 0 ms is invalid. Using 1 ms minimum interval."
-        );
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPGM(
+          "WARNING: interval is hardcoded at 16 ms and cannot be modified."
+      );
     }
-    
-    endstops.z_max_hysteresis_min_interval_ms = interval;
   }
 
     // report value.

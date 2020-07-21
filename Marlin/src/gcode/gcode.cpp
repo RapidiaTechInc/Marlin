@@ -795,6 +795,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 731: M731(); break;                                  // M731: disable report on line finish
       #endif
 
+      #if ENABLED(RAPIDIA_PIN_TEST)
+        case 733: M733(); break;
+      #endif
+
       #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
         #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
           case 734: M734(); break;                                // M734: begin z-max recording

@@ -58,6 +58,13 @@
 // record nozzle state for debugging purposes.
 // #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING
 
+// allows emulator to hook into certain functionality.
+// cost is minimal, so it should be left in on all configurations for consistency.
+#define RAPIDIA_EMULATOR_HOOKS
+
+// adds M733, which pulses all pins.
+#define RAPIDIA_PIN_TEST
+
 /**
  * Configuration.h
  *

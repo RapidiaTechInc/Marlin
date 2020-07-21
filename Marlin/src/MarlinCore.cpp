@@ -652,6 +652,12 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
   #endif
 }
 
+#if ENABLED(RAPIDIA_EMULATOR_HOOKS)
+  // idle() is re-entrant.
+  // this counts the number of times is is currently on the stack.
+  volatile uint32_t idle_count = 0;
+#endif
+
 /**
  * Standard idle routine keeps the machine alive
  */
@@ -662,6 +668,10 @@ void idle(
 ) {
   #if ENABLED(POWER_LOSS_RECOVERY) && PIN_EXISTS(POWER_LOSS)
     recovery.outage();
+  #endif
+
+  #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
+    ++idle_count;
   #endif
 
   #if ENABLED(SPI_ENDSTOPS)
@@ -762,6 +772,10 @@ void idle(
 
   #if ENABLED(POLL_JOG)
     joystick.inject_jog_moves();
+  #endif
+
+  #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
+    --idle_count;
   #endif
 }
 
