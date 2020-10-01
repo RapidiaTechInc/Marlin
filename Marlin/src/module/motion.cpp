@@ -996,6 +996,8 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
                   line_to_current_position(planner.settings.max_feedrate_mm_s[Z_AXIS]);
           delayed_move_time = 0;
           active_extruder_parked = false;
+          planner.synchronize();
+          stepper.set_directions();
           if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Clear active_extruder_parked");
           break;
         case DXC_MIRRORED_MODE:
@@ -1011,6 +1013,7 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
             planner.set_position_mm(inactive_extruder_x_pos, current_position.y, current_position.z, current_position.e);
             if (!planner.buffer_line(new_pos, planner.settings.max_feedrate_mm_s[X_AXIS], 1)) break;
             planner.synchronize();
+            stepper.set_directions();
             sync_plan_position();
             extruder_duplication_enabled = true;
             active_extruder_parked = false;
@@ -1020,7 +1023,6 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
           break;
       }
     }
-    stepper.set_directions();
     return false;
   }
 
