@@ -28,9 +28,11 @@
 
 #define RAPIDIA_PROTOCOL 2
 
-// #define RAPIDIA_NO_HOTENDS
-// #define RAPIDIA_NO_EXTRUDE
-// #define RAPIDIA_NO_HEATED_BED
+#ifdef RAPIDIA_DRY
+  #define RAPIDIA_NO_HOTENDS
+  #define RAPIDIA_NO_EXTRUDE
+  #define RAPIDIA_NO_HEATED_BED
+#endif
 
 #ifndef RAPIDIA_PLASTIC
     #define RAPIDIA_METAL
@@ -924,6 +926,8 @@
 #ifdef RAPIDIA_METAL
   #define NOZZLE_AS_PROBE
 #endif
+
+#define RAPIDIA_ALWAYS_SET_DIRECTIONS
 
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.
