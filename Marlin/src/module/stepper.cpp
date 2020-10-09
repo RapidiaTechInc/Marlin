@@ -2160,6 +2160,7 @@ uint32_t Stepper::block_phase_isr() {
       if ( ENABLED(HAS_L64XX)  // Always set direction for L64xx (Also enables the chips)
         || current_block->direction_bits != last_direction_bits
         || TERN(MIXING_EXTRUDER, false, stepper_extruder != last_moved_extruder)
+        || ENABLED(RAPIDIA_ALWAYS_SET_DIRECTIONS)
       ) {
         last_direction_bits = current_block->direction_bits;
         #if EXTRUDERS > 1
