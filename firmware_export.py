@@ -1,7 +1,7 @@
 #
 # Rapidia Firmware Export Script
 # This will build current commit and copy the firmware hex and elf files to
-# RapidiaHost directory, which is assumed to be ../RapidiaHost-V1/
+# RapidiaHost directory, which is assumed to be ../rapidia-host-react-v1/
 #
 # Use with caution as this will directly git commit and git push!!
 # Make sure your RapidiaHost git directory is clean before doing this
@@ -18,15 +18,15 @@ Import("env", "projenv")
 
 firmware_root_path = os.getcwd()
 rapidia_export_path = path.join(firmware_root_path, '.pio/build/rapidia_export')
-rapidia_host_path = path.join(firmware_root_path, '../RapidiaHost-V1')
+rapidia_host_path = path.join(firmware_root_path, '../rapidia-host-react-v1')
 hex_source_path = path.join(rapidia_export_path, 'firmware.hex') 
-hex_destination_path = path.join(rapidia_host_path, 'firmware','firmwareV2.hex')
+hex_destination_path = path.join(rapidia_host_path,'resources', 'firmware','firmwareV2.hex')
 package_json_path = './package.json'
 
 print("Running Rapidia Firmware Export Script")
 
 if not(path.exists(rapidia_host_path)):
-	raise Exception('../RapidiaHost-V1 directory not found!')
+	raise Exception('../rapidia-host-react-v1 directory not found!')
 
 def after_build(source, target, env):
 	print("Starting after-build export process..")
@@ -46,15 +46,21 @@ def after_build(source, target, env):
 	# Look for rapidia firmware version
 	file = open('Marlin/src/inc/RapidiaVersion.h')
 	firmware_version = 0
+	marlin_version = ''
+	rapidia_version = ''
 	for line in file:
+		if line.startswith('#define MARLIN_SHORT_BUILD_VERSION'):
+			marlin_version = line.replace('#define MARLIN_SHORT_BUILD_VERSION','')
+			marlin_version = marlin_version.replace(' ','')
+			marlin_version = marlin_version.replace('"','')
 		if line.startswith('#define RAPIDIA_SHORT_BUILD_VERSION'):
-			version = line.replace('#define RAPIDIA_SHORT_BUILD_VERSION','')
-			version = version.replace(' ','')
-			version = version.replace('"','')
-			firmware_version = version.rstrip()
-			print('Rapidia firmware version found: ' + version)
+			rapidia_version = line.replace('#define RAPIDIA_SHORT_BUILD_VERSION','')
+			rapidia_version = rapidia_version.replace(' ','')
+			rapidia_version = rapidia_version.replace('"','')
+	firmware_version = marlin_version.rstrip() + 'r' + rapidia_version.rstrip()
+	print('Rapidia firmware version found: ' + firmware_version)
 
-	if firmware_version == 0:
+	if firmware_version == 0 or firmware_version == '' or firmware_version == 'r':
 		raise Exception("ERROR: Rapidia Firmware Version not found")
 
 	# change directory to rapidiahost
@@ -83,11 +89,6 @@ def after_build(source, target, env):
 	with open(package_json_path, 'w') as json_file:
 		json.dump(package_data, json_file, indent=4)
 		json_file.write('\n')
-
-	# git commit and push
-	# os.system('git add -A')
-	# os.system('git commit -m "update firmware"')
-	# os.system('git push origin master')
 
 	print("SUCCESS")
 
