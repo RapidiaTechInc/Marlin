@@ -8,7 +8,7 @@
 unsigned long GcodeSuite::timers_m710[M710_TIMER_COUNT];
 uint8_t GcodeSuite::skipGCode;
 
-void GcodeSuite::M710()
+void GcodeSuite::R710()
 {
     uint8_t timerIndex = 0;
     if (parser.seenval('T'))
@@ -30,7 +30,7 @@ void GcodeSuite::M710()
     }
 }
 
-void GcodeSuite::M711()
+void GcodeSuite::R711()
 {
     uint8_t timerIndex = 0;
     unsigned long comp = 1000;

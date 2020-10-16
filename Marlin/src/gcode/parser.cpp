@@ -159,7 +159,7 @@ void GCodeParser::parse(char *p) {
   // (or a valid parameter for the current motion mode)
   switch (letter) {
 
-    case 'G': case 'M': case 'T':
+    case 'G': case 'M': case 'R': case 'T':
     #if ENABLED(CANCEL_OBJECTS)
       case 'O':
     #endif

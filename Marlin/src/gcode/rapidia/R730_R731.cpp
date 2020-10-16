@@ -7,12 +7,12 @@
 
 #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
 
-void GcodeSuite::M730()
+void GcodeSuite::R730()
 {
     planner.auto_report_line_finished = true;
 }
 
-void GcodeSuite::M731()
+void GcodeSuite::R731()
 {
     planner.auto_report_line_finished = false;
 }

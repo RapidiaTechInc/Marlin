@@ -5,7 +5,7 @@
 
 #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
 
-void GcodeSuite::M735()
+void GcodeSuite::R735()
 {
   if (parser.seenval('S'))
   {
@@ -48,7 +48,7 @@ void GcodeSuite::M735()
 }
 
 #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
-  void GcodeSuite::M734()
+  void GcodeSuite::R734()
   {
     endstops.start_z_max_hysteresis_record();
   }
