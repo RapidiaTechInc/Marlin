@@ -832,43 +832,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 710: M710(); break;                                  // M710: Set Controller Fan settings
       #endif
 
-      #if ENABLED(CONDITIONAL_GCODE)
-        case 710: M710(); break;                                  // M710: set timer
-        case 711: M711(); break;                                  // timer-predicate conditional execution
-      #endif
-
-      #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
-        case 730: M730(); break;                                  // M730: enable report on line finish
-        case 731: M731(); break;                                  // M731: disable report on line finish
-      #endif
-
-      #if ENABLED(RAPIDIA_PIN_TEST)
-        case 733: M733(); break;
-      #endif
-
-      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
-        #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
-          case 734: M734(); break;                                // M734: begin z-max recording
-        #endif
-        case 735: M735(); break;                                  // M735: z-max hysteresis threshold
-      #endif
-
-      #if ENABLED(RAPIDIA_LAMP_ALIAS)
-        case 736: M106(); break;                                  // M736: alias for M106
-        case 737: M107(); break;                                  // M737: alias for M107
-      #endif
-
-      #if ENABLED(RAPIDIA_PAUSE)
-      #if DISABLED(EMERGENCY_PARSER)
-        case 751: M751(); break;                                  // M751: pause (soft)
-        case 752: M752(); break;                                  // M752: pause (firm)
-      #else
-        case 751:
-        case 752:
-          break;
-      #endif
-      #endif
-
       #if ENABLED(GCODE_MACROS)
         case 810: case 811: case 812: case 813: case 814:
         case 815: case 816: case 817: case 818: case 819:
@@ -988,6 +951,44 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if ENABLED(MAX7219_GCODE)
         case 7219: M7219(); break;                                // M7219: Set LEDs, columns, and rows
+      #endif
+
+      default: parser.unknown_command_warning(); break;
+    }
+    break;
+
+    case 'R': switch (parser.codenum) {
+      #if ENABLED(CONDITIONAL_GCODE)
+        case 710: R710(); break;                                  // R710: set timer
+        case 711: R711(); break;                                  // timer-predicate conditional execution
+      #endif
+
+      #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+        case 730: R730(); break;                                  // R730: enable report on line finish
+        case 731: R731(); break;                                  // R731: disable report on line finish
+      #endif
+
+      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+        #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
+          case 734: R734(); break;                                // R734: begin z-max recording
+        #endif
+        case 735: R735(); break;                                  // R735: z-max hysteresis threshold
+      #endif
+      
+      #if ENABLED(RAPIDIA_LAMP_ALIAS)
+        case 736: M106(); break;                                  // R736: alias for M106
+        case 737: M107(); break;                                  // R737: alias for M107
+      #endif
+      
+      #if ENABLED(RAPIDIA_PAUSE)
+        #if DISABLED(EMERGENCY_PARSER)
+          case 751: R751(); break;                                  // R751: pause (soft)
+          case 752: R752(); break;                                  // R752: pause (firm)
+        #else
+          case 751:
+          case 752:
+            break;
+        #endif
       #endif
 
       default: parser.unknown_command_warning(); break;

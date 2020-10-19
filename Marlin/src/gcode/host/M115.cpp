@@ -61,7 +61,7 @@ void GcodeSuite::M115() {
   #endif
 
   #ifdef RAPIDIA_SRC_REV
-    if (STRINGIFY(RAPIDIA_SRC_REV) != "")
+    if (STRINGIFY(RAPIDIA_SRC_REV)[0]) // if string is not empty
     {
       SERIAL_ECHOLNPGM("RAPIDIA:REV:" STRINGIFY(RAPIDIA_SRC_REV));
     }

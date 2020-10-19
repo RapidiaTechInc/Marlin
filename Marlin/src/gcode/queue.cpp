@@ -571,8 +571,8 @@ void GCodeQueue::get_serial_commands() {
           }
           if (strcmp_P(command, PSTR("M112")) == 0) kill(M112_KILL_STR, nullptr, true);
           if (strcmp_P(command, PSTR("M410")) == 0) quickstop_stepper();
-          else if (strcmp(command, "M751") == 0) Rapidia::pause.pause(false);
-          else if (strcmp(command, "M752") == 0) Rapidia::pause.pause(true);
+          else if (strcmp(command, "R751") == 0) Rapidia::pause.pause(false);
+          else if (strcmp(command, "R752") == 0) Rapidia::pause.pause(true);
         #endif
 
         #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0

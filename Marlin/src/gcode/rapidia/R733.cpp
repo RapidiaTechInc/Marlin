@@ -18,7 +18,7 @@ namespace
     } \
 },
 
-void GcodeSuite::M733()
+void GcodeSuite::R733()
 {
     const static pin_test_t pins[] = {
         PIN_DEF(X_STEP_PIN)

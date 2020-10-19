@@ -36,20 +36,20 @@ H:{"P":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"F":33.333,"T":0},"C":{"X":1
 
 Note that the “F" and “T" entries in the position object refer to the current feedrate and tool respectively.
 
-### M710 T(0-3)
+### R710 T(0-3)
 
-Set Timer. There are 4 timers which can be used in conditional gcode execution (see M711). This command resets the specified timer.
+Set Timer. There are 4 timers which can be used in conditional gcode execution (see R711). This command resets the specified timer.
 
-### M711 T(0-3) [A(u32)][b(u32)] [N(u8)]
+### R711 T(0-3) [A(u32)][b(u32)] [N(u8)]
 
 Conditional Execution (on Timer). This command checks if the specified timer T has elapsed at least (A) or fewer than (B) the specified number of milliseconds. If it has not -- that is, if the condition evaluates to false -- then the next specified number N lines of gcode received will be skipped. Only gcode which starts with a ‘G’ or ‘T’ will be skipped; ‘M’ code will neither be skipped nor will it count toward the number of lines which are to be skipped.
 
-### M730; M731
+### R730; R731
 
 Enable/Disable movement-complete auto-reporting.
 These respectively enable and disable reporting when individual lines of gcode have completed execution. (Note that this does not enable synchronous movement.)
 
-### M735 [S(u8)][i(u16:milliseconds)]
+### R735 [S(u8)][i(u16:milliseconds)]
 
 Z_MAX (nozzle plug) signal processing.
 
@@ -62,26 +62,26 @@ Setting S to an integer greater than 1 makes it so that Marlin must read S posit
 
 Warning: setting S0 means that Marlin requires 0 positive reads for the endstop to count as “triggered". In other words, the endstop will always be triggered. This is likely to be useful only for debugging nozzle plug detection.
 
-### M733
+### R733
 
 Pin test.
 
 Directly pulses various pins. This will cause the firmware to forget which pins are currently HIGH and LOW, so only use this for testing purposes, never in the context of an actual print job.
 
-### M736; M737
+### R736; R737
 
 Lamp on/Lamp off
 For now, these commands are aliases of M106 and M107.
-M751/M752
+R751/R752
 
-### M751; M752
+### R751; R752
 
 Emergency-priority parsing.
 Immediately stops extrusion.
 Decelerates to a smooth stop.
 
-- M751: finishes the currently-executing gcode, and then stops.
-- M752: decelerates to a smooth stop at the next buffered move.
+- R751: finishes the currently-executing gcode, and then stops.
+- R752: decelerates to a smooth stop at the next buffered move.
   Clears command buffer and movement planning buffer.
 
 After the pause completes (i.e. when the print head stops moving), the following report is issued:
@@ -98,7 +98,7 @@ Report format [pause]
 - sd: (omitted if SD card is not enabled): if true, this means that an sd card print was in progress and this command paused it (like M24).
 - _Notable omission:_ the position at the end of the last gcode executed (G) is not reported. (However, if “deceleration" is false, the position would be exactly the reported C position.).
 
-Example command: `M751`
+Example command: `R751`
 
 **Example report [pause]**
 

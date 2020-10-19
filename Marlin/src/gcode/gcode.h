@@ -814,24 +814,24 @@ private:
 
   TERN_(GCODE_MACROS, static void M810_819());
   #if ENABLED(CONDITIONAL_GCODE)
-    static void M710();
-    static void M711();
+    static void R710();
+    static void R711();
   #endif
 
   #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
-    static void M730(); // enable line finished reporting
-    static void M731(); // disable line finished reporting
+    static void R730(); // enable line finished reporting
+    static void R731(); // disable line finished reporting
   #endif
 
   #if ENABLED(RAPIDIA_PIN_TEST)
-    static void M733(); // pin test.
+    static void R733(); // pin test.
   #endif
 
   #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
     #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
-      static void M734(); // begin recording nozzle plug data.
+      static void R734(); // begin recording nozzle plug data.
     #endif
-    static void M735(); // set z_max hysteresis threshold.
+    static void R735(); // set z_max hysteresis threshold.
   #endif
 
   #if ENABLED(RAPIDIA_LAMP_ALIAS)
@@ -841,8 +841,8 @@ private:
 
   #if ENABLED(RAPIDIA_PAUSE)
     #if DISABLED(EMERGENCY_PARSER)
-      static void M751(); // pause (soft -- wait for this line of gcode to finish)
-      static void M752(); // pause (hard -- decelerate immediately)
+      static void R751(); // pause (soft -- wait for this line of gcode to finish)
+      static void R752(); // pause (hard -- decelerate immediately)
     #endif
   #endif
 

@@ -6,12 +6,12 @@
 #if ENABLED(RAPIDIA_PAUSE)
 #if DISABLED(EMERGENCY_PARSER)
 
-void GcodeSuite::M751()
+void GcodeSuite::R751()
 {
     Rapidia::pause.pause(false);
 }
 
-void GcodeSuite::M752()
+void GcodeSuite::R752()
 {
     Rapidia::pause.pause(true);
 }
