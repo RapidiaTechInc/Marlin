@@ -42,13 +42,13 @@
 
 // planner blocks are marked with their gcode source line
 // (only for the last block in any given move)
-// #define RAPIDIA_BLOCK_SOURCE
+#define RAPIDIA_BLOCK_SOURCE
 
-// allow M730/M731 for enabling gcode line complete auto-reporting.
-// #define RAPIDIA_LINE_AUTO_REPORTING
+// allow R730/R731 for enabling gcode line complete auto-reporting.
+#define RAPIDIA_LINE_AUTO_REPORTING
 
-// pause feature is enabled (requires RAPIDIA_BLOCK_SOURCE)
-// #define RAPIDIA_PAUSE
+// pause feature R751/752 is enabled (requires RAPIDIA_BLOCK_SOURCE)
+#define RAPIDIA_PAUSE
 
 // M736/M737 alias for M106/M107
 #define RAPIDIA_LAMP_ALIAS
@@ -64,7 +64,7 @@
 // cost is minimal, so it should be left in on all configurations for consistency.
 #define RAPIDIA_EMULATOR_HOOKS
 
-// adds M733, which pulses all pins.
+// adds R733, which pulses all pins.
 #define RAPIDIA_PIN_TEST
 
 /**
