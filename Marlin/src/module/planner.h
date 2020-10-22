@@ -340,6 +340,11 @@ class Planner {
       // causes Planner::_buffer_steps to return false.
       // this allows gcode handlers on the call stack to be cancelled.
       static bool prevent_block_buffering;
+
+      // similar to the above,
+      // allows blocks to be added, but forces them to
+      // have no extrusion.
+      static bool prevent_block_extrusion;
     #endif
 
     #if ENABLED(DISTINCT_E_FACTORS)
@@ -770,6 +775,7 @@ class Planner {
       };
 
       static pause_result pause_decelerate(bool force);
+      static void pause_clear_e_from_buffer();
 
     private:
       // force: if false, stop only at marked boundaries. Otherwise,

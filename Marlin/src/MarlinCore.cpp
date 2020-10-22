@@ -1303,7 +1303,10 @@ void loop() {
     idle();
 
     #if ENABLED(RAPIDIA_PAUSE)
+      // if there was any pause was requested, it has completed by now.
+      // it's now safe to plan new blocks.
       planner.prevent_block_buffering = false;
+      planner.prevent_block_extrusion = false;
     #endif
 
     #if ENABLED(SDSUPPORT)

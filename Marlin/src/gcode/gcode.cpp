@@ -954,7 +954,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
 
       default: parser.unknown_command_warning(); break;
-    }
+    } 
     break;
 
     case 'R': switch (parser.codenum) {
@@ -963,7 +963,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 711: R711(); break;                                  // timer-predicate conditional execution
       #endif
 
-      #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
         case 730: R730(); break;                                  // R730: enable report on line finish
         case 731: R731(); break;                                  // R731: disable report on line finish
       #endif
