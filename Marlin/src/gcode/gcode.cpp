@@ -953,9 +953,18 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 7219: M7219(); break;                                // M7219: Set LEDs, columns, and rows
       #endif
 
-      default: parser.unknown_command_warning(); break;
+      #ifdef RAPIDIA_M_CODE_COMPATABILITY
+        // if this doesn't match an M code, try an R code instead.
+        default: goto fallthrough_to_r_parse;
+      #else
+        default: parser.unknown_command_warning(); break;
+      #endif
     } 
     break;
+
+    #ifdef RAPIDIA_M_CODE_COMPATABILITY
+      fallthrough_to_r_parse:
+    #endif
 
     case 'R': switch (parser.codenum) {
       #if ENABLED(CONDITIONAL_GCODE)

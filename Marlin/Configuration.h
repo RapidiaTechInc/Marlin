@@ -58,6 +58,12 @@
 // record nozzle state for debugging purposes.
 // #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING
 
+// this is intended for debugging only.
+// M codes which match the value of an R code will be interpreted as that R code.
+// This allows use with hosts that don't support R codes.
+// Caveat: if an M code already has semantics, it will not be interpreted as the associated R code!
+// #define RAPIDIA_M_CODE_COMPATABILITY
+
 // allows emulator to hook into certain functionality.
 // cost is minimal, so it should be left in on all configurations for consistency.
 #define RAPIDIA_EMULATOR_HOOKS
