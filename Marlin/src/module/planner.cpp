@@ -2752,11 +2752,7 @@ inline Planner::pause_scan_result Planner::pause_decelerate_scan()
 }
 
 Planner::pause_result Planner::pause_decelerate(bool force)
-{
-  // prevent extrusion until we next enable the e steppers.
-  // (They will be enabled if a segment is buffered with e movement)
-  disable_e_steppers();
-  
+{  
   pause_result result;
   pause_scan_result scan = (force)
     ? pause_decelerate_scan<true>()
