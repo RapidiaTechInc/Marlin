@@ -107,6 +107,9 @@ public:
           case '6': case '7': case '8':
           case '9': case '-': case ' ':   break;
           case 'M': state = EP_M;      break;
+          #if ENABLED(RAPIDIA_PAUSE)
+            case 'R': state = EP_R;    break;
+          #endif
           default:  state = EP_IGNORE;
         }
         break;
