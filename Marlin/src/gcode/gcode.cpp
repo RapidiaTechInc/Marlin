@@ -81,6 +81,11 @@ uint8_t GcodeSuite::axis_relative = (
  long GcodeSuite::gcode_N = -1;
 #endif
 
+#if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+  char GcodeSuite::dbg_current_command_letter = 0;
+  int GcodeSuite::dbg_current_codenum = -1;
+#endif
+
 #if EITHER(HAS_AUTO_REPORTING, HOST_KEEPALIVE_FEATURE)
   bool GcodeSuite::autoreport_paused; // = false
 #endif
@@ -277,6 +282,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       SERIAL_ECHO_MSG(STR_PRINTER_LOCKED);
       return;
     }
+  #endif
+
+  #if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+    dbg_current_command_letter = parser.command_letter;
+    dbg_current_codenum = parser.codenum;
   #endif
 
   // Handle a known G, M, or T
@@ -1020,6 +1030,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
       parser.unknown_command_warning();
   }
+
+  #if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+    dbg_current_command_letter = 0;
+  #endif
 
   if (!no_ok) queue.ok_to_send();
 }

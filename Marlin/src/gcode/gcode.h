@@ -313,6 +313,10 @@ private:
   #endif
 
 public:
+  #if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+    static char dbg_current_command_letter;
+    static int dbg_current_codenum;
+  #endif
 
   static uint8_t axis_relative;
 

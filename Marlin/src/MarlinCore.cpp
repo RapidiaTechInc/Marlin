@@ -1305,6 +1305,10 @@ void loop() {
     #if ENABLED(RAPIDIA_PAUSE)
       // if there was any pause was requested, it has completed by now.
       // it's now safe to plan new blocks.
+      #if ENABLED(RAPIDIA_HEARTBEAT)
+        // report this as debug info.
+        Rapidia::heartbeat.pause_block_buffering_info();
+      #endif
       planner.prevent_block_buffering = false;
       planner.prevent_block_extrusion = false;
     #endif

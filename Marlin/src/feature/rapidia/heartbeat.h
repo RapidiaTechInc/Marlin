@@ -40,6 +40,11 @@ public:
   
   // enables/disables individual status messages
   static void select(HeartbeatSelection selection, bool enable);
+
+  #if ENABLED(RAPIDIA_PAUSE)
+    // displays a message when block buffering/extrusion prevention ends after pause.
+    static void pause_block_buffering_info();
+  #endif
 };
 
 extern Heartbeat heartbeat;

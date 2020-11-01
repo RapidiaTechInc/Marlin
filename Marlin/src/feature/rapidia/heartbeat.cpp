@@ -166,6 +166,26 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
     {
       echo_separator(sep);
+      echo_key_str("dbg-executing-command");
+      if (GcodeSuite::dbg_current_command_letter)
+      {
+        char sbuff[32];
+        if (sprintf(sbuff + 1, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
+        {
+          SERIAL_ECHO(sbuff);
+        }
+        else
+        {
+          SERIAL_ECHO("\"\"");
+        }
+      }
+      else
+      {
+        SERIAL_ECHO("\"\"");
+      }
+      
+
+      echo_separator(sep);
       echo_key_str("dbg-pause-nobuffer");
       SERIAL_ECHO(static_cast<int32_t>(planner.prevent_block_buffering));
       
@@ -222,6 +242,28 @@ void Heartbeat::auto_report()
     SERIAL_EOL();
   }
 }
+
+#if ENABLED(RAPIDIA_PAUSE)
+void Heartbeat::pause_block_buffering_info()
+{
+  HeartbeatSelection sel = static_cast<HeartbeatSelection>(Heartbeat::selection);
+  if (TEST_FLAG(sel, HeartbeatSelection::DEBUG))
+  {
+    // if either of these flags are true, then the caller is about
+    // to disable them. So we report that they have been disabled.
+    if (planner.prevent_block_buffering)
+    {
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLN("pause: dbg-pause-nobuffer disabled.");
+    }
+    if (planner.prevent_block_extrusion)
+    {
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLN("pause: dbg-pause-noextrude disabled.");
+    }
+  }
+}
+#endif
 
 void Heartbeat::select(HeartbeatSelection selection, bool enable)
 {

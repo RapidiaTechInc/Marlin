@@ -4,6 +4,7 @@
 #include "../../module/stepper.h"
 #include "../../gcode/queue.h"
 #include "../../sd/cardreader.h"
+#include "../../gcode/gcode.h"
 #include "heartbeat.h"
 
 #if ENABLED(RAPIDIA_PAUSE)
@@ -30,6 +31,15 @@ static void report_xyzet(const xyze_pos_t &pos, const uint8_t extruder, const ui
 
 void Pause::pause(bool hard)
 {
+  // prevent re-entry
+  static bool is_pausing = false;
+  if (is_pausing) return;
+  is_pausing = true;
+
+  // what command is being interrupted
+  char command_letter = GcodeSuite::dbg_current_command_letter;
+  int codenum = GcodeSuite::dbg_current_codenum;
+
   Stepper::State pause_state = stepper.report_state();
   
   long qline = queue.get_first_line_number();
@@ -54,6 +64,7 @@ void Pause::pause(bool hard)
   {
     // try to pause again next idle loop.
     defer_pause = hard + 1;
+    is_pausing = false;
     return;
   }
   
@@ -87,6 +98,18 @@ void Pause::pause(bool hard)
     echo_separator(sep);
     echo_key('G');
     SERIAL_ECHO(result.line);
+  }
+
+  // report command that was interrupted by pause?
+  if (command_letter)
+  {
+    char sbuff[32];
+    if (sprintf(sbuff + 1, "\"%c%d\"", command_letter, codenum) > 0)
+    {
+      echo_separator(sep);
+      echo_key('I');
+      SERIAL_ECHO(sbuff);
+    }
   }
 
   // did deceleration occur?
@@ -157,6 +180,9 @@ void Pause::pause(bool hard)
   
   // end of message
   SERIAL_ECHOLN("}");
+
+  // allow entry.
+  is_pausing = false;
 }
 
 void Pause::defer(bool hard)
