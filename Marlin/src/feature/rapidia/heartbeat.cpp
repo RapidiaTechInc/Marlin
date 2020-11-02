@@ -170,7 +170,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       if (GcodeSuite::dbg_current_command_letter)
       {
         char sbuff[32];
-        if (sprintf(sbuff + 1, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
+        if (sprintf(sbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
         {
           SERIAL_ECHO(sbuff);
         }

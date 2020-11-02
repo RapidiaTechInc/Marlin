@@ -104,7 +104,7 @@ void Pause::pause(bool hard)
   if (command_letter)
   {
     char sbuff[32];
-    if (sprintf(sbuff + 1, "\"%c%d\"", command_letter, codenum) > 0)
+    if (sprintf(sbuff, "\"%c%d\"", command_letter, codenum) > 0)
     {
       echo_separator(sep);
       echo_key('I');
