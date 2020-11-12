@@ -197,6 +197,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       echo_key_str("dbg-buffer-moves-planned");
       SERIAL_ECHO(static_cast<int32_t>(planner.movesplanned()));
 
+      echo_separator(sep);
       echo_key_str("dbg-buffer-moves-nonbusy");
       SERIAL_ECHO(static_cast<int32_t>(planner.nonbusy_movesplanned()));
 
