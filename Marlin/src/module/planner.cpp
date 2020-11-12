@@ -2680,7 +2680,19 @@ inline void Planner::pause_clear_e_from_buffer()
     // we skip sync blocks because they use block::steps for other information.
     if (! (block.flag & BLOCK_BIT_SYNC_POSITION))
     {
-      block.steps[E_AXIS] = 0;
+      // any block which, as a result, is empty, should be culled.
+      if (block.steps[X_AXIS] == 0 && block.steps[Y_AXIS] == 0 && block.steps[Z_AXIS] == 0)
+      {
+        // this is now a critical section, have to block.
+        const bool was_enabled = stepper.suspend();
+        block.step_event_count = 0;
+        block.steps[E_AXIS] = 0;
+        if (was_enabled) stepper.wake_up();
+      }
+      else
+      {
+        block.steps[E_AXIS] = 0;
+      }
     }
   }
 
