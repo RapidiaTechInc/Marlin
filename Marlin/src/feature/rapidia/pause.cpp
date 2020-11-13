@@ -31,10 +31,24 @@ static void report_xyzet(const xyze_pos_t &pos, const uint8_t extruder, const ui
 
 void Pause::pause(bool hard)
 {
+  #ifdef RAPIDIA_PAUSE_DEBUG
+  static bool pause_begin = false;
+  static bool pause_defer = false;
+  #endif
+
   // prevent re-entry
   static bool is_pausing = false;
   if (is_pausing) return;
   is_pausing = true;
+
+  #ifdef RAPIDIA_PAUSE_DEBUG
+  if (!pause_begin)
+  {
+    pause_begin = true;
+    SERIAL_ECHO_START();
+    SERIAL_ECHOLNPGM("pause begin...");
+  }
+  #endif
 
   // what command is being interrupted
   char command_letter = GcodeSuite::dbg_current_command_letter;
@@ -62,6 +76,15 @@ void Pause::pause(bool hard)
   
   if (result.defer)
   {
+    #ifdef RAPIDIA_PAUSE_DEBUG
+    if (!pause_defer)
+    {
+      pause_defer = true;
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPGM("pause defer...");
+    }
+    #endif
+
     // try to pause again next idle loop.
     defer_pause = hard + 1;
     is_pausing = false;
@@ -70,9 +93,19 @@ void Pause::pause(bool hard)
   
   // cancel any gcode higher-up on the callstack.
   planner.prevent_block_buffering = true;
+
+  #ifdef RAPIDIA_PAUSE_DEBUG
+  SERIAL_ECHO_START();
+  SERIAL_ECHOLNPGM("Begin pause sync...");
+  #endif
   
   // Wait for the toolhead to decelerate and come to a complete rest.
   planner.synchronize();
+
+  #ifdef RAPIDIA_PAUSE_DEBUG
+  SERIAL_ECHO_START();
+  SERIAL_ECHOLNPGM("End pause sync.");
+  #endif
   
   // new plan position = calculated position from stepper.
   set_current_from_steppers_for_axis(ALL_AXES);
@@ -180,6 +213,11 @@ void Pause::pause(bool hard)
   
   // end of message
   SERIAL_ECHOLN("}");
+
+  #ifdef RAPIDIA_PAUSE_DEBUG
+  pause_defer = false;
+  pause_begin = false;
+  #endif
 
   // allow entry.
   is_pausing = false;

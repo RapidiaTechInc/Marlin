@@ -64,6 +64,8 @@
 // Caveat: if an M code already has semantics, it will not be interpreted as the associated R code!
 #define RAPIDIA_M_CODE_COMPATABILITY
 
+#define RAPIDIA_PAUSE_DEBUG
+
 // allows emulator to hook into certain functionality.
 // cost is minimal, so it should be left in on all configurations for consistency.
 #define RAPIDIA_EMULATOR_HOOKS
@@ -1200,13 +1202,6 @@
  */
 #define PREVENT_COLD_EXTRUSION
 #define EXTRUDE_MINTEMP 170
-
-/**
- * Prevent a single extrusion longer than EXTRUDE_MAXLENGTH.
- * Note: For Bowden Extruders make this large enough to allow load/unload.
- */
-#define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 200
 
 #endif
 
