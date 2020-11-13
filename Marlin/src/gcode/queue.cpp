@@ -124,6 +124,23 @@ void GCodeQueue::clear() {
   index_r = index_w = length = 0;
 }
 
+
+/**
+ * Clear the Marlin command queue, and respond with
+ * an ok for everything on the queue.
+ */
+void GCodeQueue::clear_with_oks(uint8_t active) {
+  if (length > active)
+  {
+    for (uint8_t i = 0; i < length - active; ++i)
+    {
+      ok_to_send();
+    }
+  }
+
+  clear();
+}
+
 #if ENABLED(RAPIDIA_BLOCK_SOURCE)
 long GCodeQueue::get_first_line_number() {
   for (uint8_t index = index_r; index != index_w; ++index)

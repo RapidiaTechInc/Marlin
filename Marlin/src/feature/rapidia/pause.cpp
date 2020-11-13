@@ -67,10 +67,10 @@ void Pause::pause(bool hard)
       card.pauseSDPrint();
     }
   #endif
-  
+
   // process no further commands.
-  queue.clear();
-  
+  queue.clear_with_oks(1);
+
   // tell planner to pause.
   Planner::pause_result result = planner.pause_decelerate(hard);
   
@@ -213,6 +213,11 @@ void Pause::pause(bool hard)
   
   // end of message
   SERIAL_ECHOLN("}");
+
+  // pause complete.
+  // (we need to send an ok from this routine because
+  // the emergency parser doesn't send an ok.)
+  queue.ok_to_send();
 
   #ifdef RAPIDIA_PAUSE_DEBUG
   pause_defer = false;

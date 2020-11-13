@@ -270,7 +270,7 @@ bool GcodeSuite::conditional_execution()
 /**
  * Process the parsed command and dispatch it to its handler
  */
-void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
+void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
   KEEPALIVE_STATE(IN_HANDLER);
 
  /**
@@ -1001,11 +1001,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       
       #if ENABLED(RAPIDIA_PAUSE)
         #if DISABLED(EMERGENCY_PARSER)
-          case 751: R751(); break;                                  // R751: pause (soft)
-          case 752: R752(); break;                                  // R752: pause (firm)
+          case 751: R751(); no_ok = true; break;                                  // R751: pause (soft)
+          case 752: R752(); no_ok = true; break;                                  // R752: pause (firm)
         #else
           case 751:
           case 752:
+            no_ok = true;
             break;
         #endif
       #endif
