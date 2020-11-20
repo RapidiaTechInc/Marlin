@@ -28,9 +28,11 @@
 
 #define RAPIDIA_PROTOCOL 2
 
-// #define RAPIDIA_NO_HOTENDS
-// #define RAPIDIA_NO_EXTRUDE
-// #define RAPIDIA_NO_HEATED_BED
+#ifdef RAPIDIA_DRY
+  #define RAPIDIA_NO_HOTENDS
+  #define RAPIDIA_NO_EXTRUDE
+  #define RAPIDIA_NO_HEATED_BED
+#endif
 
 #ifndef RAPIDIA_PLASTIC
     #define RAPIDIA_METAL
@@ -42,10 +44,10 @@
 // (only for the last block in any given move)
 #define RAPIDIA_BLOCK_SOURCE
 
-// allow M730/M731 for enabling gcode line complete auto-reporting.
-// #define RAPIDIA_LINE_AUTO_REPORTING
+// allow R730/R731 for enabling gcode line complete auto-reporting.
+#define RAPIDIA_LINE_AUTO_REPORTING
 
-// pause feature is enabled (requires RAPIDIA_BLOCK_SOURCE)
+// pause feature R751/752 is enabled (requires RAPIDIA_BLOCK_SOURCE)384646
 #define RAPIDIA_PAUSE
 
 // M736/M737 alias for M106/M107
@@ -70,7 +72,7 @@
 // cost is minimal, so it should be left in on all configurations for consistency.
 #define RAPIDIA_EMULATOR_HOOKS
 
-// adds M733, which pulses all pins.
+// adds R733, which pulses all pins.
 #define RAPIDIA_PIN_TEST
 
 /**
@@ -720,16 +722,16 @@
  *          TMC5130, TMC5130_STANDALONE, TMC5160, TMC5160_STANDALONE
  * :['A4988', 'A5984', 'DRV8825', 'LV8729', 'L6470', 'L6474', 'POWERSTEP01', 'TB6560', 'TB6600', 'TMC2100', 'TMC2130', 'TMC2130_STANDALONE', 'TMC2160', 'TMC2160_STANDALONE', 'TMC2208', 'TMC2208_STANDALONE', 'TMC2209', 'TMC2209_STANDALONE', 'TMC26X', 'TMC26X_STANDALONE', 'TMC2660', 'TMC2660_STANDALONE', 'TMC5130', 'TMC5130_STANDALONE', 'TMC5160', 'TMC5160_STANDALONE']
  */
-//#define X_DRIVER_TYPE  A4988
-//#define Y_DRIVER_TYPE  A4988
-//#define Z_DRIVER_TYPE  A4988
-//#define X2_DRIVER_TYPE A4988
+#define X_DRIVER_TYPE  TMC2130_STANDALONE
+#define Y_DRIVER_TYPE  TMC2130_STANDALONE
+#define Z_DRIVER_TYPE  TMC2130_STANDALONE
+#define X2_DRIVER_TYPE TMC2130_STANDALONE
 //#define Y2_DRIVER_TYPE A4988
 //#define Z2_DRIVER_TYPE A4988
 //#define Z3_DRIVER_TYPE A4988
 //#define Z4_DRIVER_TYPE A4988
-//#define E0_DRIVER_TYPE A4988
-//#define E1_DRIVER_TYPE A4988
+#define E0_DRIVER_TYPE TMC2130_STANDALONE
+#define E1_DRIVER_TYPE TMC2130_STANDALONE
 //#define E2_DRIVER_TYPE A4988
 //#define E3_DRIVER_TYPE A4988
 //#define E4_DRIVER_TYPE A4988
@@ -936,6 +938,8 @@
 #ifdef RAPIDIA_METAL
   #define NOZZLE_AS_PROBE
 #endif
+
+#define RAPIDIA_ALWAYS_SET_DIRECTIONS
 
 /**
  * Z Servo Probe, such as an endstop switch on a rotating arm.

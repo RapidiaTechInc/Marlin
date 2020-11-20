@@ -46,12 +46,16 @@ void GcodeSuite::M115() {
   // this language-dependent string is human-readable.
   // please do not attempt to write a host that parses it.
   SERIAL_ECHOLNPGM(STR_M115_REPORT);
-  
+
   // all that follows is machine-redable.
   #ifdef GIT_COMMIT_SHA
   SERIAL_ECHOLNPGM("COMMIT-SHA:"GIT_COMMIT_SHA);
   #endif
-  
+
+  #ifdef SHORT_BUILD_VERSION
+    SERIAL_ECHOLNPGM("RAPIDIA:FIRMWARE_VERSION:" SHORT_BUILD_VERSION);
+  #endif
+
   #ifdef RAPIDIA_PROTOCOL
   SERIAL_ECHOLNPGM("RAPIDIA:PROTOCOL:" STRINGIFY(RAPIDIA_PROTOCOL));
   #endif
@@ -64,7 +68,7 @@ void GcodeSuite::M115() {
   #endif
 
   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
-  
+
     // RAPIDIA HEARTBEAT
     #ifdef RAPIDIA_HEARTBEAT
       cap_line(PSTR("RAPIDIA_HEARTBEAT"), true);
@@ -148,7 +152,7 @@ void GcodeSuite::M115() {
 
     // CHAMBER_TEMPERATURE (M141, M191)
     cap_line(PSTR("CHAMBER_TEMPERATURE"), ENABLED(HAS_HEATED_CHAMBER));
-    
+
     // RAPIDIA INFO
     cap_line(PSTR("RAPIDIA_METAL"), ENABLED(RAPIDIA_METAL));
     cap_line(PSTR("RAPIDIA_PLASTIC"), ENABLED(RAPIDIA_PLASTIC));
