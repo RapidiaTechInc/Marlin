@@ -162,6 +162,7 @@ float Planner::steps_to_mm[XYZE_N];             // (mm) Millimeters per step
 
 #if ENABLED(RAPIDIA_PAUSE)
   bool Planner::prevent_block_buffering = false;
+  bool Planner::prevent_block_extrusion = false;
 #endif
 
 #if ENABLED(DISTINCT_E_FACTORS)
@@ -1753,6 +1754,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
 
   #if EXTRUDERS
     int32_t de = target.e - position.e;
+    if (planner.prevent_block_extrusion)
+    {
+      de = 0;
+    }
   #else
     constexpr int32_t de = 0;
   #endif
@@ -1950,6 +1955,11 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
 
   #if EXTRUDERS
     block->steps.e = esteps;
+    if (planner.prevent_block_extrusion)
+    {
+      // paranoia, since we have `de = 0` above.
+      block->steps.e = 0;
+    }
   #endif
 
   block->step_event_count = _MAX(block->steps.a, block->steps.b, block->steps.c, esteps);
@@ -2654,6 +2664,46 @@ void Planner::buffer_sync_block() {
 #ifdef RAPIDIA_PAUSE
 // information returned by helper function below.
 
+inline void Planner::pause_clear_e_from_buffer()
+{
+  // we don't need to disable the ISR while doing this,
+  // because it's okay if it sees an erroneous E value,
+  // as we will ensure the E axis is disabled immediately after this.
+  for (
+    int8_t block_index = 0;
+    block_index < BLOCK_BUFFER_SIZE;
+    ++block_index
+  )
+  {
+    block_t& block = planner.block_buffer[block_index];
+
+    // we skip sync blocks because they use block::steps for other information.
+    if (! (block.flag & BLOCK_BIT_SYNC_POSITION))
+    {
+      // any block which, as a result, is empty, should be culled.
+      if (block.steps[X_AXIS] == 0 && block.steps[Y_AXIS] == 0 && block.steps[Z_AXIS] == 0)
+      {
+        // this is now a critical section, have to block.
+        const bool was_enabled = stepper.suspend();
+        block.step_event_count = 0;
+        block.steps[E_AXIS] = 0;
+        if (was_enabled) stepper.wake_up();
+      }
+      else
+      {
+        block.steps[E_AXIS] = 0;
+      }
+    }
+  }
+
+  // no new blocks added can have e steps
+  planner.prevent_block_extrusion = true;
+
+  // tell planner current E extrusion is 0, to
+  // force it not to try to take steps along the E axis.
+  stepper.stop_e_motion();
+}
+
 template<bool force>
 inline Planner::pause_scan_result Planner::pause_decelerate_scan()
 {
@@ -2714,16 +2764,16 @@ inline Planner::pause_scan_result Planner::pause_decelerate_scan()
 }
 
 Planner::pause_result Planner::pause_decelerate(bool force)
-{
-  // prevent extrusion until we next enable the e steppers.
-  // (They will be enabled if a segment is buffered with e movement)
-  disable_e_steppers();
-  
+{  
   pause_result result;
   pause_scan_result scan = (force)
     ? pause_decelerate_scan<true>()
     : pause_decelerate_scan<false>();
   
+  // modify all blocks in the planner so that they don't have
+  // E movement.
+  pause_clear_e_from_buffer();
+
   if (!scan.found)
   // did not find a marked boundary to stop at.
   {

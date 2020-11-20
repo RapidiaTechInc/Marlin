@@ -47,7 +47,7 @@
 // allow R730/R731 for enabling gcode line complete auto-reporting.
 #define RAPIDIA_LINE_AUTO_REPORTING
 
-// pause feature R751/752 is enabled (requires RAPIDIA_BLOCK_SOURCE)
+// pause feature R751/752 is enabled (requires RAPIDIA_BLOCK_SOURCE)384646
 #define RAPIDIA_PAUSE
 
 // M736/M737 alias for M106/M107
@@ -59,6 +59,14 @@
 
 // record nozzle state for debugging purposes.
 // #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING
+
+// this is intended for debugging only.
+// M codes which match the value of an R code will be interpreted as that R code.
+// This allows use with hosts that don't support R codes.
+// Caveat: if an M code already has semantics, it will not be interpreted as the associated R code!
+//#define RAPIDIA_M_CODE_COMPATABILITY
+
+//#define RAPIDIA_PAUSE_DEBUG
 
 // allows emulator to hook into certain functionality.
 // cost is minimal, so it should be left in on all configurations for consistency.
@@ -1198,13 +1206,6 @@
  */
 #define PREVENT_COLD_EXTRUSION
 #define EXTRUDE_MINTEMP 170
-
-/**
- * Prevent a single extrusion longer than EXTRUDE_MAXLENGTH.
- * Note: For Bowden Extruders make this large enough to allow load/unload.
- */
-#define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 200
 
 #endif
 

@@ -107,6 +107,9 @@ public:
           case '6': case '7': case '8':
           case '9': case '-': case ' ':   break;
           case 'M': state = EP_M;      break;
+          #if ENABLED(RAPIDIA_PAUSE)
+            case 'R': state = EP_R;    break;
+          #endif
           default:  state = EP_IGNORE;
         }
         break;
@@ -116,6 +119,10 @@ public:
           case ' ': break;
           case '1': state = EP_M1;     break;
           case '4': state = EP_M4;     break;
+          #if ENABLED(RAPIDIA_PAUSE) && ENABLED(RAPIDIA_M_CODE_COMPATABILITY)
+          // Attention! This is a hack. The benefit is having fewer #if ENABLED(...)
+          case '7': state = EP_R7;     break;
+          #endif
           #if ENABLED(HOST_PROMPT_SUPPORT)
             case '8': state = EP_M8;     break;
           #endif
@@ -148,6 +155,7 @@ public:
         break;
         
       #if ENABLED(RAPIDIA_PAUSE)
+
       case EP_R:
         state = (c == '7') ? EP_R7 : EP_IGNORE;
         break;

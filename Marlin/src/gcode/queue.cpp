@@ -124,6 +124,23 @@ void GCodeQueue::clear() {
   index_r = index_w = length = 0;
 }
 
+
+/**
+ * Clear the Marlin command queue, and respond with
+ * an ok for everything on the queue.
+ */
+void GCodeQueue::clear_with_oks(uint8_t active) {
+  if (length > active)
+  {
+    for (uint8_t i = 0; i < length - active; ++i)
+    {
+      ok_to_send();
+    }
+  }
+
+  clear();
+}
+
 #if ENABLED(RAPIDIA_BLOCK_SOURCE)
 long GCodeQueue::get_first_line_number() {
   for (uint8_t index = index_r; index != index_w; ++index)
@@ -571,8 +588,12 @@ void GCodeQueue::get_serial_commands() {
           }
           if (strcmp_P(command, PSTR("M112")) == 0) kill(M112_KILL_STR, nullptr, true);
           if (strcmp_P(command, PSTR("M410")) == 0) quickstop_stepper();
-          else if (strcmp(command, "R751") == 0) Rapidia::pause.pause(false);
-          else if (strcmp(command, "R752") == 0) Rapidia::pause.pause(true);
+          else if (strcmp_P(command, PSTR("R751")) == 0) { Rapidia::pause.pause(false); continue; }
+          else if (strcmp_P(command, PSTR("R752")) == 0) { Rapidia::pause.pause(true); continue; }
+          #if ENABLED(RAPIDIA_M_CODE_COMPATABILITY)
+          else if (strcmp_P(command, PSTR("M751")) == 0) { Rapidia::pause.pause(false); continue; }
+          else if (strcmp_P(command, PSTR("M752")) == 0) { Rapidia::pause.pause(true); continue; }
+          #endif
         #endif
 
         #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0
@@ -702,7 +723,10 @@ void GCodeQueue::advance() {
   #endif // SDSUPPORT
 
   // The queue may be reset by a command handler or by code invoked by idle() within a handler
-  --length;
-  if (++index_r >= BUFSIZE) index_r = 0;
-
+  // (this is why we must guard against the condition where length is suddenly 0, despite checking above.)
+  if (length != 0)
+  {
+    --length;
+    if (++index_r >= BUFSIZE) index_r = 0;
+  }
 }

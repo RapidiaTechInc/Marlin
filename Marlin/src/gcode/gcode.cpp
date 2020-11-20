@@ -81,6 +81,11 @@ uint8_t GcodeSuite::axis_relative = (
  long GcodeSuite::gcode_N = -1;
 #endif
 
+#if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+  char GcodeSuite::dbg_current_command_letter = 0;
+  int GcodeSuite::dbg_current_codenum = -1;
+#endif
+
 #if EITHER(HAS_AUTO_REPORTING, HOST_KEEPALIVE_FEATURE)
   bool GcodeSuite::autoreport_paused; // = false
 #endif
@@ -265,7 +270,7 @@ bool GcodeSuite::conditional_execution()
 /**
  * Process the parsed command and dispatch it to its handler
  */
-void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
+void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
   KEEPALIVE_STATE(IN_HANDLER);
 
  /**
@@ -277,6 +282,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       SERIAL_ECHO_MSG(STR_PRINTER_LOCKED);
       return;
     }
+  #endif
+
+  #if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+    dbg_current_command_letter = parser.command_letter;
+    dbg_current_codenum = parser.codenum;
   #endif
 
   // Handle a known G, M, or T
@@ -953,9 +963,18 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 7219: M7219(); break;                                // M7219: Set LEDs, columns, and rows
       #endif
 
-      default: parser.unknown_command_warning(); break;
-    }
+      #ifdef RAPIDIA_M_CODE_COMPATABILITY
+        // if this doesn't match an M code, try an R code instead.
+        default: goto fallthrough_to_r_parse;
+      #else
+        default: parser.unknown_command_warning(); break;
+      #endif
+    } 
     break;
+
+    #ifdef RAPIDIA_M_CODE_COMPATABILITY
+      fallthrough_to_r_parse:
+    #endif
 
     case 'R': switch (parser.codenum) {
       #if ENABLED(CONDITIONAL_GCODE)
@@ -963,7 +982,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 711: R711(); break;                                  // timer-predicate conditional execution
       #endif
 
-      #if ENABLED(RAPIDIA_BLOCK_SOURCE)
+      #if ENABLED(RAPIDIA_LINE_AUTO_REPORTING)
         case 730: R730(); break;                                  // R730: enable report on line finish
         case 731: R731(); break;                                  // R731: disable report on line finish
       #endif
@@ -982,11 +1001,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       
       #if ENABLED(RAPIDIA_PAUSE)
         #if DISABLED(EMERGENCY_PARSER)
-          case 751: R751(); break;                                  // R751: pause (soft)
-          case 752: R752(); break;                                  // R752: pause (firm)
+          case 751: R751(); no_ok = true; break;                                  // R751: pause (soft)
+          case 752: R752(); no_ok = true; break;                                  // R752: pause (firm)
         #else
           case 751:
           case 752:
+            no_ok = true;
             break;
         #endif
       #endif
@@ -1011,6 +1031,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
       parser.unknown_command_warning();
   }
+
+  #if ENABLED(RAPIDIA_HEARTBEAT) || ENABLED(RAPIDIA_PAUSE)
+    dbg_current_command_letter = 0;
+  #endif
 
   if (!no_ok) queue.ok_to_send();
 }

@@ -74,6 +74,13 @@ public:
    * Clear the Marlin command queue
    */
   static void clear();
+
+  /**
+   * Clears the command queue, sending an 'ok' for
+   * every command that is cleared, minus the number of 'active'
+   * commands (which will send an ok later when they complete.)
+  */
+  static void clear_with_oks(uint8_t active=0);
   
   #if ENABLED(RAPIDIA_BLOCK_SOURCE)
   /*

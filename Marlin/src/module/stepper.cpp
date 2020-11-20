@@ -1993,14 +1993,29 @@ uint32_t Stepper::block_phase_isr() {
     // Anything in the buffer?
     if ((current_block = planner.get_current_block())) {
 
-      // Sync block? Sync the stepper counts and return
-      while (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
-        _set_position(current_block->position);
-        discard_current_block();
+      // Sync block or empty block? Sync the stepper counts and return
+      while (true)
+      {
+        if (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
+          _set_position(current_block->position);
+          discard_current_block();
 
-        // Try to get a new block
+          continue;
+        }
+        else if (current_block->step_event_count == 0) {
+          // ignore
+          discard_current_block();
+
+          continue;
+        }
+        else
+        {
+          break;
+        }
+
+        // get a new block
         if (!(current_block = planner.get_current_block()))
-          return interval; // No more queued movements!
+            return interval; // No more queued movements!
       }
 
       // For non-inline cutter, grossly apply power
@@ -2253,6 +2268,22 @@ uint32_t Stepper::block_phase_isr() {
 
   // Return the interval to wait
   return interval;
+}
+
+void Stepper::stop_e_motion()
+{
+  const bool was_enabled = suspend();
+
+  advance_dividend.e = 0;
+
+  // optimization: skip this block if it's pure-extrude
+  if (advance_dividend[X_AXIS] == 0 && advance_dividend[Y_AXIS] == 0 && advance_dividend[Z_AXIS] == 0)
+  {
+    // this allows moving onto the next block.
+    step_events_completed = step_event_count;
+  }
+  
+  if (was_enabled) wake_up();
 }
 
 #if ENABLED(LIN_ADVANCE)

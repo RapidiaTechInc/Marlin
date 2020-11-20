@@ -450,6 +450,8 @@ class Stepper {
       planner.release_current_block();
     }
 
+    static void stop_e_motion();
+
     // Quickly stop all steppers
     FORCE_INLINE static void quick_stop() { abort_current_block = true; }
 
