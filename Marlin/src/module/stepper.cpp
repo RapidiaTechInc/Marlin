@@ -1990,10 +1990,6 @@ uint32_t Stepper::block_phase_isr() {
   // and prepare its movement
   if (!current_block) {
 
-    // FIXME: why is this called twice here?
-    // (note that function is not necessarily idempotent even in ISR context)
-    current_block = planner.get_current_block();
-
     // Anything in the buffer?
     if (current_block = planner.get_current_block()) {
 
