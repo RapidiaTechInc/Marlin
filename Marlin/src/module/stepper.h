@@ -528,6 +528,8 @@ class Stepper {
 
   private:
 
+    static bool handle_non_motion_block(const block_t* block);
+
     // Set the current position in steps
     static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
     FORCE_INLINE static void _set_position(const abce_long_t &spos) { _set_position(spos.a, spos.b, spos.c, spos.e); }

@@ -47,7 +47,7 @@
 // allow R730/R731 for enabling gcode line complete auto-reporting.
 #define RAPIDIA_LINE_AUTO_REPORTING
 
-// pause feature R751/752 is enabled (requires RAPIDIA_BLOCK_SOURCE)384646
+// pause feature R751/752 is enabled (requires RAPIDIA_BLOCK_SOURCE)
 #define RAPIDIA_PAUSE
 
 // M736/M737 alias for M106/M107

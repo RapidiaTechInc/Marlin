@@ -1991,31 +1991,21 @@ uint32_t Stepper::block_phase_isr() {
   if (!current_block) {
 
     // Anything in the buffer?
-    if ((current_block = planner.get_current_block())) {
+    if (current_block = planner.get_current_block()) {
 
-      // Sync block or empty block? Sync the stepper counts and return
-      while (true)
+      // We have to skip certain types of blocks (blocks which don't contain motion)
+      while (handle_non_motion_block(current_block))
       {
-        if (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
-          _set_position(current_block->position);
-          discard_current_block();
+        // block was not a motion block,
+        // so we must replace it and try another.
+        discard_current_block();
+        current_block = planner.get_current_block();
+      }
 
-          continue;
-        }
-        else if (current_block->step_event_count == 0) {
-          // ignore
-          discard_current_block();
-
-          continue;
-        }
-        else
-        {
-          break;
-        }
-
-        // get a new block
-        if (!(current_block = planner.get_current_block()))
-            return interval; // No more queued movements!
+      if (!current_block)
+      {
+        // the planning queue is empty, so we cannot proceed.
+        return interval;
       }
 
       // For non-inline cutter, grossly apply power
@@ -2620,6 +2610,28 @@ void Stepper::init() {
     TERN_(HAS_MOTOR_CURRENT_PWM, initialized = true);
     digipot_init();
   #endif
+}
+
+// returns false if block is a standard motion block or nullptr.
+// returns true and has side-effects otherwise.
+FORCE_INLINE bool Stepper::handle_non_motion_block(const block_t* block)
+{
+  if (!block)
+  {
+    return false;
+  }
+  else if (TEST(block->flag, BLOCK_BIT_SYNC_POSITION)) {
+    // this is a sync block
+    _set_position(block->position);
+    return true;
+  }
+  else if (block->step_event_count == 0) {
+    // empty block -- ignore this block
+    return true;
+  }
+
+  // all other blocks are motion blocks.
+  return false;
 }
 
 /**
