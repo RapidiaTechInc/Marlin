@@ -1997,25 +1997,28 @@ uint32_t Stepper::block_phase_isr() {
       while (true)
       {
         if (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
+          // sync block
           _set_position(current_block->position);
           discard_current_block();
-
-          continue;
         }
         else if (current_block->step_event_count == 0) {
-          // ignore
+          // empty block -- ignore this block
           discard_current_block();
-
-          continue;
         }
         else
         {
+          // this block is good; we can stop searching for a block.
           break;
         }
 
-        // get a new block
-        if (!(current_block = planner.get_current_block()))
-            return interval; // No more queued movements!
+        // get a new block.
+        current_block = planner.get_current_block();
+
+        if (!current_block)
+        {
+          // No more queued movements!
+          return interval;
+        }
       }
 
       // For non-inline cutter, grossly apply power
