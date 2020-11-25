@@ -2000,12 +2000,12 @@ uint32_t Stepper::block_phase_isr() {
         // so we must replace it and try another.
         discard_current_block();
         current_block = planner.get_current_block();
+      }
 
-        if (!current_block)
-        {
-          // No more queued movements, so we cannot proceed.
-          return interval;
-        }
+      if (!current_block)
+      {
+        // the planning queue is empty, so we cannot proceed.
+        return interval;
       }
 
       // For non-inline cutter, grossly apply power
@@ -2612,12 +2612,15 @@ void Stepper::init() {
   #endif
 }
 
-// returns false if block is a standard motion block
+// returns false if block is a standard motion block or nullptr.
 // returns true and has side-effects otherwise.
-// block must not be null.
 FORCE_INLINE bool Stepper::handle_non_motion_block(const block_t* block)
 {
-  if (TEST(block->flag, BLOCK_BIT_SYNC_POSITION)) {
+  if (!block)
+  {
+    return false;
+  }
+  else if (TEST(block->flag, BLOCK_BIT_SYNC_POSITION)) {
     // this is a sync block
     _set_position(block->position);
     return true;
