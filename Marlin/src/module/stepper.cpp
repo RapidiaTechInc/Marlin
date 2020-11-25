@@ -1990,33 +1990,24 @@ uint32_t Stepper::block_phase_isr() {
   // and prepare its movement
   if (!current_block) {
 
+    // FIXME: why is this called twice here?
+    // (note that function is not necessarily idempotent even in ISR context)
+    current_block = planner.get_current_block();
+
     // Anything in the buffer?
-    if ((current_block = planner.get_current_block())) {
+    if (current_block = planner.get_current_block()) {
 
-      // Sync block or empty block? Sync the stepper counts and return
-      while (true)
+      // We have to skip certain types of blocks (blocks which don't contain motion)
+      while (handle_non_motion_block(current_block))
       {
-        if (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
-          // sync block
-          _set_position(current_block->position);
-          discard_current_block();
-        }
-        else if (current_block->step_event_count == 0) {
-          // empty block -- ignore this block
-          discard_current_block();
-        }
-        else
-        {
-          // this block is good; we can stop searching for a block.
-          break;
-        }
-
-        // get a new block.
+        // block was not a motion block,
+        // so we must replace it and try another.
+        discard_current_block();
         current_block = planner.get_current_block();
 
         if (!current_block)
         {
-          // No more queued movements!
+          // No more queued movements, so we cannot proceed.
           return interval;
         }
       }
@@ -2623,6 +2614,25 @@ void Stepper::init() {
     TERN_(HAS_MOTOR_CURRENT_PWM, initialized = true);
     digipot_init();
   #endif
+}
+
+// returns false if block is a standard motion block
+// returns true and has side-effects otherwise.
+// block must not be null.
+FORCE_INLINE bool Stepper::handle_non_motion_block(const block_t* block)
+{
+  if (TEST(block->flag, BLOCK_BIT_SYNC_POSITION)) {
+    // this is a sync block
+    _set_position(block->position);
+    return true;
+  }
+  else if (block->step_event_count == 0) {
+    // empty block -- ignore this block
+    return true;
+  }
+
+  // all other blocks are motion blocks.
+  return false;
 }
 
 /**
