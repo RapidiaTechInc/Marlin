@@ -684,6 +684,9 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
   // idle() is re-entrant.
   // this counts the number of times is is currently on the stack.
   volatile uint32_t idle_count = 0;
+  volatile bool emu_hook_sd_card_enabled = true;
+#else
+  const bool emu_hook_sd_card_enabled = true;
 #endif
 
 /**
@@ -755,11 +758,14 @@ void idle(TERN_(ADVANCED_PAUSE_FEATURE, bool no_stepper_sleep/*=false*/)) {
     endstops.update_z_max_hysteresis_core();
   #endif
 
-  // Handle SD Card insert / remove
-  TERN_(SDSUPPORT, card.manage_media());
+  if (emu_hook_sd_card_enabled)
+  {
+    // Handle SD Card insert / remove
+    TERN_(SDSUPPORT, card.manage_media());
 
-  // Handle USB Flash Drive insert / remove
-  TERN_(USB_FLASH_DRIVE_SUPPORT, Sd2Card::idle());
+    // Handle USB Flash Drive insert / remove
+    TERN_(USB_FLASH_DRIVE_SUPPORT, Sd2Card::idle());
+  }
 
   // Announce Host Keepalive state (if any)
   TERN_(HOST_KEEPALIVE_FEATURE, gcode.host_keepalive());
