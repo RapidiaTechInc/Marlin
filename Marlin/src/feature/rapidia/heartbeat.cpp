@@ -4,6 +4,7 @@
 #include "../../module/stepper.h"
 #include "../../module/planner.h"
 #include "../../module/endstops.h"
+#include "../../module/motion.h"
 #include "../../gcode/gcode.h"
 
 #if ENABLED(RAPIDIA_HEARTBEAT)
@@ -31,6 +32,16 @@ void Heartbeat::set_interval(uint16_t v)
 
   heartbeat_interval_ms = v;
   next_heartbeat_report_ms = millis() + v;
+}
+
+static void report_homed()
+{
+  const bool x_homed = axis_homed & _BV(X_AXIS);
+  const bool y_homed = axis_homed & _BV(Y_AXIS);
+  const bool z_homed = axis_homed & _BV(Z_AXIS);
+  if (x_homed) SERIAL_CHAR('x');
+  if (y_homed) SERIAL_CHAR('y');
+  if (z_homed) SERIAL_CHAR('z');
 }
 
 static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const bool feedrate=false, const uint8_t n=XYZE, const uint8_t precision=3) {
@@ -77,6 +88,12 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 
     report_xyzetf(current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
     SERIAL_CHAR('}');
+
+    echo_separator(sep);
+    echo_key('H');
+    SERIAL_CHAR('"');
+    report_homed();
+    SERIAL_CHAR('"');
   }
 
   // actual position
