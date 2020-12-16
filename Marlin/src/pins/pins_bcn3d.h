@@ -126,3 +126,7 @@
 #define LED_PIN            PIN_UNDEFINED
 #define PS_ON_PIN          PIN_UNDEFINED
 #define CASE_LIGHT_PIN     45   // Try the keypad connector
+
+#define LED_RED_PIN            11
+#define LED_GREEN_PIN          12
+#define LED_BLUE_PIN           13
