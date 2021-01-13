@@ -122,7 +122,7 @@
 // Misc. Functions
 //
 #define SDSS               53
-#define SD_DETECT_PIN      19 // doesn't actually do anything
+#define SD_DETECT_PIN      16 // RX of LCD port
 #define LED_PIN            PIN_UNDEFINED
 #define PS_ON_PIN          PIN_UNDEFINED
 #define CASE_LIGHT_PIN     45   // Try the keypad connector
