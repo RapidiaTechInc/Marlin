@@ -140,7 +140,8 @@ bool Sd2Card::usbStartup() {
 // of initializing the USB library for the first time.
 
 void Sd2Card::idle() {
-  usb.Task();
+  // (we don't permit the usb_intr pin to be read until we've finished with the startup.)
+  usb.Task(state > DO_STARTUP);
 
   const uint8_t task_state = usb.getUsbTaskState();
 

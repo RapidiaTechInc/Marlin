@@ -265,7 +265,9 @@ public:
   uint8_t outTransfer(uint8_t addr, uint8_t ep, uint16_t nbytes, uint8_t* data);
   uint8_t dispatchPkt(uint8_t token, uint8_t ep, uint16_t nak_limit);
 
-  void Task();
+  // usb_intr_pin might not be set up in a way that
+  // makes it readable.
+  void Task(bool usb_intr_readable=true);
 
   uint8_t DefaultAddressing(uint8_t parent, uint8_t port, bool lowspeed);
   uint8_t Configuring(uint8_t parent, uint8_t port, bool lowspeed);

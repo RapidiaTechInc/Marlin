@@ -424,14 +424,17 @@ uint8_t USB::dispatchPkt(uint8_t token, uint8_t ep, uint16_t nak_limit) {
 }
 
 /* USB main task. Performs enumeration/cleanup */
-void USB::Task() { //USB state machine
+void USB::Task(bool usb_intr_readable) { //USB state machine
   uint8_t rcode;
   uint8_t tmpdata;
   static uint32_t delay = 0;
   //USB_FD_DEVICE_DESCRIPTOR buf;
   bool lowspeed = false;
 
-  MAX3421E::Task();
+  if (usb_intr_readable)
+  {
+    MAX3421E::Task();
+  }
 
   tmpdata = getVbusState();
 
