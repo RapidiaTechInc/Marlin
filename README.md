@@ -6,6 +6,47 @@ Rapidia has made some modifications to Marlin to work better with our hardware a
 
 Most Rapidia-specific changes to the code can be identified by the surrounding RAPIDIA\_\* macros. A list of the new g-code commands created for and existing commands modified for Rapidia use has been provided below.
 
+## Build and Upload with PlatformIO
+
+You can download the [PlatformIO extension for VSCode](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide) (recommended) or the [PlatformIO CLI](https://platformio.org/install/cli) tool to build and upload the firmware.
+
+On linux, the user must be added to the `dialout` group:
+
+```
+sudo usermod -a -G dialout $USER
+```
+
+### VSCode
+
+Click on the PlatformIO icon on the toolbar on the left, then use Default > General > Upload All. (Despite the name, only one configuration will be built.)
+
+### PlatformIO CLI
+
+In BASH:
+
+```
+pio run -e rapidia_export -t upload
+```
+
+### PlatformIO Configurations
+
+#### (Default)
+
+Basic build for metal printer.
+
+#### rapidia_export
+
+Copies files to Rapidia Host (which must be located adjacent to Marlin in the file system), then commits and pushes a change to Rapidia Host.
+
+#### rapidia_plastic
+
+Port of Rapidia Marlin to standard plastic printers, for testing purposes.
+
+#### rapidia_arduino
+
+Removes various reliances on peripherals (such as thermistors) so that the firmware can be run
+on a stock arduino with no peripherals attached (for testing purposes).
+
 ## Build with Docker
 
 - [Install Docker](https://docs.docker.com/get-docker/)

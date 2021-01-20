@@ -1,7 +1,7 @@
-#include "../../inc/MarlinConfig.h"
-#include "../gcode.h"
+#include "../../../inc/MarlinConfig.h"
+#include "../../gcode.h"
 
-#if ENABLED(RAPIDIA_PIN_TEST)
+#if ENABLED(RAPIDIA_DEV_CODES)
 
 namespace
 {
@@ -55,5 +55,5 @@ void GcodeSuite::R733()
     // allow interrupts
     sei();
 }
-#endif // RAPIDIA_PIN_TEST
+#endif // RAPIDIA_DEV_CODES
 

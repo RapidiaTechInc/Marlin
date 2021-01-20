@@ -987,6 +987,10 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 731: R731(); break;                                  // R731: disable report on line finish
       #endif
 
+      #if ENABLED(RAPIDIA_DEV_CODES)
+        case 733: R733(); break;                                  // R733: pin test
+      #endif
+
       #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
         #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
           case 734: R734(); break;                                // R734: begin z-max recording
@@ -1009,6 +1013,16 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
             no_ok = true;
             break;
         #endif
+      #endif
+
+      #if ENABLED(RAPIDIA_DEV_CODES)
+        case 800:                                                                 // R800: infinite loop
+          queue.ok_to_send(); // send an ok before the infinite loop.
+          idle(); // paranoia. Allow queue time to send an 'ok' depending on implementation.
+          R800();
+          no_ok = true;
+          break;                                     
+        case 801: break; // (emergency parser handles this)
       #endif
 
       default: parser.unknown_command_warning(); break;
