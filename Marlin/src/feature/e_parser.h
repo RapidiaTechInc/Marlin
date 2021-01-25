@@ -26,6 +26,7 @@
  */
 
 #include "../inc/MarlinConfigPre.h"
+#include "../MarlinCore.h"
 
 #if ENABLED(HOST_PROMPT_SUPPORT)
   #include "host_actions.h"
@@ -43,7 +44,7 @@
 extern bool wait_for_user, wait_for_heatup;
 void quickstop_stepper();
 
-#if ENABLED(RAPIDIA_PAUSE) || ENABLED(RAPIDIA_DEV_CODES)
+#if ENABLED(RAPIDIA_PAUSE) || ENABLED(RAPIDIA_DEV_CODES) || ENABLED(RAPIDIA_KILL_RECOVERY)
   // used in this header file only
   #define RAPIDIA_EMERGENCY_PARSER
 #endif
@@ -76,6 +77,7 @@ public:
       EP_R,
       EP_R7,
       EP_R75,
+      EP_R750,
       EP_R751,
       EP_R752,
       EP_R8,
@@ -98,6 +100,10 @@ public:
   FORCE_INLINE static void disable() { enabled = false; }
 
   FORCE_INLINE static void update(State &state, const uint8_t c) {
+
+    #if ENABLED(RAPIDIA_DEBUG)
+      reset_kill_msg[3] = 'E';
+    #endif
 
     #ifdef RAPIDIA_EOT_EMERGENCY_STOP
     if (c == '\4')
@@ -191,9 +197,13 @@ public:
         break;
         
       case EP_R75:
-        if (c == '1') state = EP_R751;
-        else if (c == '2') state = EP_R752;
-        else state = EP_IGNORE;
+        switch (c)
+        {
+          case '0': state = EP_R750; break;
+          case '1': state = EP_R751; break;
+          case '2': state = EP_R752; break;
+          default: state = EP_IGNORE;
+        }
         break;
 
       case EP_R8:
@@ -246,7 +256,15 @@ public:
           if (enabled) switch (state) {
             case EP_M108: wait_for_user = wait_for_heatup = false; break;
             case EP_M112: killed_by_M112 = true; break;
-            case EP_M410: quickstop_stepper(); break;
+            case EP_M410: 
+              if (marlin_state != MF_KILLED)
+              {
+                quickstop_stepper();
+              }
+              break;
+            #if ENABLED(RAPIDIA_KILL_RECOVERY)
+              case EP_R750: hard_reset();
+            #endif
             #if ENABLED(RAPIDIA_PAUSE)
               case EP_R751: Rapidia::pause.defer(false); break;
               case EP_R752: Rapidia::pause.defer(true); break;

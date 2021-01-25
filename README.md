@@ -111,9 +111,13 @@ Directly pulses various pins. This will cause the firmware to forget which pins 
 
 ### R736; R737
 
-Lamp on/Lamp off
+Lamp on/Lamp off.
 For now, these commands are aliases of M106 and M107.
-R751/R752
+
+### R750
+
+Hard Reset.
+This command immediately resets the printer, and can be used to recover from a killed state (such as M112).
 
 ### R751; R752
 

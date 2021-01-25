@@ -1,4 +1,5 @@
 #include "rapidia_hooks.hpp"
+#include <avr/pgmspace.h>
 
 #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
 

@@ -839,6 +839,10 @@ private:
     // M737  --  alias for M107
   #endif
 
+  #if ENABLED(RAPIDIA_KILL_RECOVERY)
+    // R750 -- handled in emergency parser.
+  #endif
+
   #if ENABLED(RAPIDIA_PAUSE)
     #if DISABLED(EMERGENCY_PARSER)
       static void R751(); // pause (soft -- wait for this line of gcode to finish)
