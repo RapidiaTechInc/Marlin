@@ -114,6 +114,13 @@ Directly pulses various pins. This will cause the firmware to forget which pins 
 Lamp on/Lamp off.
 For now, these commands are aliases of M106 and M107.
 
+### R740
+
+Check for USB shield.
+
+This command can be used to try checking for a connected USB device if
+Marlin previously failed to detect it on init.
+
 ### R750
 
 Hard Reset.

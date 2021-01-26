@@ -1863,9 +1863,7 @@
  * you must uncomment the following option or it won't work.
  *
  */
-#if DISABLED(ARDUINO_MODE)
-  #define SDSUPPORT
-#endif
+#define SDSUPPORT
 
 /**
  * SD CARD: SPI SPEED
