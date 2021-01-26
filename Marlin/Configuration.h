@@ -1050,6 +1050,8 @@
  *     O-- FRONT --+
  */
 
+#define RAPIDIA
+
 #ifdef RAPIDIA_PLASTIC
   #define NOZZLE_TO_PROBE_OFFSET { 10, 10, 0 }
 #else

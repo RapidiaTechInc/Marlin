@@ -8,6 +8,15 @@ static volatile bool softlock = false;
 void GcodeSuite::R800()
 {
     const bool do_cli = (parser.seenval('I') ? parser.value_byte() : 0);
+    const bool do_wdr = (parser.seenval('W') ? parser.value_byte() : 0);
+
+    const char* p = parser.string_arg;
+    for (int i = 0; i < 2; ++i)
+    {
+        if (p[0] == 'I') p += 2;
+        if (p[0] == 'W') p += 2;
+        while (p[0] == ' ') ++p;
+    }
 
     if (do_cli)
     {
@@ -15,7 +24,18 @@ void GcodeSuite::R800()
     }
 
     softlock = true;
-    while (softlock);
+    while (softlock)
+    {
+        if (p[0])
+        {
+            SERIAL_ECHOLN(p);
+        }
+
+        if (do_wdr)
+        {
+            watchdog_refresh();
+        }
+    }
     
     if (!do_cli)
     {

@@ -99,6 +99,8 @@ public:
 
   FORCE_INLINE static void disable() { enabled = false; }
 
+  static void on_killed_by_m112();
+
   FORCE_INLINE static void update(State &state, const uint8_t c) {
 
     #if ENABLED(RAPIDIA_DEBUG)

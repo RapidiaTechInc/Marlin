@@ -207,6 +207,10 @@
     FORCE_INLINE static void store_rxd_char();
     FORCE_INLINE static void _tx_udr_empty_irq();
 
+    #if ENABLED(RAPIDIA_EMERGENCY_STOP_INTERRUPT)
+      static void _on_rx_isr_end();
+    #endif
+
     public:
       MarlinSerial() {};
       static void begin(const long);

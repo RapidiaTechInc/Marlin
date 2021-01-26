@@ -714,6 +714,10 @@
   // Hookup ISR handlers
   ISR(SERIAL_REGNAME(USART,SERIAL_PORT,_RX_vect)) {
     MarlinSerial<MarlinSerialCfg<SERIAL_PORT>>::store_rxd_char();
+
+    #if ENABLED(RAPIDIA_EMERGENCY_STOP_INTERRUPT)
+      MarlinSerial<MarlinSerialCfg<SERIAL_PORT>>::_on_rx_isr_end();
+    #endif
   }
 
   ISR(SERIAL_REGNAME(USART,SERIAL_PORT,_UDRE_vect)) {
