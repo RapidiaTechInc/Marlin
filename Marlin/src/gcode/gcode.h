@@ -839,6 +839,8 @@ private:
     // M737  --  alias for M107
   #endif
 
+  TERN_(USB_FLASH_DRIVE_SUPPORT, static void R740()); // check for usb flash drive
+
   #if ENABLED(RAPIDIA_KILL_RECOVERY)
     // R750 -- handled in emergency parser.
   #endif

@@ -99,13 +99,14 @@ static_assert(USB_INTR_PIN != -1, "USB_INTR_PIN must be defined");
 #endif
 
 static enum {
+  INIT_FAILURE,
   UNINITIALIZED,
   DO_STARTUP,
   WAIT_FOR_DEVICE,
   WAIT_FOR_LUN,
   MEDIA_READY,
   MEDIA_ERROR
-} state;
+} state { UNINITIALIZED };
 
 #if USB_DEBUG >= 3
   uint32_t lun0_capacity;
@@ -116,6 +117,7 @@ bool Sd2Card::usbStartup() {
     SERIAL_ECHOPGM("Starting USB host...");
     if (!UHS_START) {
       SERIAL_ECHOLNPGM(" failed.");
+      state = INIT_FAILURE;
       #if EITHER(ULTRA_LCD, EXTENSIBLE_UI)
         LCD_MESSAGEPGM(MSG_MEDIA_USB_FAILED);
       #endif
@@ -178,6 +180,10 @@ void Sd2Card::idle() {
     GOTO_STATE_AFTER_DELAY(state, 250); // Default delay
 
     switch (state) {
+      case INIT_FAILURE:
+        // there's no escaping this state, unless
+        // R740 is called.
+        break;
 
       case UNINITIALIZED:
         #ifndef MANUAL_USB_STARTUP
