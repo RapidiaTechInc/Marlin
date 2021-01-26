@@ -59,6 +59,11 @@
 #include "feature/rapidia/pause.h"
 #endif
 
+#if ENABLED(RAPIDIA_KILL_RECOVERY)
+#include "feature/rapidia/kill_recovery.h"
+#include "feature/e_parser.h"
+#endif
+
 #include "HAL/shared/Delay.h"
 
 #include "module/stepper.h"
@@ -873,6 +878,8 @@ void minkill(const bool steppers_off/*=false*/) {
   // Wait to ensure all interrupts stopped
   for (int i = 1000; i--;) DELAY_US(250);
 
+  marlin_state = MF_KILLED;
+
   // Reiterate heaters off
   thermalManager.disable_all_heaters();
 
@@ -884,6 +891,17 @@ void minkill(const bool steppers_off/*=false*/) {
   TERN_(PSU_CONTROL, PSU_OFF());
 
   TERN_(HAS_SUICIDE, suicide());
+
+  #if ENABLED(RAPIDIA_KILL_RECOVERY)
+    // detach all interrupts except for serial communication
+    // (for emergency-level parsing)
+    Rapidia::disable_interrupts_pgm(Rapidia::minkill_interrupts_off);
+
+    // paranoia
+    emergency_parser.enable();
+
+    sei();
+  #endif
 
   #if HAS_KILL
 

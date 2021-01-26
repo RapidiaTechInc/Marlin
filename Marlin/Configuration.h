@@ -68,12 +68,24 @@
 
 //#define RAPIDIA_PAUSE_DEBUG
 
+// receiving byte \x04 ("End Of Transmission") over serial (at any point) causes
+// M112 (emergency stop) to be triggered.
+#define RAPIDIA_EOT_EMERGENCY_STOP
+
+// changes M112 behaviour to kill immediately within emergency parser interrupt,
+// rather than waiting for the next idle() loop.
+#define RAPIDIA_EMERGENCY_STOP_INTERRUPT
+
+// allows M112 emergency stop to be recovered from
+// using R750
+#define RAPIDIA_KILL_RECOVERY
+
 // allows emulator to hook into certain functionality.
 // cost is minimal, so it should be left in on all configurations for consistency.
 #define RAPIDIA_EMULATOR_HOOKS
 
-// adds R733, which pulses all pins.
-#define RAPIDIA_PIN_TEST
+// adds R8XX codes, which are for testing / development
+#define RAPIDIA_DEV_CODES
 
 /**
  * Configuration.h

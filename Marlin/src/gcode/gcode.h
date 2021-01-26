@@ -827,10 +827,6 @@ private:
     static void R731(); // disable line finished reporting
   #endif
 
-  #if ENABLED(RAPIDIA_PIN_TEST)
-    static void R733(); // pin test.
-  #endif
-
   #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
     #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
       static void R734(); // begin recording nozzle plug data.
@@ -843,11 +839,20 @@ private:
     // M737  --  alias for M107
   #endif
 
+  #if ENABLED(RAPIDIA_KILL_RECOVERY)
+    // R750 -- handled in emergency parser.
+  #endif
+
   #if ENABLED(RAPIDIA_PAUSE)
     #if DISABLED(EMERGENCY_PARSER)
       static void R751(); // pause (soft -- wait for this line of gcode to finish)
       static void R752(); // pause (hard -- decelerate immediately)
     #endif
+  #endif
+
+  #if ENABLED(RAPIDIA_DEV_CODES)
+    static void R733(); // pin test.
+    static void R800(); // softlock (infinite loop). (I1: loop as interrupt)
   #endif
 
   TERN_(HAS_BED_PROBE, static void M851());
