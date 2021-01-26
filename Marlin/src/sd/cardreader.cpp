@@ -603,7 +603,9 @@ void CardReader::openFileWrite(char * const path) {
     if (file.open(curDir, fname, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
       flag.saving = true;
       selectFileByName(fname);
-      TERN_(EMERGENCY_PARSER, emergency_parser.disable());
+      #if DISABLED(RAPIDIA)
+        TERN_(EMERGENCY_PARSER, emergency_parser.disable());
+      #endif
       echo_write_to_file(fname);
       ui.set_status(fname);
     }
@@ -708,7 +710,9 @@ void CardReader::closefile(const bool store_location) {
   file.close();
   flag.saving = flag.logging = false;
   sdpos = 0;
-  TERN_(EMERGENCY_PARSER, emergency_parser.enable());
+  #if DISABLED(RAPIDIA)
+    TERN_(EMERGENCY_PARSER, emergency_parser.enable());
+  #endif
 
   if (store_location) {
     //future: store printer state, filename and position for continuing a stopped print
