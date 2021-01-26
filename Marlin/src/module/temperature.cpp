@@ -1008,15 +1008,24 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
  *  - Apply filament width to the extrusion rate (may move)
  *  - Update the heated bed PID output value
  */
+
 void Temperature::manage_heater() {
+
+  // this must come first because the emergency parser can 
+  // jump directly to this function to kill the device.
+  if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112))
+  {
+    #if ENABLED(RAPIDIA_EMERGENCY_STOP_INTERRUPT)
+      // prevent re-triggering on every character received
+      emergency_parser.killed_by_M112 = false;
+    #endif
+    kill(M112_KILL_STR, nullptr, true);
+  }
 
   #if EARLY_WATCHDOG
     // If thermal manager is still not running, make sure to at least reset the watchdog!
     if (!inited) return watchdog_refresh();
   #endif
-
-  if (TERN0(EMERGENCY_PARSER, emergency_parser.killed_by_M112))
-    kill(M112_KILL_STR, nullptr, true);
 
   if (!raw_temps_ready) return;
 
@@ -1213,6 +1222,13 @@ void Temperature::manage_heater() {
   #endif // HAS_HEATED_CHAMBER
 
   UNUSED(ms);
+}
+
+// (implementation here )
+void EmergencyParser::on_killed_by_m112()
+{
+  // this will immediately call kill().
+  Temperature::manage_heater();
 }
 
 #define TEMP_AD595(RAW)  ((RAW) * 5.0 * 100.0 / float(HAL_ADC_RANGE) / (OVERSAMPLENR) * (TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET)

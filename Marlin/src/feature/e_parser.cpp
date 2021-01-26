@@ -41,4 +41,16 @@ bool EmergencyParser::killed_by_M112, // = false
 // Global instance
 EmergencyParser emergency_parser;
 
+#if ENABLED(RAPIDIA_EMERGENCY_STOP_INTERRUPT)
+template<>
+void MarlinSerial<MarlinSerialCfg<SERIAL_PORT>>::_on_rx_isr_end()
+{
+  // callback for when killed by m112.
+  if (EmergencyParser::killed_by_M112)
+  {
+    EmergencyParser::on_killed_by_m112();
+  }
+}
+#endif
+
 #endif // EMERGENCY_PARSER
