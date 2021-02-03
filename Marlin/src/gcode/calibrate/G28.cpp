@@ -195,6 +195,9 @@
  *
  */
 void GcodeSuite::G28() {
+
+  RAISE_HOMING_SEMAPHORE();
+
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) log_machine_info();
 

@@ -34,8 +34,39 @@
   #include "scara.h"
 #endif
 
+#if ENABLED(RAPIDIA_HOMING_SEMAPHORE)
+
+  // RAII lock on homing semaphore.
+  class __homing_semaphore_t__
+  {
+    static uint8_t _homing_semaphore;
+    
+  public:
+    static uint8_t get_homing_semaphore()
+    {
+      return _homing_semaphore;
+    }
+
+    inline __homing_semaphore_t__()
+    {
+      _homing_semaphore++;
+    }
+    inline ~__homing_semaphore_t__()
+    {
+      _homing_semaphore--;
+    }
+  };
+
+  #define homing_semaphore __homing_semaphore_t__::get_homing_semaphore()
+  #define RAISE_HOMING_SEMAPHORE() __homing_semaphore_t__ __homing_semaphore__;
+#else
+  #define homing_semaphore 0
+  #define RAISE_HOMING_SEMAPHORE()
+#endif
+
 // Axis homed and known-position states
 extern uint8_t axis_homed, axis_known_position;
+
 constexpr uint8_t xyz_bits = _BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS);
 FORCE_INLINE bool no_axes_homed() { return !axis_homed; }
 FORCE_INLINE bool all_axes_homed() { return (axis_homed & xyz_bits) == xyz_bits; }

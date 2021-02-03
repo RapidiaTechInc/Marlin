@@ -233,6 +233,9 @@ void forward_kinematics_DELTA(const float &z1, const float &z2, const float &z3)
  * This is like quick_home_xy() but for 3 towers.
  */
 void home_delta() {
+
+  RAISE_HOMING_SEMAPHORE();
+
   DEBUG_SECTION(log_home_delta, "home_delta", DEBUGGING(LEVELING));
 
   // Init the current position of all carriages to 0,0,0

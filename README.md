@@ -59,7 +59,7 @@ on a stock arduino with no peripherals attached (for testing purposes).
 
 Auto-reporting. In the original firmware, only the S option is available. S sets the interval at which temperature auto-reporting occurs. H sets the interval at which the heartbeat status update occurs. Temperature and heartbeat reports occur separately, but they are both enabled by this command. P,C,R, etc. can enable/disable individual status updates in that heartbeat. Some of these options are disabled by default (\*). The report is issued as a json object and can contain the following entries:
 
-- P: current plan position. (After executing all the plans in the buffer, - the toolhead will be here.)
+- P: current plan position. (After executing all the plans in the buffer, - the toolhead will be here.) Also displays key "H", homed status, a string of lower-case letters indicating which axes are homed; an 'h' in this string indicates a homing routine is currently running.
 - C: actual current position. (May not be very useful for logic, but could be nifty for UI reasons.)
 - F: feedrate shown with plan position.
 - R: per-axis relative mode flag enabled/disabled. (Reported as a string containing the axes in relative mode, e.g. “XYZ")
@@ -72,7 +72,7 @@ Example command:
 **Example report [H]**
 
 ```
-H:{"P":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"F":33.333,"T":0},"C":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"R":"","ES":"xXZ"}
+H:{"P":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"F":33.333,"T":0},"H":"xyh","C":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"R":"","ES":"xXZ"}
 ```
 
 Note that the “F" and “T" entries in the position object refer to the current feedrate and tool respectively.

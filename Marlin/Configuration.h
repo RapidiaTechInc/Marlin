@@ -87,6 +87,10 @@
 // adds R8XX codes, which are for testing / development
 #define RAPIDIA_DEV_CODES
 
+// keep track of when homing is occurring
+// and report it during heartbeat.
+#define RAPIDIA_HOMING_SEMAPHORE
+
 /**
  * Configuration.h
  *

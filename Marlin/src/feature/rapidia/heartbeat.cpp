@@ -42,6 +42,7 @@ static void report_homed()
   if (x_homed) SERIAL_CHAR('x');
   if (y_homed) SERIAL_CHAR('y');
   if (z_homed) SERIAL_CHAR('z');
+  if (homing_semaphore) SERIAL_CHAR('h');
 }
 
 static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const bool feedrate=false, const uint8_t n=XYZE, const uint8_t precision=3) {

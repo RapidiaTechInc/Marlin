@@ -74,6 +74,10 @@
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../core/debug_out.h"
 
+#if ENABLED(RAPIDIA_HOMING_SEMAPHORE)
+  uint8_t __homing_semaphore_t__::_homing_semaphore = 0;
+#endif
+
 /**
  * axis_homed
  *   Flags that each linear axis was homed.
@@ -1548,6 +1552,8 @@ void set_axis_never_homed(const AxisEnum axis) {
  */
 
 void homeaxis(const AxisEnum axis) {
+
+  RAISE_HOMING_SEMAPHORE();
 
   #if IS_SCARA
     // Only Z homing (with probe) is permitted
