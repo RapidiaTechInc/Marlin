@@ -91,6 +91,9 @@
 // and report it during heartbeat.
 #define RAPIDIA_HOMING_SEMAPHORE
 
+// R745, clears homing state
+#define RAPIDIA_HOMING_RESET
+
 /**
  * Configuration.h
  *

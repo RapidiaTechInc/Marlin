@@ -1001,6 +1001,10 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #if ENABLED(USB_FLASH_DRIVE_SUPPORT)
         case 740: R740(); break;                                  // R740: check for usb flash drive
       #endif
+
+      #if ENABLED(RAPIDIA_HOMING_RESET)
+        case 745: R745(); break;                                  // R745: reset homing status
+      #endif
       
       #if ENABLED(RAPIDIA_LAMP_ALIAS)
         case 736: M106(); break;                                  // R736: alias for M106

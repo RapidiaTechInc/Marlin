@@ -841,6 +841,8 @@ private:
 
   TERN_(USB_FLASH_DRIVE_SUPPORT, static void R740()); // check for usb flash drive
 
+  TERN_(RAPIDIA_HOMING_RESET, static void R745()); // reset homing status
+
   #if ENABLED(RAPIDIA_KILL_RECOVERY)
     // R750 -- handled in emergency parser.
   #endif

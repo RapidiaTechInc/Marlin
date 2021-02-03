@@ -121,6 +121,13 @@ Check for USB shield.
 This command can be used to try checking for a connected USB device if
 Marlin previously failed to detect it on init.
 
+### R745
+
+Reset homed status.
+
+This command informs the printer that the toolhead may have been moved by some source other than the stepper driver,
+and so the printer should home again before it can be sure of its absolute position.
+
 ### R750
 
 Hard Reset.
