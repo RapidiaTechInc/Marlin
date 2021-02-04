@@ -73,7 +73,6 @@ def after_build(source, target, env):
 		raise Exception('ERROR: Uncommitted changes: ' + git_status)
 
 	# git pull in case of conflicts
-	os.system('git checkout master')
 	os.system('git pull')
 
 	# copy firmware files over to RapidiaHost
