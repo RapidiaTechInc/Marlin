@@ -3124,3 +3124,9 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
     #error "Rapidia emergency stop features require emergency parser."
   #endif
 #endif
+
+#if ENABLED(RAPIDIA_KILL_RECOVERY)
+  #ifndef __AVR_ATmega2560__
+    #error RAPIDIA_KILL_RECOVERY is coded specifically for ATmega2560
+  #endif
+#endif

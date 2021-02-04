@@ -64,6 +64,10 @@
 #include "feature/e_parser.h"
 #endif
 
+#if ENABLED(RAPIDIA_KILL_RECOVERY)
+#include "avr/boot.h"
+#endif
+
 #include "HAL/shared/Delay.h"
 
 #include "module/stepper.h"
@@ -488,6 +492,55 @@ void startOrResumeJob() {
   }
 
 #endif // SDSUPPORT
+
+#if ENABLED(RAPIDIA_KILL_RECOVERY)
+
+// resets via watchdog timer. Takes 16 ms.
+// (specific to atmega2560!)
+void hard_reset_wd()
+{
+  // this musn't be interrupted
+  cli();
+  // clear reset source (will be set by watchdog)
+  MCUSR = 0;
+
+  watchdog_refresh();
+
+  // enable WDTCSR editing (we have 4 cycles to edit it)
+  WDTCSR |= _BV(WDCE) | _BV(WDE);
+
+  // set watchdog timer to expire after 16ms.
+  WDTCSR = _BV(WDE);
+
+  #define nop() __asm__ __volatile__("nop;\n\t":::)
+
+  // loop until watchdog timer expires.
+  while (true) nop();
+}
+
+// implementation: see ATMega2560 datasheet section 29 (Boot Loader Support)
+void hard_reset_bl()
+{
+  cli();
+  #define BOOTSZ0 1
+  #define BOOTSZ1 2
+  const uint8_t fuse_high = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);
+  const uint8_t bootsz = fuse_high & (_BV(BOOTSZ1) | _BV(BOOTSZ0));
+  switch(bootsz)
+  {
+    case _BV(BOOTSZ0):
+      asm("jmp 0x1FE00");
+    case _BV(BOOTSZ1):
+      asm("jmp 0x1FC00");
+    case _BV(BOOTSZ0) | _BV(BOOTSZ1):
+      asm("jmp 0x1F800");
+    case 0:
+    default:
+      asm("jmp 0x1F000");
+  }
+}
+
+#endif
 
 /**
  * Minimal management of Marlin's core activities:

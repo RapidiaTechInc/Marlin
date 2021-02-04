@@ -857,6 +857,7 @@ private:
   #if ENABLED(RAPIDIA_DEV_CODES)
     static void R733(); // pin test.
     static void R800(); // softlock (infinite loop). (I1: loop as interrupt)
+    static void R802(); // debug info
   #endif
 
   TERN_(HAS_BED_PROBE, static void M851());

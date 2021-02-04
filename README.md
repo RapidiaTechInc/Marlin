@@ -164,3 +164,13 @@ Example command: `R751`
 ```
 pause:{"N":3,"G":2,"deceleration":true,"cropped":false,"distance":13.93,"sd":false,"P":{"X":100.324,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"C":{"X":114.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0}}
 ```
+
+### R753
+
+Hard Reset to Bootloader.
+This command immediately jumps to the bootloader.
+
+### R754
+
+Reset Via Watchdog. (Experimental).
+This command resets via watchdog timeout within 16ms.

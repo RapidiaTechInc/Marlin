@@ -1010,6 +1010,10 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 736: M106(); break;                                  // R736: alias for M106
         case 737: M107(); break;                                  // R737: alias for M107
       #endif
+
+      #if ENABLED(RAPIDIA_KILL_RECOVERY)
+        case 750: hard_reset();
+      #endif
       
       #if ENABLED(RAPIDIA_PAUSE)
         #if DISABLED(EMERGENCY_PARSER)
@@ -1023,14 +1027,20 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         #endif
       #endif
 
+      #if ENABLED(RAPIDIA_KILL_RECOVERY)
+        case 753: hard_reset_bl();
+        case 754: hard_reset();
+      #endif
+
       #if ENABLED(RAPIDIA_DEV_CODES)
         case 800:                                                                 // R800: infinite loop
           queue.ok_to_send(); // send an ok before the infinite loop.
           idle(); // paranoia. Allow queue time to send an 'ok' depending on implementation.
           R800();
           no_ok = true;
-          break;                                     
+          break;
         case 801: break; // (emergency parser handles this)
+        case 802: R802(); break; // print debug info
       #endif
 
       default: parser.unknown_command_warning(); break;

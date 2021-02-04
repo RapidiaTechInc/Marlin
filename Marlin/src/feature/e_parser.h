@@ -80,6 +80,8 @@ public:
       EP_R750,
       EP_R751,
       EP_R752,
+      EP_R753,
+      EP_R754,
       EP_R8,
       EP_R80,
       EP_R801,
@@ -204,6 +206,8 @@ public:
           case '0': state = EP_R750; break;
           case '1': state = EP_R751; break;
           case '2': state = EP_R752; break;
+          case '3': state = EP_R753; break;
+          case '4': state = EP_R754; break;
           default: state = EP_IGNORE;
         }
         break;
@@ -271,8 +275,12 @@ public:
               case EP_R751: Rapidia::pause.defer(false); break;
               case EP_R752: Rapidia::pause.defer(true); break;
             #endif
+            #if ENABLED(RAPIDIA_KILL_RECOVERY)
+              case EP_R753: hard_reset_bl();
+              case EP_R754: hard_reset_wd();
+            #endif
             #if ENABLED(RAPIDIA_DEV_CODES)
-              case EP_R801: Rapidia::R801();
+              case EP_R801: Rapidia::R801(); break;
             #endif
             #if ENABLED(HOST_PROMPT_SUPPORT)
               case EP_M876SN: host_response_handler(M876_reason); break;
