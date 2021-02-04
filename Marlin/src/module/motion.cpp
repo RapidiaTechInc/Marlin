@@ -570,12 +570,12 @@ void restore_feedrate_and_scaling() {
       if (axis == X_AXIS) {
         SERIAL_ECHOLNPGM("soft endstop set.");
         // In Dual X mode hotend_offset[X] is T1's home position
-        const float dual_max_x = _MAX(hotend_offset[1].x, X2_MAX_POS);
+        const float dual_max_x = x_home_pos(1);
 
         if (new_tool_index != 0) {
-          // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
+          // T1 can move from X2_MIN_POS toX2 home position (which is not necessarily statically known)
           soft_endstop.min.x = X2_MIN_POS;
-          soft_endstop.max.x = X2_MAX_POS;
+          soft_endstop.max.x = dual_max_x;
         }
         else if (dxc_is_duplicating()) {
           // In Duplication Mode, T0 can move as far left as X1_MIN_POS
