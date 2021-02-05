@@ -495,29 +495,6 @@ void startOrResumeJob() {
 
 #if ENABLED(RAPIDIA_KILL_RECOVERY)
 
-// resets via watchdog timer. Takes 16 ms.
-// (specific to atmega2560!)
-void hard_reset_wd()
-{
-  // this musn't be interrupted
-  cli();
-  // clear reset source (will be set by watchdog)
-  MCUSR = 0;
-
-  watchdog_refresh();
-
-  // enable WDTCSR editing (we have 4 cycles to edit it)
-  WDTCSR |= _BV(WDCE) | _BV(WDE);
-
-  // set watchdog timer to expire after 16ms.
-  WDTCSR = _BV(WDE);
-
-  #define nop() __asm__ __volatile__("nop;\n\t":::)
-
-  // loop until watchdog timer expires.
-  while (true) nop();
-}
-
 // jumps to bootloader. (Resets Marlin.)
 // implementation: see ATMega2560 datasheet section 29 (Boot Loader Support)
 void hard_reset_bl()

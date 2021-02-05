@@ -81,7 +81,6 @@ public:
       EP_R751,
       EP_R752,
       EP_R753,
-      EP_R754,
       EP_R8,
       EP_R80,
       EP_R801,
@@ -207,7 +206,6 @@ public:
           case '1': state = EP_R751; break;
           case '2': state = EP_R752; break;
           case '3': state = EP_R753; break;
-          case '4': state = EP_R754; break;
           default: state = EP_IGNORE;
         }
         break;
@@ -276,11 +274,10 @@ public:
               case EP_R752: Rapidia::pause.defer(true); break;
             #endif
             #if ENABLED(RAPIDIA_KILL_RECOVERY)
-              // FIXME: it's unclear why, but R753 and R754
-              // don't seem to run from the e-parser properly;
-              // instead they are dispatched from gcode.cpp
+              // FIXME: it's unclear why, but R753
+              // doesn't seem to run from the e-parser properly;
+              // instead they are dispatched from gcode.cpp.
               case EP_R753: hard_reset_bl(); break;
-              case EP_R754: hard_reset_wd(); break;
             #endif
             #if ENABLED(RAPIDIA_DEV_CODES)
               case EP_R801: Rapidia::R801(); break;

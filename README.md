@@ -186,8 +186,3 @@ pause:{"N":3,"G":2,"deceleration":true,"cropped":false,"distance":13.93,"sd":fal
 
 Hard Reset to Bootloader.
 This command immediately jumps to the bootloader.
-
-### R754
-
-Reset Via Watchdog. (Experimental).
-This command resets via watchdog timeout within 16ms.

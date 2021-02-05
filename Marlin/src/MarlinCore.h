@@ -66,9 +66,6 @@ inline void hard_reset()
   asm("jmp 0x0");
 }
 
-// causes watchdog timeout within 16ms.
-void hard_reset_wd();
-
 // jumps to bootloader.
 void hard_reset_bl();
 #endif
