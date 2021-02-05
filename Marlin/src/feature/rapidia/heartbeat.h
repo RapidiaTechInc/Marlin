@@ -19,7 +19,8 @@ enum class HeartbeatSelection : HeartbeatSelectionUint
   ENDSTOPS      = _BV(5), // 'E'
   DEBUG         = _BV(6), // 'D'
   ALL_POSITION = PLAN_POSITION | ABS_POSITION,
-  _DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE | ENDSTOPS
+  _DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE | ENDSTOPS,
+  _ALL = 0xff
 };
 
 class Heartbeat
@@ -35,11 +36,13 @@ public:
   
   // sends status message
   // selection: what status to send
-  // bare: if false, wrap message in H:{ on the left and _:0} on the right"
+  // bare: if false, wrap message in H:{ on the left and } on the right"
   static void serial_info(HeartbeatSelection selection, bool bare=false);
-  
-  // enables/disables individual status messages
-  static void select(HeartbeatSelection selection, bool enable);
+
+  static inline void serial_info(HeartbeatSelectionUint selection, bool bare=false)
+  {
+    serial_info(static_cast<HeartbeatSelection>(selection));
+  }
 
   #if ENABLED(RAPIDIA_PAUSE)
     // displays a message when block buffering/extrusion prevention ends after pause.

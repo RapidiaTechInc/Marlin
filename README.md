@@ -55,27 +55,10 @@ on a stock arduino with no peripherals attached (for testing purposes).
 
 ## Changes
 
-### M155 [S(u8:seconds)][h(s32:milliseconds)] [P,C,R,X,E(0,1)]
+### M155 [S(u8:seconds)] *
 
-Auto-reporting. In the original firmware, only the S option is available. S sets the interval at which temperature auto-reporting occurs. H sets the interval at which the heartbeat status update occurs. Temperature and heartbeat reports occur separately, but they are both enabled by this command. P,C,R, etc. can enable/disable individual status updates in that heartbeat. Some of these options are disabled by default (\*). The report is issued as a json object and can contain the following entries:
-
-- P: current plan position. (After executing all the plans in the buffer, - the toolhead will be here.) Also displays key "H", homed status, a string of lower-case letters indicating which axes are homed; an 'h' in this string indicates a homing routine is currently running.
-- C: actual current position. (May not be very useful for logic, but could be nifty for UI reasons.)
-- F: feedrate shown with plan position.
-- R: per-axis relative mode flag enabled/disabled. (Reported as a string containing the axes in relative mode, e.g. “XYZ")
-- X\*: dualx state
-- E: Endstops states. Reported as a string: endstop state for X_MIN through Z_MIN (reported as ‘x’, ‘y’, ‘z’ in lower case), and X_MAX through Z_MAX (reported as ‘X’, ‘Y’, ‘Z’ in upper case)
-
-Example command:
-`M155 S3 H2000 P1 C0 R1 X0`
-
-**Example report [H]**
-
-```
-H:{"P":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"F":33.333,"T":0},"H":"xyh","C":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"R":"","ES":"xXZ"}
-```
-
-Note that the “F" and “T" entries in the position object refer to the current feedrate and tool respectively.
+temperature setting. This exists in the original firmware, but now additional args will be passed to R738, allowing setting
+heartbeat and temperature simultaneously. See below.
 
 ### R710 T(0-3)
 
@@ -113,6 +96,40 @@ Directly pulses various pins. This will cause the firmware to forget which pins 
 
 Lamp on/Lamp off.
 For now, these commands are aliases of M106 and M107.
+
+
+### R738 [H(s32:milliseconds)] [P,C,R,X,E,D(0,1)]
+
+Auto-reporting. H sets the interval at which the heartbeat status update occurs. Temperature and heartbeat reports occur separately, but they are both enabled by this command. P,C,R, etc. can enable/disable individual status updates in that heartbeat. Some of these options are disabled by default (\*). The report is issued as a json object and can contain the following entries:
+
+- P: current plan position. (After executing all the plans in the buffer, - the toolhead will be here.) Also displays key "H", homed status, a string of lower-case letters indicating which axes are homed; an 'h' in this string indicates a homing routine is currently running.
+- C: actual current position. (May not be very useful for logic, but could be nifty for UI reasons.)
+- F: feedrate shown with plan position.
+- R: per-axis relative mode flag enabled/disabled. (Reported as a string containing the axes in relative mode, e.g. “XYZ")
+- X\*: dualx state
+- E: Endstops states. Reported as a string: endstop state for X_MIN through Z_MIN (reported as ‘x’, ‘y’, ‘z’ in lower case), and X_MAX through Z_MAX (reported as ‘X’, ‘Y’, ‘Z’ in upper case)
+- D: debug info.
+
+Example command:
+`M155 S3 H2000 P1 C0 R1 X0`
+
+**Example report [H]**
+
+```
+H:{"P":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"F":33.333,"T":0},"H":"xyh","C":{"X":113.925,"Y":100.000,"Z":2.000,"E":0.000,"T":0},"R":"","ES":"xXZ"}
+```
+
+Note that the “F" and “T" entries in the position object refer to the current feedrate and tool respectively.
+
+### R739 [A,P,C,R,X,E(0,1)]
+
+As above, but sends a heartbeat message immediately upon execution (rather than scheduling a heartbeat interval).
+By default, the flags are the same as has been configured with R736, and additional flags specified will modify only
+this heartbeat message. Use `A0` to default all flags to 0 regardless of the current configuration, or `A1` to default all flags to the default values, or `A2` to default all flags to on.
+
+Example commands:
+`M155`,
+`M155 A0 C1 P1`
 
 ### R740
 

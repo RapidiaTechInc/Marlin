@@ -41,55 +41,7 @@ void GcodeSuite::M155() {
   }
   
   #if ENABLED(RAPIDIA_HEARTBEAT)
-  using namespace Rapidia;
-  
-  if (parser.seenval('H'))
-  {
-    uint16_t interval = parser.value_ushort();
-    heartbeat.set_interval(interval);
-  }
-  
-  if (parser.seenval('P'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::PLAN_POSITION, enabled);
-  }
-  
-  if (parser.seenval('C'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::ABS_POSITION, enabled);
-  }
-  
-  if (parser.seenval('R'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::RELMODE, enabled);
-  }
-  
-  if (parser.seenval('F'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::FEEDRATE, enabled);
-  }
-  
-  if (parser.seenval('X'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::DUALX, enabled);
-  }
-  
-  if (parser.seenval('E'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::ENDSTOPS, enabled);
-  }
-
-  if (parser.seenval('D'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    heartbeat.select(HeartbeatSelection::DEBUG, enabled);
-  }
+  R738();
   #endif
 }
 

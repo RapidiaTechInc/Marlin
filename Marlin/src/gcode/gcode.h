@@ -839,6 +839,11 @@ private:
     // M737  --  alias for M107
   #endif
 
+  #if ENABLED(RAPIDIA_HEARTBEAT)
+    static void R738(); // sets heartbeat interval
+    static void R739(); // displays immediate heartbeat.
+  #endif
+
   TERN_(USB_FLASH_DRIVE_SUPPORT, static void R740()); // check for usb flash drive
 
   TERN_(RAPIDIA_HOMING_RESET, static void R745()); // reset homing status

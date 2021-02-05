@@ -17,7 +17,7 @@ static millis_t next_heartbeat_report_ms = 0;
 Heartbeat heartbeat; // singleton
 
 HeartbeatSelectionUint Heartbeat::selection
-  = (HeartbeatSelectionUint)HeartbeatSelection::_DEFAULT;
+  = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_DEFAULT);
 
 void Heartbeat::set_interval(uint16_t v)
 {
@@ -264,7 +264,7 @@ void Heartbeat::auto_report()
     next_heartbeat_report_ms = millis() + heartbeat_interval_ms;
 
     PORT_REDIRECT(SERIAL_BOTH);
-    serial_info(static_cast<HeartbeatSelection>(Heartbeat::selection));
+    serial_info(Heartbeat::selection);
     SERIAL_EOL();
   }
 }
@@ -290,18 +290,6 @@ void Heartbeat::pause_block_buffering_info()
   }
 }
 #endif
-
-void Heartbeat::select(HeartbeatSelection selection, bool enable)
-{
-  if (enable)
-  {
-    Heartbeat::selection |= static_cast<HeartbeatSelectionUint>(selection);
-  }
-  else
-  {
-    Heartbeat::selection &= ~static_cast<HeartbeatSelectionUint>(selection);
-  }
-}
 
 } // namespace Rapidia
 

@@ -998,17 +998,22 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 735: R735(); break;                                  // R735: z-max hysteresis threshold
       #endif
 
+      #if ENABLED(RAPIDIA_HEARTBEAT)
+        case 738: R738(); break;
+        case 739: R739(); break;
+      #endif
+
+       #if ENABLED(RAPIDIA_LAMP_ALIAS)
+        case 736: M106(); break;                                  // R736: alias for M106
+        case 737: M107(); break;                                  // R737: alias for M107
+      #endif
+
       #if ENABLED(USB_FLASH_DRIVE_SUPPORT)
         case 740: R740(); break;                                  // R740: check for usb flash drive
       #endif
 
       #if ENABLED(RAPIDIA_HOMING_RESET)
         case 745: R745(); break;                                  // R745: reset homing status
-      #endif
-      
-      #if ENABLED(RAPIDIA_LAMP_ALIAS)
-        case 736: M106(); break;                                  // R736: alias for M106
-        case 737: M107(); break;                                  // R737: alias for M107
       #endif
 
       #if ENABLED(RAPIDIA_KILL_RECOVERY)
