@@ -1017,7 +1017,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(RAPIDIA_KILL_RECOVERY)
-        case 750: hard_reset();
+        case 750: hard_reset(); break;                            // R750: immediately reset printer (also parsed by e_parser)
       #endif
       
       #if ENABLED(RAPIDIA_PAUSE)
@@ -1033,8 +1033,8 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(RAPIDIA_KILL_RECOVERY)
-        case 753: hard_reset_bl();
-        case 754: hard_reset();
+        case 753: hard_reset_bl(); break;                          // R753: reset to bootloader (also parsed by e_parser)
+        case 754: hard_reset_wd(); break;                          // R754: reset via watchdog timeout (also parsed by e_parser)
       #endif
 
       #if ENABLED(RAPIDIA_DEV_CODES)
