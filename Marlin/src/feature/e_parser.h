@@ -276,8 +276,11 @@ public:
               case EP_R752: Rapidia::pause.defer(true); break;
             #endif
             #if ENABLED(RAPIDIA_KILL_RECOVERY)
-              case EP_R753: hard_reset_bl();
-              case EP_R754: hard_reset_wd();
+              // FIXME: it's unclear why, but R753 and R754
+              // don't seem to run from the e-parser properly;
+              // instead they are dispatched from gcode.cpp
+              case EP_R753: hard_reset_bl(); break;
+              case EP_R754: hard_reset_wd(); break;
             #endif
             #if ENABLED(RAPIDIA_DEV_CODES)
               case EP_R801: Rapidia::R801(); break;

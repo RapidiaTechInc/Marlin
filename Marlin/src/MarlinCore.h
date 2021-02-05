@@ -59,9 +59,6 @@ void disable_all_steppers();
 #if ENABLED(RAPIDIA_KILL_RECOVERY)
 inline void hard_reset()
 {
-  // this can be considered an "external reset"
-  SBI(MCUSR, EXTRF);
-
   // jumps to initialization vector table entry,
   // which jumps to init routine.
   // (note that interrupts don't need to be disabled because that is the

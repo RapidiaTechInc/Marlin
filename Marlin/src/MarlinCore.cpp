@@ -518,6 +518,7 @@ void hard_reset_wd()
   while (true) nop();
 }
 
+// jumps to bootloader. (Resets Marlin.)
 // implementation: see ATMega2560 datasheet section 29 (Boot Loader Support)
 void hard_reset_bl()
 {

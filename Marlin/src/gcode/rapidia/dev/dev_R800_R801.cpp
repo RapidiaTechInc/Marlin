@@ -33,7 +33,7 @@ void GcodeSuite::R800()
 
         if (do_wdr)
         {
-            //watchdog_refresh();
+            watchdog_refresh();
         }
     }
     
