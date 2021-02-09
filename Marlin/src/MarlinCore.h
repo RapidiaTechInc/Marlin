@@ -73,6 +73,11 @@ void hard_reset_bl();
 void kill(PGM_P const lcd_error=nullptr, PGM_P const lcd_component=nullptr, const bool steppers_off=false);
 void minkill(const bool steppers_off=false);
 
+inline void assert_kill(bool condition)
+{
+  if (!condition) kill();
+}
+
 void quickstop_stepper();
 
 // Global State of the firmware
