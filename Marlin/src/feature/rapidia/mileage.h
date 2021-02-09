@@ -11,32 +11,28 @@ namespace Rapidia
 // (stored in EEPROM so this persists between runs, ideally.)
 
 struct MileageData
-{
-    
+{    
     // all E steps taken.
     uint64_t e_steps;
 
     void update_crc();
     bool crc_check();
+
 private:
-    uint32_t crc32;
+    // this must be the last member.
+    uint16_t crc;
+    uint16_t calc_crc();
 };
 
 class Mileage
 {
 public:
-    // this is updated by the stepper ISR,
-    // and cleared in Mileageupdate()
-    // 16 bits *ought* to be enough to store the maximum possible
-    // number of steps taken between idle loops.
-    static volatile uint16_t e_step_tally;
-
     // intended for stepper ISR use only.
-    FORCE_INLINE static void increment_e_step_tally() { e_step_tally++; }
+    FORCE_INLINE static void increment_e_step_tally() { e_step_tally.v++; }
 
     static millis_t save_interval_ms;
 
-    // updates mileage stats, possibly writes to eeprom.
+    // updates mileage stats, possibly saves to eeprom.
     static void update();
 
     // retrieves data, loading from eeprom if necessary.
@@ -47,11 +43,33 @@ private:
     static MileageData _data;
     static millis_t next_save_time_ms;
 
+    // reasons why loading/saving can fail.
+    enum class ErrorCode {
+        CRC_MISMATCH,
+        FORMAT,
+        EXPENDED
+    };
+
     // move e step tally into data.
     static void add_tally();
 
-    static void load_eeprom();
-    static void write_eeprom();
+    static bool read_header();
+    static bool write_header();
+    static bool load_eeprom();
+    static bool save_eeprom();
+    static bool load_fail(ErrorCode);
+    static bool save_fail(ErrorCode);
+    static void fail(ErrorCode); // helper for load_fail and save_fail
+
+    // this is updated by the stepper ISR,
+    // and cleared in Mileageupdate()
+    // 24 bits ought to be enough to store the maximum possible
+    // number of steps taken between idle loops.
+    // maximum 
+    static struct {
+        // (struct needed because ISO C++ prohibits static bitfields)
+        volatile uint32_t v : 24;
+    } e_step_tally;
 };
 
 extern Mileage mileage;

@@ -66,6 +66,18 @@ public:
     uint16_t crc = 0;
     return read_data(data_pos, value, size, &crc);
   }
+
+  template<typename T>
+  static inline bool read(const int pos, T& t)
+  {
+    return read_data(pos, reinterpret_cast<uint8_t*>(&t), sizeof(t))
+  }
+
+  template<typename T>
+  static inline bool write(const int pos, const T& t)
+  {
+    return write_data(pos, reinterpret_cast<const uint8_t*>(&t), sizeof(t))
+  }
 };
 
 extern PersistentStore persistentStore;
