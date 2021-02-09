@@ -3130,3 +3130,9 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
     #error RAPIDIA_KILL_RECOVERY is coded specifically for ATmega2560
   #endif
 #endif
+
+#if ENABLED(RAPIDIA_MILEAGE)
+  #ifndef RAPIDIA_MILEAGE_EEPROM_START
+    #error RAPIDIA_MILEAGE defined but not RAPIDIA_MILEAGE_EEPROM_START
+  #endif
+#endif

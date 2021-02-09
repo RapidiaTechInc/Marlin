@@ -863,7 +863,7 @@ private:
     #endif
   #endif
 
-  #if ENABLED(RAPIDIA_DEV_CODES)
+  #if ENABLED(RAPIDIA_DEV)
     static void R733(); // pin test.
     static void R800(); // softlock (infinite loop). (I1: loop as interrupt)
     static void R802(); // debug info

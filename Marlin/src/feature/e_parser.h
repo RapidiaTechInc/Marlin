@@ -36,7 +36,7 @@
   #include "rapidia/pause.h"
 #endif
 
-#if ENABLED(RAPIDIA_DEV_CODES)
+#if ENABLED(RAPIDIA_DEV)
   #include "../gcode/rapidia/dev/devcode.h"
 #endif
 
@@ -44,7 +44,7 @@
 extern bool wait_for_user, wait_for_heatup;
 void quickstop_stepper();
 
-#if ENABLED(RAPIDIA_PAUSE) || ENABLED(RAPIDIA_DEV_CODES) || ENABLED(RAPIDIA_KILL_RECOVERY)
+#if ENABLED(RAPIDIA_PAUSE) || ENABLED(RAPIDIA_DEV) || ENABLED(RAPIDIA_KILL_RECOVERY)
   // used in this header file only
   #define RAPIDIA_EMERGENCY_PARSER
 #endif
@@ -276,10 +276,10 @@ public:
             #if ENABLED(RAPIDIA_KILL_RECOVERY)
               // FIXME: it's unclear why, but R753
               // doesn't seem to run from the e-parser properly;
-              // instead they are dispatched from gcode.cpp.
+              // instead it is dispatched from gcode.cpp.
               case EP_R753: hard_reset_bl(); break;
             #endif
-            #if ENABLED(RAPIDIA_DEV_CODES)
+            #if ENABLED(RAPIDIA_DEV)
               case EP_R801: Rapidia::R801(); break;
             #endif
             #if ENABLED(HOST_PROMPT_SUPPORT)

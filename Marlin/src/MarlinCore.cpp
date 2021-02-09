@@ -65,7 +65,11 @@
 #endif
 
 #if ENABLED(RAPIDIA_KILL_RECOVERY)
-#include "avr/boot.h"
+#include <avr/boot.h>
+#endif
+
+#if ENABLED(RAPIDIA_MILEAGE)
+#include "feature/rapidia/mileage.h"
 #endif
 
 #include "HAL/shared/Delay.h"
@@ -837,6 +841,9 @@ void idle(TERN_(ADVANCED_PAUSE_FEATURE, bool no_stepper_sleep/*=false*/)) {
       TERN_(AUTO_REPORT_SD_STATUS, card.auto_report_sd_status());
       }
   #endif
+
+  // update Mileage
+  TERN_(RAPIDIA_MILEAGE, Rapidia::mileage.update());
 
   #ifdef HAL_IDLETASK
     HAL_idletask();

@@ -1,7 +1,7 @@
 #include "../../../inc/MarlinConfig.h"
 #include "../../gcode.h"
 
-#if ENABLED(RAPIDIA_DEV_CODES)
+#if ENABLED(RAPIDIA_DEV)
 
 static volatile bool softlock = false;
 
@@ -50,5 +50,5 @@ void R801()
     softlock = false;
 }
 }
-#endif // RAPIDIA_DEV_CODES
+#endif // RAPIDIA_DEV
 
