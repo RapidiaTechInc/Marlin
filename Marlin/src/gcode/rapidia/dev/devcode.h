@@ -2,7 +2,7 @@
 
 #include "../../../inc/MarlinConfig.h"
 
-#if ENABLED(RAPIDIA_DEV_CODES)
+#if ENABLED(RAPIDIA_DEV)
 namespace Rapidia
 {
     void R801();

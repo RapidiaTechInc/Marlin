@@ -432,7 +432,18 @@ typedef struct SettingsDataStruct {
 
 } SettingsData;
 
-//static_assert(sizeof(SettingsData) <= MARLIN_EEPROM_SIZE, "EEPROM too small to contain SettingsData!");
+
+#if ENABLED(RAPIDIA_MILEAGE)
+  #define SETTINGS_MAX_SIZE RAPIDIA_MILEAGE_EEPROM_START
+#else
+  #ifndef MARLIN_EEPROM_SIZE
+    #define SETTINGS_MAX_SIZE size_t(E2END + 1)
+  #else
+    #define SETTINGS_MAX_SIZE MARLIN_EEPROM_SIZE
+  #endif
+#endif
+
+static_assert(EEPROM_OFFSET + sizeof(SettingsData) <= SETTINGS_MAX_SIZE, "EEPROM too small to contain SettingsData!");
 
 MarlinSettings settings;
 

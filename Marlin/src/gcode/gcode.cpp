@@ -987,7 +987,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 731: R731(); break;                                  // R731: disable report on line finish
       #endif
 
-      #if ENABLED(RAPIDIA_DEV_CODES)
+      #if ENABLED(RAPIDIA_DEV)
         case 733: R733(); break;                                  // R733: pin test
       #endif
 
@@ -999,8 +999,8 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(RAPIDIA_HEARTBEAT)
-        case 738: R738(); break;
-        case 739: R739(); break;
+        case 738: R738(); break;                                  // R738: set heartbeat interval and flags
+        case 739: R739(); break;                                  // R739: immediate heartbeat
       #endif
 
        #if ENABLED(RAPIDIA_LAMP_ALIAS)
@@ -1036,7 +1036,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 753: hard_reset_bl(); break;                          // R753: reset to bootloader (also parsed by e_parser)
       #endif
 
-      #if ENABLED(RAPIDIA_DEV_CODES)
+      #if ENABLED(RAPIDIA_DEV)
         case 800:                                                                 // R800: infinite loop
           queue.ok_to_send(); // send an ok before the infinite loop.
           idle(); // paranoia. Allow queue time to send an 'ok' depending on implementation.

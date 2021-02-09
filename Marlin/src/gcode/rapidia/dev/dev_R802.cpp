@@ -1,8 +1,8 @@
 #include "../../../inc/MarlinConfig.h"
 #include "../../gcode.h"
-#include "avr/boot.h"
+#include <avr/boot.h>
 
-#if ENABLED(RAPIDIA_DEV_CODES)
+#if ENABLED(RAPIDIA_DEV)
 
 static volatile bool softlock = false;
 
@@ -22,5 +22,5 @@ void GcodeSuite::R802()
     sprintf(sbuff, "%x %x, %x %x\n", lowBits, highBits, extendedBits, lockBits);
     SERIAL_ECHO(sbuff);
 }
-#endif // RAPIDIA_DEV_CODES
+#endif // RAPIDIA_DEV
 
