@@ -1040,7 +1040,7 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
           break;
       }
     }
-    
+
     return false;
   }
 
@@ -1610,7 +1610,7 @@ void homeaxis(const AxisEnum axis) {
   // When homing Z with probe respect probe clearance
   const bool use_probe_bump = TERN0(HOMING_Z_WITH_PROBE, axis == Z_AXIS && home_bump_mm(Z_AXIS));
   const float bump = axis_home_dir * (
-    use_probe_bump ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, home_bump_mm(Z_AXIS)) : home_bump_mm(axis)
+    use_probe_bump ? home_bump_mm(Z_AXIS) : home_bump_mm(axis)
   );
 
   // If a second homing move is configured...
