@@ -7,7 +7,7 @@ namespace Rapidia
 {
     bool checksums_enabled = false;
 
-    checksum_mode_t checksum_mode { CHECKSUMS_DISABLED };
+    checksum_mode_t checksum_mode_out { CHECKSUMS_DISABLED };
 
     // contains a string of the form "*XXXX" for the checksum; can be printed.
     static char checksum_string[7] = {'*'};
@@ -19,7 +19,7 @@ namespace Rapidia
 
     void checksum(checksum_t& c, const void* data, size_t length)
     {
-        switch (checksum_mode)
+        switch (checksum_mode_out)
         {
         case CHECKSUMS_DISABLED:
             return;
@@ -44,11 +44,29 @@ namespace Rapidia
         }
     }
 
-    void checksum_echoln(checksum_t& c)
+    void checksum_eol(checksum_t& c)
     {
-        if (checksum_mode == CHECKSUMS_DISABLED) return;
-        itoa(c, checksum_string + 1, (checksum_mode == CHECKSUMS_CRC16) ? 10 : 16);
+        if (checksum_mode_out == CHECKSUMS_DISABLED)
+        {
+            SERIAL_EOL();
+            return;
+        }
+        
+        // the value to print
+        uint32_t v = (checksum_mode_out == CHECKSUMS_XOR)
+            ? checksum8(c)
+            : c;
+
+        // radix to print with (decimal or hex)
+        int radix = (checksum_mode_out == CHECKSUMS_CRC16)
+            ? 16
+            : 10;
+            
+        // place string after '*' character.
+        itoa(v, checksum_string + 1, radix);
         SERIAL_ECHOLN(checksum_string);
+
+        // reset checksum for next line.
         c = 0;
     }
 }

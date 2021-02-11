@@ -81,7 +81,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
   // begin heartbeat
   if (!bare)
   {
-    SERIAL_ECHO_CHK(" H:{");
+    SERIAL_ECHO_CHK("H:{");
   }
 
   // separator accumulator
@@ -149,7 +149,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       char str[12];
 
       // dual_x_carriage_mode
-      echo_key('S');
+      ECHO_KEY_CHK('S');
       SERIAL_CHAR_CHK('0' + (int32_t)(dual_x_carriage_mode));
       SERIAL_CHAR_CHK(',');
 
@@ -190,8 +190,8 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 
     if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
     {
-      echo_separator(sep);
-      echo_key_str("dbg-executing-command");
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-executing-command");
       if (GcodeSuite::dbg_current_command_letter)
       {
         char sbuff[32];
@@ -224,7 +224,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 
       ECHO_SEPARATOR_CHK(sep);
       ECHO_KEY_STR_CHK("dbg-buffer-moves-nonbusy");
-      SERIAL_ECHO(itoa(planner.nonbusy_movesplanned(), chbuff, 10));
+      SERIAL_ECHO_CHK(itoa(planner.nonbusy_movesplanned(), chbuff, 10));
 
       ECHO_SEPARATOR_CHK(sep);
       ECHO_KEY_STR_CHK("dbg-live-state");

@@ -120,7 +120,6 @@ void GcodeSuite::R739()
 
   parse_heartbeat_select(selection);
   heartbeat.serial_info(selection);
-  SERIAL_EOL();
 }
 
 #endif // ENABLED(RAPIDIA_HEARTBEAT)

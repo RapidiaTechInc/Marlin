@@ -827,6 +827,10 @@ private:
     static void R731(); // disable line finished reporting
   #endif
 
+  #if ENABLED(RAPIDIA_CHECKSUMS)
+    static void R732(); // input/output checksum mode
+  #endif
+
   #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
     #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING)
       static void R734(); // begin recording nozzle plug data.

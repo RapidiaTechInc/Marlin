@@ -987,6 +987,10 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 731: R731(); break;                                  // R731: disable report on line finish
       #endif
 
+      #if ENABLED(RAPIDIA_CHECKSUMS)
+        case 732: R732(); break;                                  // R732: i/o serial checksum mode.
+      #endif
+
       #if ENABLED(RAPIDIA_DEV_CODES)
         case 733: R733(); break;                                  // R733: pin test
       #endif

@@ -8,19 +8,20 @@
 
 namespace Rapidia
 {
+    // enum for how to checksum outgoing transmissions.
     extern enum checksum_mode_t {
         CHECKSUMS_DISABLED,
         CHECKSUMS_XOR,
         CHECKSUMS_CRC16
-    } checksum_mode;
+    } checksum_mode_out;
 
     typedef uint16_t checksum_t;
 
     void checksum(checksum_t& checksum, const void* data, size_t length);
     void checksum_pgm(checksum_t& checksum, const void* data, size_t length);
 
-    // echoes "*XXX\n" then resets checksum to 0.
-    void checksum_echoln(checksum_t& checksum);
+    // echoes "*XXXX\n" then resets checksum to 0.
+    void checksum_eol(checksum_t& checksum);
 }
 
 #define SERIAL_INIT_CHECKSUM() Rapidia::checksum_t __crc__ = 0
@@ -31,9 +32,9 @@ namespace Rapidia
 #define SERIAL_ECHO_START_CHK() SERIAL_ECHOPGM_CHK("echo:")
 #define SERIAL_ECHO_CHK(str) _SERIAL_FN_CHECKSUM_(str)
 #define SERIAL_ECHOPGM_CHK(str) _SERIAL_FN_PGM_CHECKSUM_(str)
-#define SERIAL_ECHOLN_CHK(str) do { _SERIAL_FN_CHECKSUM_(str); Rapidia::checksum_echoln(__crc__); } while (0)
-#define SERIAL_ECHOLNPGM_CHK(str) do { _SERIAL_FN_PGM_CHECKSUM_(str); Rapidia::checksum_echoln(__crc__); } while (0)
-#define SERIAL_CHAR_CHK(c) do { char _str[2]; _str[0] = c; _str[1] = 0; SERIAL_ECHOLN_CHK(_str); } while (0)
+#define SERIAL_ECHOLN_CHK(str) do { _SERIAL_FN_CHECKSUM_(str); Rapidia::checksum_eol(__crc__); } while (0)
+#define SERIAL_ECHOLNPGM_CHK(str) do { _SERIAL_FN_PGM_CHECKSUM_(str); Rapidia::checksum_eol(__crc__); } while (0)
+#define SERIAL_CHAR_CHK(c) do { char _str[2]; _str[0] = c; _str[1] = 0; SERIAL_ECHO_CHK(_str); } while (0)
 #define ECHO_KEY_CHK(c) do { char _str[] = { '"', c, '"', ':', 0 }; SERIAL_ECHO_CHK(_str); } while (0)
 #define ECHO_KEY_STR_CHK(c) do { SERIAL_CHAR_CHK('"'); SERIAL_ECHO_CHK(c); SERIAL_CHAR_CHK('"'); SERIAL_CHAR_CHK(':'); } while (0)
 #define CHK_ARGDEF Rapidia::checksum_t& __crc__

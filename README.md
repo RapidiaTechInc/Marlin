@@ -73,6 +73,39 @@ Conditional Execution (on Timer). This command checks if the specified timer T h
 Enable/Disable movement-complete auto-reporting.
 These respectively enable and disable reporting when individual lines of gcode have completed execution. (Note that this does not enable synchronous movement.)
 
+### R732 [I,O(0,1)]
+
+Set serial communication checksum mode. Set input (`I`) and output (`O`) independently.
+
+Flags:
+
+- `I`: (currently unsupported). Set input checksum mode (default: 1), for g-code checksums.
+- `O`: Set output checksum mode (default: 0). Note: not all output messages support checksums (yet).
+     (As of writing, only heartbeat messages (R738/R739) support checksums)
+
+Values:
+
+- `0`: No checksum.
+- `1`: 8-bit parity check. Computes the XOR of each byte. Reported at the end of the line with `*` followed by 3 digits decimal.
+- `2`: CRC16/XMODEM. (Note carefully that the XMODEM version of CRC16 is used.) Reported at the end of the line with `*` followed by 4-digits hexadecimal.
+
+Example command:
+`R732 O2`
+
+Example checksums:
+
+mode `0`: ` Message `
+mode `1`: ` Message *75`
+mode `2`: ` Message *54FD`
+
+### R733
+
+*[Dev code]*
+
+Pin test.
+
+Directly pulses various pins. This will cause the firmware to forget which pins are currently HIGH and LOW, so only use this for testing purposes, never in the context of an actual print job.
+
 ### R735 [S(u8)][i(u16:milliseconds)]
 
 Z_MAX (nozzle plug) signal processing.
@@ -85,12 +118,6 @@ Arguments:
 Setting S to an integer greater than 1 makes it so that Marlin must read S positive reads on the Z_MAX endstop pin (i.e. the nozzle plug pin) in a row for it to properly count as triggered. By default, it will sample no faster than once per ms. Setting I to a value greater than 1 means that the endstop will be sampled (no faster than) every I milliseconds.
 
 Warning: setting S0 means that Marlin requires 0 positive reads for the endstop to count as “triggered". In other words, the endstop will always be triggered. This is likely to be useful only for debugging nozzle plug detection.
-
-### R733
-
-Pin test.
-
-Directly pulses various pins. This will cause the firmware to forget which pins are currently HIGH and LOW, so only use this for testing purposes, never in the context of an actual print job.
 
 ### R736; R737
 
