@@ -212,6 +212,14 @@ Reset homed status.
 This command informs the printer that the toolhead may have been moved by some source other than the stepper driver,
 and so the printer should home again before it can be sure of its absolute position.
 
+### R746
+
+Home T1 using probe.
+This command will home T1 like it does T0 except that it
+will set hotend offset instead of setting z to 0
+
+_Please ensure that the printer is T0-homed before using this command._
+
 ### R750
 
 Hard Reset.

@@ -25,6 +25,9 @@
 
 #include "./Configuration_Rapidia.h"
 
+// R746, E2(T1) Homing
+#define RAPIDIA_T1_HOMING
+
 /**
  * Configuration.h
  *

@@ -969,7 +969,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
       #else
         default: parser.unknown_command_warning(); break;
       #endif
-    } 
+    }
     break;
 
     #ifdef RAPIDIA_M_CODE_COMPATABILITY
@@ -1027,10 +1027,14 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 745: R745(); break;                                  // R745: reset homing status
       #endif
 
+      #if ENABLED(RAPIDIA_T1_HOMING)
+        case 746: R746(); break;                                  // R746: E2(T1) Homing
+      #endif
+
       #if ENABLED(RAPIDIA_KILL_RECOVERY)
         case 750: hard_reset(); break;                            // R750: immediately reset printer (also parsed by e_parser)
       #endif
-      
+
       #if ENABLED(RAPIDIA_PAUSE)
         #if DISABLED(EMERGENCY_PARSER)
           case 751: R751(); no_ok = true; break;                                  // R751: pause (soft)
