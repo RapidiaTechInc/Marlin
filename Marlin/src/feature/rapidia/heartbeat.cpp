@@ -1,5 +1,7 @@
 #include "heartbeat.h"
 
+#include "checksum.h"
+
 #include "../../inc/MarlinConfig.h"
 #include "../../module/stepper.h"
 #include "../../module/planner.h"
@@ -19,11 +21,14 @@ Heartbeat heartbeat; // singleton
 HeartbeatSelectionUint Heartbeat::selection
   = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_DEFAULT);
 
+static char chbuff[11];
+
 void Heartbeat::set_interval(uint16_t v)
 {
   if (v && v < min_heartbeat_interval_ms)
   {
     v = min_heartbeat_interval_ms;
+    
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM("Heartbeat interval is lower than minimum ");
     SERIAL_ECHO(min_heartbeat_interval_ms);
@@ -34,47 +39,49 @@ void Heartbeat::set_interval(uint16_t v)
   next_heartbeat_report_ms = millis() + v;
 }
 
-static void report_homed()
+static void report_homed(CHK_ARGDEF)
 {
   const bool x_homed = axis_homed & _BV(X_AXIS);
   const bool y_homed = axis_homed & _BV(Y_AXIS);
   const bool z_homed = axis_homed & _BV(Z_AXIS);
-  if (x_homed) SERIAL_CHAR('x');
-  if (y_homed) SERIAL_CHAR('y');
-  if (z_homed) SERIAL_CHAR('z');
-  if (homing_semaphore) SERIAL_CHAR('h');
+  if (x_homed) SERIAL_CHAR_CHK('x');
+  if (y_homed) SERIAL_CHAR_CHK('y');
+  if (z_homed) SERIAL_CHAR_CHK('z');
+  if (homing_semaphore) SERIAL_CHAR_CHK('h');
 }
 
-static void report_xyzetf(const xyze_pos_t &pos, const uint8_t extruder, const bool feedrate=false, const uint8_t n=XYZE, const uint8_t precision=3) {
+static void report_xyzetf(CHK_ARGSDEF const xyze_pos_t &pos, const uint8_t extruder, const bool feedrate=false, const uint8_t n=XYZE, const uint8_t precision=3) {
   char str[12];
 
   // position.
   LOOP_L_N(a, n) {
-    echo_key(axis_codes[a]);
-    SERIAL_ECHO(dtostrf(pos[a], 1, precision, str));
-    SERIAL_CHAR(',');
+    ECHO_KEY_CHK(axis_codes[a]);
+    SERIAL_ECHO_CHK(dtostrf(pos[a], 1, precision, str));
+    SERIAL_CHAR_CHK(',');
   }
 
   if (feedrate)
   {
-    echo_key('F');
-    SERIAL_ECHO(dtostrf(feedrate_mm_s, 1, precision, str));
-    SERIAL_CHAR(',');
+    ECHO_KEY_CHK('F');
+    SERIAL_ECHO_CHK(dtostrf(feedrate_mm_s, 1, precision, str));
+    SERIAL_CHAR_CHK(',');
   }
 
   // extruder number
-  echo_key('T');
-  SERIAL_CHAR('0' + extruder);
+  ECHO_KEY_CHK('T');
+  SERIAL_CHAR_CHK('0' + extruder);
 }
 
 #define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
 
 void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 {
+  SERIAL_INIT_CHECKSUM();
+
   // begin heartbeat
   if (!bare)
   {
-    SERIAL_ECHOPGM(" H:{");
+    SERIAL_ECHO_CHK(" H:{");
   }
 
   // separator accumulator
@@ -83,26 +90,26 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
   // plan position
   if (TEST_FLAG(selection, HeartbeatSelection::PLAN_POSITION))
   {
-    echo_separator(sep);
-    echo_key('P');
-    SERIAL_CHAR('{');
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_CHK('P');
+    SERIAL_CHAR_CHK('{');
 
-    report_xyzetf(current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
-    SERIAL_CHAR('}');
+    report_xyzetf(CHK_ARGS current_position.asLogical(), active_extruder, TEST_FLAG(selection, HeartbeatSelection::FEEDRATE));
+    SERIAL_CHAR_CHK('}');
 
-    echo_separator(sep);
-    echo_key('H');
-    SERIAL_CHAR('"');
-    report_homed();
-    SERIAL_CHAR('"');
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_CHK('H');
+    SERIAL_CHAR_CHK('"');
+    report_homed(CHK_ARG);
+    SERIAL_CHAR_CHK('"');
   }
 
   // actual position
   if (TEST_FLAG(selection, HeartbeatSelection::ABS_POSITION))
   {
-    echo_separator(sep);
-    echo_key('C');
-    SERIAL_CHAR('{');
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_CHK('C');
+    SERIAL_CHAR_CHK('{');
 
     // unit conversion steps -> logical
     Stepper::State state = stepper.report_state();
@@ -112,65 +119,65 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       position[axis] = state.position[axis] / planner.settings.axis_steps_per_mm[axis];
     }
 
-    report_xyzetf(position.asLogical(), state.extruder);
-    SERIAL_CHAR('}');
+    report_xyzetf(CHK_ARGS position.asLogical(), state.extruder);
+    SERIAL_CHAR_CHK('}');
   }
 
   // relative mode axes:
   if (TEST_FLAG(selection, HeartbeatSelection::RELMODE))
   {
-    echo_separator(sep);
-    echo_key('R');
-    SERIAL_CHAR('"');
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_CHK('R');
+    SERIAL_CHAR_CHK('"');
     LOOP_XYZE(axis)
     {
       if (gcode.axis_is_relative(AxisEnum(axis)))
       {
-        SERIAL_CHAR(axis_codes[axis]);
+        SERIAL_CHAR_CHK(axis_codes[axis]);
       }
     }
-    SERIAL_CHAR('"');
+    SERIAL_CHAR_CHK('"');
   }
 
   // dualx info
   if (TEST_FLAG(selection, HeartbeatSelection::DUALX))
   {
-    echo_separator(sep);
-    echo_key('X');
-    SERIAL_CHAR('{');
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_CHK('X');
+    SERIAL_CHAR_CHK('{');
     {
       char str[12];
 
       // dual_x_carriage_mode
       echo_key('S');
-      SERIAL_CHAR('0' + (int32_t)(dual_x_carriage_mode));
-      SERIAL_CHAR(',');
+      SERIAL_CHAR_CHK('0' + (int32_t)(dual_x_carriage_mode));
+      SERIAL_CHAR_CHK(',');
 
       // active toolhead
-      echo_key('T');
-      SERIAL_CHAR('0' + (int32_t)(active_extruder));
-      SERIAL_CHAR(',');
+      ECHO_KEY_CHK('T');
+      SERIAL_CHAR_CHK('0' + (int32_t)(active_extruder));
+      SERIAL_CHAR_CHK(',');
 
       // stored x position
-      echo_key('X');
-      SERIAL_ECHO(dtostrf(inactive_extruder_x_pos, 1, 3, str));
+      ECHO_KEY_CHK('X');
+      SERIAL_ECHO_CHK(dtostrf(inactive_extruder_x_pos, 1, 3, str));
 
       // TODO: stored feedrate.
     }
-    SERIAL_CHAR('}');
+    SERIAL_CHAR_CHK('}');
   }
 
   // endstops -- report endstops closed state (at this moment)
   if (TEST_FLAG(selection, HeartbeatSelection::ENDSTOPS))
   {
-    echo_separator(sep);
-    echo_key('E');
-    SERIAL_CHAR('"');
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_CHK('E');
+    SERIAL_CHAR_CHK('"');
 
     // read from the endstop pins directly.
     // (this info doesn't seem to be cached in the Endstops class.)
 
-    #define ES_REPORT(S, N) if (endstops.endstop_state(S)) SERIAL_CHAR(N);
+    #define ES_REPORT(S, N) if (endstops.endstop_state(S)) SERIAL_CHAR_CHK(N);
 
     ES_REPORT(X_MIN, 'x');
     ES_REPORT(Y_MIN, 'y');
@@ -179,7 +186,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     ES_REPORT(Y_MAX, 'Y');
     ES_REPORT(Z_MAX, 'Z');
 
-    SERIAL_CHAR('"');
+    SERIAL_CHAR_CHK('"');
 
     if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
     {
@@ -190,70 +197,70 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
         char sbuff[32];
         if (sprintf(sbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
         {
-          SERIAL_ECHO(sbuff);
+          SERIAL_ECHO_CHK(sbuff);
         }
         else
         {
-          SERIAL_ECHO("\"\"");
+          SERIAL_ECHO_CHK("\"\"");
         }
       }
       else
       {
-        SERIAL_ECHO("\"\"");
+        SERIAL_ECHO_CHK("\"\"");
       }
       
 
-      echo_separator(sep);
-      echo_key_str("dbg-pause-nobuffer");
-      SERIAL_ECHO(static_cast<int32_t>(planner.prevent_block_buffering));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-pause-nobuffer");
+      SERIAL_ECHO_CHK(itoa(planner.prevent_block_buffering, chbuff, 10));
       
-      echo_separator(sep);
-      echo_key_str("dbg-pause-noextrude");
-      SERIAL_ECHO(static_cast<int32_t>(planner.prevent_block_extrusion));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-pause-noextrude");
+      SERIAL_ECHO_CHK(itoa(planner.prevent_block_extrusion, chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-buffer-moves-planned");
-      SERIAL_ECHO(static_cast<int32_t>(planner.movesplanned()));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-buffer-moves-planned");
+      SERIAL_ECHO_CHK(itoa(planner.movesplanned(), chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-buffer-moves-nonbusy");
-      SERIAL_ECHO(static_cast<int32_t>(planner.nonbusy_movesplanned()));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-buffer-moves-nonbusy");
+      SERIAL_ECHO(itoa(planner.nonbusy_movesplanned(), chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-live-state");
-      SERIAL_ECHO(static_cast<int32_t>(endstops.live_state));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-live-state");
+      SERIAL_ECHO_CHK(itoa(endstops.live_state, chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-state()");
-      SERIAL_ECHO(static_cast<int32_t>(endstops.state()));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-state()");
+      SERIAL_ECHO_CHK(itoa(endstops.state(), chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-enable");
-      SERIAL_ECHO(endstops.enabled);
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-enable");
+      SERIAL_ECHO_CHK(itoa(endstops.enabled, chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-enable-globally");
-      SERIAL_ECHO(endstops.enabled_globally);
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-enable-globally");
+      SERIAL_ECHO_CHK(itoa(endstops.enabled_globally, chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-hit-state");
-      SERIAL_ECHO(static_cast<int32_t>(endstops.hit_state));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-hit-state");
+      SERIAL_ECHO_CHK(itoa(endstops.hit_state, chbuff, 10));
 
       #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
-      echo_separator(sep);
-      echo_key_str("dbg-zmax-hyst-count");
-      SERIAL_ECHO(static_cast<int32_t>(endstops.z_max_hysteresis_count));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-zmax-hyst-count");
+      SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_count, chbuff, 10));
 
-      echo_separator(sep);
-      echo_key_str("dbg-zmax-hyst-threshold");
-      SERIAL_ECHO(static_cast<int32_t>(endstops.z_max_hysteresis_threshold));
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_STR_CHK("dbg-zmax-hyst-threshold");
+      SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_threshold, chbuff, 10));
       #endif
     }
   }
 
   if (!bare)
   {
-    SERIAL_ECHOPGM("}");
+    SERIAL_ECHOLNPGM_CHK("}");
   }
   // end heartbeat
 }
@@ -265,7 +272,6 @@ void Heartbeat::auto_report()
 
     PORT_REDIRECT(SERIAL_BOTH);
     serial_info(Heartbeat::selection);
-    SERIAL_EOL();
   }
 }
 

@@ -94,6 +94,9 @@
 // R745, clears homing state
 #define RAPIDIA_HOMING_RESET
 
+// allow computing checksums for heartbeat, etc.
+#define RAPIDIA_CHECKSUMS
+
 /**
  * Configuration.h
  *
