@@ -1016,6 +1016,12 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 740: R740(); break;                                  // R740: check for usb flash drive
       #endif
 
+      #if ENABLED(RAPIDIA_MILEAGE)
+        case 741: R741(); break;                                  // R741: reset mileage
+        case 742: R742(); break;                                  // R742: save mileage immediately
+        case 743: R743(); break;                                  // R743: set mileage save interval
+      #endif
+
       #if ENABLED(RAPIDIA_HOMING_RESET)
         case 745: R745(); break;                                  // R745: reset homing status
       #endif

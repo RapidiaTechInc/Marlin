@@ -849,6 +849,12 @@ private:
   #endif
 
   TERN_(USB_FLASH_DRIVE_SUPPORT, static void R740()); // check for usb flash drive
+  
+  #if ENABLED(RAPIDIA_MILEAGE)
+    static void R741(); // reset mileage
+    static void R742(); // save mileage immediately
+    static void R743(); // set mileage save interval
+  #endif
 
   TERN_(RAPIDIA_HOMING_RESET, static void R745()); // reset homing status
 

@@ -38,6 +38,13 @@ public:
     // retrieves data, loading from eeprom if necessary.
     static MileageData& Mileage::data();
 
+    // force immediate load or save
+    static bool load_eeprom();
+    static bool save_eeprom();
+
+    // resets mileage (and possibly saves this to eeprom)
+    static void reset(bool save=false);
+
 private:
     // contains data for mileage. Can be written as a unit to EEPROM.
     static MileageData _data;
@@ -47,7 +54,9 @@ private:
     enum class ErrorCode {
         CRC_MISMATCH,
         FORMAT,
-        EXPENDED
+        EXPENDED,
+        HEADER_DAMAGE,
+        FIRST_TIME
     };
 
     // move e step tally into data.
@@ -55,8 +64,7 @@ private:
 
     static bool read_header();
     static bool write_header();
-    static bool load_eeprom();
-    static bool save_eeprom();
+    static bool header_is_empty();
     static bool load_fail(ErrorCode);
     static bool save_fail(ErrorCode);
     static void fail(ErrorCode); // helper for load_fail and save_fail
