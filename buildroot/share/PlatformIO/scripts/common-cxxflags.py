@@ -4,9 +4,10 @@
 #
 Import("env")
 env.Append(CXXFLAGS=[
-  "-Wno-register"
+  "-Wno-parentheses",
+  #"-Wno-register"
   #"-Wno-incompatible-pointer-types",
-  #"-Wno-unused-const-variable",
+  "-Wno-unused-const-variable",
   #"-Wno-maybe-uninitialized",
   #"-Wno-sign-compare"
 ])

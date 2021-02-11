@@ -4,7 +4,7 @@ Marlin is an open source project which drives many of the world's 3D printers. I
 
 Rapidia has made some modifications to Marlin to work better with our hardware and host software. Because this project is licensed under [version 3.0 of the GNU General Public License](./LICENSE), the source code and license must be made available with every distribution of the Marlin firmware.
 
-Most Rapidia-specific changes to the code can be identified by the surrounding RAPIDIA\_\* macros. A list of the new g-code commands created for and existing commands modified for Rapidia use has been provided below.
+Most Rapidia-specific changes to the code can be identified by the surrounding RAPIDIA\_\* macros. A list of the new gcode commands created for and existing commands modified for Rapidia use has been provided below.
 
 ## Build and Upload with PlatformIO
 
@@ -79,7 +79,7 @@ Set serial communication checksum mode. Input (`I`) and output (`O`) checksum mo
 
 Flags:
 
-- `I`: Set input checksum mode (default: 1); for g-code checksums.
+- `I`: Set input checksum mode (default: 1); for gcode checksums.
 - `O`: Set output checksum mode (default: 0). Note: not all output messages support checksums (yet).
      (As of writing, only heartbeat messages (R738/R739) support checksums)
 
