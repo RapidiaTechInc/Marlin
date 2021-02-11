@@ -73,30 +73,32 @@ Conditional Execution (on Timer). This command checks if the specified timer T h
 Enable/Disable movement-complete auto-reporting.
 These respectively enable and disable reporting when individual lines of gcode have completed execution. (Note that this does not enable synchronous movement.)
 
-### R732 [I,O(0,1)]
+### R732 [I,O(0,1,2,3)]
 
-Set serial communication checksum mode. Set input (`I`) and output (`O`) independently.
+Set serial communication checksum mode. Input (`I`) and output (`O`) checksum modes can be set independently.
 
 Flags:
 
-- `I`: (currently unsupported). Set input checksum mode (default: 1), for g-code checksums.
+- `I`: Set input checksum mode (default: 1); for g-code checksums.
 - `O`: Set output checksum mode (default: 0). Note: not all output messages support checksums (yet).
      (As of writing, only heartbeat messages (R738/R739) support checksums)
 
 Values:
 
 - `0`: No checksum.
-- `1`: 8-bit parity check. Computes the XOR of each byte. Reported at the end of the line with `*` followed by 3 digits decimal.
-- `2`: CRC16/XMODEM. (Note carefully that the XMODEM version of CRC16 is used.) Reported at the end of the line with `*` followed by 4-digits hexadecimal.
+- `1`: 8-bit parity check -- computes the XOR of each byte. Reported at the end of the line with `*` followed by 3 digits decimal.
+- `2`: Optional 8-bit parity check -- as above, but unlike other options, a missing checksum will not be treated as an error.
+- `3`: CRC16/XMODEM (Note carefully that the XMODEM version of CRC16 is used) -- reported at the end of the line with `*` followed by 4-digits hexadecimal.
 
 Example command:
 `R732 O2`
 
 Example checksums:
+- mode `0`: ` Message `
+- mode `1`/`2`: ` Message *75`
+- mode `3`: ` Message *54FD`
 
-mode `0`: ` Message `
-mode `1`: ` Message *75`
-mode `2`: ` Message *54FD`
+Note for input only: leading spaces are skipped and are not included in the checksum.
 
 ### R733
 

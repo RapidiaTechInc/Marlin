@@ -34,6 +34,7 @@ GCodeQueue queue;
 #include "../module/planner.h"
 #include "../module/temperature.h"
 #include "../MarlinCore.h"
+#include "../feature/rapidia/checksum.h"
 
 #if ENABLED(PRINTER_EVENT_LEDS)
   #include "../feature/leds/printer_event_leds.h"
@@ -376,11 +377,19 @@ inline int read_serial(const uint8_t index) {
   }
 }
 
-void GCodeQueue::gcode_line_error(PGM_P const err, const int8_t pn) {
+void GCodeQueue::gcode_line_error(PGM_P const err, const int8_t pn, bool line_number) {
   PORT_REDIRECT(pn);                      // Reply to the serial port that sent the command
   SERIAL_ERROR_START();
   serialprintPGM(err);
-  SERIAL_ECHOLN(last_N[pn]);
+  if (line_number)
+  {
+    SERIAL_ECHOPGM(STR_ERR_LAST_LINE);
+    SERIAL_ECHOLN(last_N[pn]);
+  }
+  else
+  {
+    SERIAL_EOL();
+  }
   while (read_serial(pn) != -1);          // Clear out the RX buffer
   flush_and_request_resend();
   serial_count[pn] = 0;
@@ -516,13 +525,49 @@ void GCodeQueue::get_serial_commands() {
         while (*command == ' ') command++;                   // Skip leading spaces
         char *npos = (*command == 'N') ? command : nullptr;  // Require the N parameter to start the line
 
+        // calculate checksum and compare
+        char *apos = strrchr(command, '*');
+
+        // R732 and M110 are 'meta commands' which relate to error checking,
+        // so they are themselves exempt from certain error checking.
+        #define is_R732 (strstr_P(command, PSTR("R732")) != nullptr)
+        #define is_M110 (strstr_P(command, PSTR("M110")) != nullptr)
+
+        if (apos) {
+          #if ENABLED(RAPIDIA_CHECKSUMS)
+          Rapidia::checksum_t c = 0;
+          uint8_t count = uint8_t(apos - command);
+          Rapidia::checksum(c, command, count, Rapidia::checksum_mode_in);
+          if (Rapidia::compare_checksum(c, apos + 1, Rapidia::checksum_mode_in) && !is_R732)
+            return gcode_line_error(PSTR(STR_ERR_CHECKSUM_MISMATCH), i, npos);
+          #else
+          uint8_t checksum = 0, count = uint8_t(apos - command);
+          while (count) checksum ^= command[--count];
+          if (strtol(apos + 1, nullptr, 10) != checksum)
+            return gcode_line_error(PSTR(STR_ERR_CHECKSUM_MISMATCH), i, npos);
+          #endif
+        }
+        #if ENABLED(RAPIDIA_CHECKSUMS)
+        else if (Rapidia::checksum_required(Rapidia::checksum_mode_in) && !is_R732)
+        {
+          return gcode_line_error(PSTR(STR_ERR_MISSING_CHECKSUM), i, npos);
+        }
+        #endif
+
         static long gcode_N = -1;
         gcode_N = -1;
 
         // read line number
         if (npos) {
 
-          bool M110 = strstr_P(command, PSTR("M110")) != nullptr;
+          if (!apos)
+          {
+            #if ENABLED(LINE_NUMBERS_REQUIRES_CHECKSUM)
+              return gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
+            #endif
+          }
+
+          const bool M110 = is_M110;
 
           if (M110) {
             char* n2pos = strchr(command + 4, 'N');
@@ -533,21 +578,6 @@ void GCodeQueue::get_serial_commands() {
 
           if (gcode_N != last_N[i] + 1 && !M110)
             return gcode_line_error(PSTR(STR_ERR_LINE_NO), i);
-
-          // calculate checksum and compare
-          char *apos = strrchr(command, '*');
-          if (apos) {
-            uint8_t checksum = 0, count = uint8_t(apos - command);
-            while (count) checksum ^= command[--count];
-            if (strtol(apos + 1, nullptr, 10) != checksum)
-              return gcode_line_error(PSTR(STR_ERR_CHECKSUM_MISMATCH), i);
-          }
-          else
-          {
-            #if ENABLED(LINE_NUMBERS_REQUIRES_CHECKSUM)
-              return gcode_line_error(PSTR(STR_ERR_NO_CHECKSUM), i);
-            #endif
-          }
 
           last_N[i] = gcode_N;
         }

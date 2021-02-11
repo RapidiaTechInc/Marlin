@@ -207,7 +207,7 @@ private:
    */
   static bool enqueue_one(const char* cmd);
 
-  static void gcode_line_error(PGM_P const err, const int8_t pn);
+  static void gcode_line_error(PGM_P const err, const int8_t pn, bool line_number=true);
 
 };
 

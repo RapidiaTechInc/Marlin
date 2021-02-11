@@ -41,6 +41,9 @@ static void set_checksum_mode(checksum_mode_t& checksum_mode)
       checksum_mode = CHECKSUMS_XOR;
       break;
     case 2:
+      checksum_mode = CHECKSUMS_XOR_OPTIONAL;
+      break;
+    case 3:
       checksum_mode = CHECKSUMS_CRC16;
       break;
     default:
@@ -49,17 +52,51 @@ static void set_checksum_mode(checksum_mode_t& checksum_mode)
     }
 }
 
+static void echo_checksum_name(checksum_mode_t c)
+{
+  switch(c)
+  {
+  case CHECKSUMS_DISABLED:
+    SERIAL_ECHO("disabled");
+    return;
+  case CHECKSUMS_XOR:
+    SERIAL_ECHO("xor");
+    return;
+  case CHECKSUMS_XOR_OPTIONAL:
+    SERIAL_ECHO("xor (optional)");
+    return;
+  case CHECKSUMS_CRC16:
+    SERIAL_ECHO("crc16/XMODEM");
+    return;
+  default:
+    SERIAL_ECHO("unknown");
+    return;
+  }
+}
+
 void GcodeSuite::R732()
 {
   if (parser.seenval('I'))
   {
-    SERIAL_ERROR_MSG("Cannot set input checksum mode on this firmware version.");
+    set_checksum_mode(checksum_mode_in);
   }
 
   if (parser.seenval('O'))
   {
     set_checksum_mode(checksum_mode_out);
   }
+
+  // echo input mode
+  SERIAL_ECHO_START();
+  SERIAL_ECHO("Checksum mode (input): ");
+  echo_checksum_name(checksum_mode_in);
+  SERIAL_EOL();
+
+  // echo output mode
+  SERIAL_ECHO_START();
+  SERIAL_ECHO("Checksum mode (output): ");
+  echo_checksum_name(checksum_mode_out);
+  SERIAL_EOL();
 }
 
 #endif // ENABLED(RAPIDIA_HEARTBEAT)

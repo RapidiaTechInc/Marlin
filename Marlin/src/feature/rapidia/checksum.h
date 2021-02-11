@@ -12,16 +12,33 @@ namespace Rapidia
     extern enum checksum_mode_t {
         CHECKSUMS_DISABLED,
         CHECKSUMS_XOR,
+        CHECKSUMS_XOR_OPTIONAL,
         CHECKSUMS_CRC16
-    } checksum_mode_out;
+    } checksum_mode_out, checksum_mode_in;
 
     typedef uint16_t checksum_t;
 
-    void checksum(checksum_t& checksum, const void* data, size_t length);
-    void checksum_pgm(checksum_t& checksum, const void* data, size_t length);
+    void checksum(checksum_t& checksum, const void* data, size_t length, checksum_mode_t=checksum_mode_out);
+    void checksum_pgm(checksum_t& checksum, const void* data, size_t length, checksum_mode_t=checksum_mode_out);
 
     // echoes "*XXXX\n" then resets checksum to 0.
-    void checksum_eol(checksum_t& checksum);
+    void checksum_eol(checksum_t& checksum, checksum_mode_t=checksum_mode_out);
+
+    // compares checksum against the given string
+    // returns true on error.
+    bool compare_checksum(checksum_t checksum, const char* compare, checksum_mode_t);
+
+    inline bool checksum_required(checksum_mode_t c)
+    {
+        switch (c)
+        {
+        case CHECKSUMS_DISABLED:
+        case CHECKSUMS_XOR_OPTIONAL:
+            return false;
+        default:
+            return true;
+        }
+    }
 }
 
 #define SERIAL_INIT_CHECKSUM() Rapidia::checksum_t __crc__ = 0
@@ -34,6 +51,7 @@ namespace Rapidia
 #define SERIAL_ECHOPGM_CHK(str) _SERIAL_FN_PGM_CHECKSUM_(str)
 #define SERIAL_ECHOLN_CHK(str) do { _SERIAL_FN_CHECKSUM_(str); Rapidia::checksum_eol(__crc__); } while (0)
 #define SERIAL_ECHOLNPGM_CHK(str) do { _SERIAL_FN_PGM_CHECKSUM_(str); Rapidia::checksum_eol(__crc__); } while (0)
+#define SERIAL_EOL_CHK() do { Rapidia::checksum_eol(__crc__); } while (0)
 #define SERIAL_CHAR_CHK(c) do { char _str[2]; _str[0] = c; _str[1] = 0; SERIAL_ECHO_CHK(_str); } while (0)
 #define ECHO_KEY_CHK(c) do { char _str[] = { '"', c, '"', ':', 0 }; SERIAL_ECHO_CHK(_str); } while (0)
 #define ECHO_KEY_STR_CHK(c) do { SERIAL_CHAR_CHK('"'); SERIAL_ECHO_CHK(c); SERIAL_CHAR_CHK('"'); SERIAL_CHAR_CHK(':'); } while (0)
@@ -53,6 +71,7 @@ namespace Rapidia
 #define SERIAL_CHAR_CHK(c) SERIAL_CHAR(c)
 #define ECHO_KEY_CHK(c) echo_key(c)
 #define ECHO_KEY_STR_CHK(c) echo_key_str(c)
+#define SERIAL_EOL_CHK() SERIAL_EOL()
 #define CHK_ARGDEF
 #define CHK_ARG
 #define CHK_ARGSDEF
