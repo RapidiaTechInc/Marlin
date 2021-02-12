@@ -18,6 +18,7 @@ enum class HeartbeatSelection : HeartbeatSelectionUint
   DUALX         = _BV(4), // 'X'
   ENDSTOPS      = _BV(5), // 'E'
   DEBUG         = _BV(6), // 'D'
+  MILEAGE       = _BV(7), // 'M'
   ALL_POSITION = PLAN_POSITION | ABS_POSITION,
   _DEFAULT = PLAN_POSITION | ABS_POSITION | RELMODE | FEEDRATE | ENDSTOPS,
   _ALL = 0xff
@@ -37,6 +38,10 @@ public:
   // sends status message
   // selection: what status to send
   // bare: if false, wrap message in H:{ on the left and } on the right"
+  //
+  // note: if Mileage is included in the heartbeat selection, it's possible for
+  // error text to be printed out. To avoid this, invoke Rapidia::mileage.data() beforehand
+  // (which may cause error text).
   static void serial_info(HeartbeatSelection selection, bool bare=false);
 
   static inline void serial_info(HeartbeatSelectionUint selection, bool bare=false)

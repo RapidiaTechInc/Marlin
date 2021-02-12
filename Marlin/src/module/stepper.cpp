@@ -2339,10 +2339,12 @@ void Stepper::stop_e_motion()
       #endif
 
       // Set the STEP pulse ON
+      #ifndef RAPIDIA_NO_EXTRUDE
       #if ENABLED(MIXING_EXTRUDER)
         E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
       #else
         E_STEP_WRITE(stepper_extruder, !INVERT_E_STEP_PIN);
+      #endif
       #endif
 
       // Enforce a minimum duration for STEP pulse ON
@@ -2353,7 +2355,7 @@ void Stepper::stop_e_motion()
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
       #if ENABLED(RAPIDIA_MILEAGE)
-        Rapidia::mileage.increment_e_step_tally();
+        Rapidia::mileage.increment_e_step_tally(stepper_extruder);
       #endif
 
       #if ISR_PULSE_CONTROL
@@ -2361,10 +2363,12 @@ void Stepper::stop_e_motion()
       #endif
 
       // Set the STEP pulse OFF
+      #ifndef RAPIDIA_NO_EXTRUDE
       #if ENABLED(MIXING_EXTRUDER)
         E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
       #else
         E_STEP_WRITE(stepper_extruder, INVERT_E_STEP_PIN);
+      #endif
       #endif
 
       // For minimum pulse time wait before looping

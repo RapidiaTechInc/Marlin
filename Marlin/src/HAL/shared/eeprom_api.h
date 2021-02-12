@@ -70,13 +70,13 @@ public:
   template<typename T>
   static inline bool read(const int pos, T& t)
   {
-    return read_data(pos, reinterpret_cast<uint8_t*>(&t), sizeof(t))
+    return read_data(pos, reinterpret_cast<uint8_t*>(&t), sizeof(t));
   }
 
   template<typename T>
   static inline bool write(const int pos, const T& t)
   {
-    return write_data(pos, reinterpret_cast<const uint8_t*>(&t), sizeof(t))
+    return write_data(pos, reinterpret_cast<const uint8_t*>(&t), sizeof(t));
   }
 };
 

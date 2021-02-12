@@ -137,6 +137,7 @@ Auto-reporting. H sets the interval at which the heartbeat status update occurs.
 - R: per-axis relative mode flag enabled/disabled. (Reported as a string containing the axes in relative mode, e.g. “XYZ")
 - X\*: dualx state
 - E: Endstops states. Reported as a string: endstop state for X_MIN through Z_MIN (reported as ‘x’, ‘y’, ‘z’ in lower case), and X_MAX through Z_MAX (reported as ‘X’, ‘Y’, ‘Z’ in upper case)
+- M: Mileage data. Reported as (a) `null`, if mileage is disabled, or (b) an object containing the keys "E0" etc. with the number of steps taken on the E axis per extruder. Also contains key "I", whose value is the current "mileage save index"; if this value equals or exceeds RAPIDIA_MILEAGE_SAVE_MULTIPLICITY (as defined in the firmware), then the EEPROM store for the mileage data is expended.
 - D: debug info.
 
 Example command:
@@ -166,6 +167,26 @@ Check for USB shield.
 
 This command can be used to try checking for a connected USB device if
 Marlin previously failed to detect it on init.
+
+### R741
+
+Reset Mileage Data.
+
+This resets the ongoing count of the number of E steps taken.
+
+### R742
+
+Save Mileage Data.
+
+While the mileage data is saved to EEPROM roughly every minute or two, this command causes the mileage to be saved immediately. It's recommended to use this command after a print completes, when pausing a print, before any action which is unusually likely to be interrupted by a complete power-down of the printer, and perhaps at the end of every layer.
+
+### R743 I(:seconds)
+
+Set Mileage save interval.
+
+The mileage data saves to EEPROM every minute or two by default. This sets the maximum save interval in seconds.
+
+(Note that the EEPROM will not be redundantly overwritten if the mileage data has not changed, i.e. if no extrusion has occurred. There are a limited number of EEPROM writes available.)
 
 ### R745
 

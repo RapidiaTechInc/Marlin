@@ -73,9 +73,18 @@ void hard_reset_bl();
 void kill(PGM_P const lcd_error=nullptr, PGM_P const lcd_component=nullptr, const bool steppers_off=false);
 void minkill(const bool steppers_off=false);
 
-inline void assert_kill(bool condition)
+inline void assert_kill_pgm(bool condition, const char* str=nullptr)
 {
-  if (!condition) kill();
+  if (!condition)
+  {
+    if (str)
+    {
+      serialprintPGM(str);
+      SERIAL_EOL();
+    }
+    SERIAL_FLUSH();
+    kill();
+  }
 }
 
 void quickstop_stepper();

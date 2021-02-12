@@ -100,7 +100,7 @@
 
 // keep track of and store certain printer statistics
 // (namely cumulative total extrusion amount)
-#define RAPIDIA_MILEAGE
+//#define RAPIDIA_MILEAGE
 
 // must be enough room for the other eeprom settings to fit before this.
 #define RAPIDIA_MILEAGE_EEPROM_START 0x400
@@ -112,7 +112,7 @@
 
 // this multiplies the lifetime of the mileage eeprom data,
 // at the cost of using this many times redundant eeprom.
-#define RAPIDIA_MILEAGE_SAVE_MULTIPLICITY 128
+#define RAPIDIA_MILEAGE_SAVE_MULTIPLICITY 100
 
 /**
  * Configuration.h

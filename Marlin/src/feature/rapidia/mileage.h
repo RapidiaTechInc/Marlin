@@ -12,8 +12,8 @@ namespace Rapidia
 
 struct MileageData
 {    
-    // all E steps taken.
-    uint64_t e_steps;
+    // all E steps taken (on both extruders).
+    uint64_t e_steps[EXTRUDERS];
 
     void update_crc();
     bool crc_check();
@@ -28,7 +28,7 @@ class Mileage
 {
 public:
     // intended for stepper ISR use only.
-    FORCE_INLINE static void increment_e_step_tally() { e_step_tally.v++; }
+    FORCE_INLINE static void increment_e_step_tally(uint8_t e) { e_step_tally[e]++; }
 
     static millis_t save_interval_ms;
 
@@ -36,7 +36,7 @@ public:
     static void update();
 
     // retrieves data, loading from eeprom if necessary.
-    static MileageData& Mileage::data();
+    static MileageData& data();
 
     // force immediate load or save
     static bool load_eeprom();
@@ -44,6 +44,10 @@ public:
 
     // resets mileage (and possibly saves this to eeprom)
     static void reset(bool save=false);
+
+    static uint8_t get_save_index();
+    static bool get_expended();
+    static bool get_loaded();
 
 private:
     // contains data for mileage. Can be written as a unit to EEPROM.
@@ -73,11 +77,10 @@ private:
     // and cleared in Mileageupdate()
     // 24 bits ought to be enough to store the maximum possible
     // number of steps taken between idle loops.
-    // maximum 
-    static struct {
-        // (struct needed because ISO C++ prohibits static bitfields)
-        volatile uint32_t v : 24;
-    } e_step_tally;
+    // maximum
+    static __uint24 e_step_tally[EXTRUDERS];
+
+    static_assert(sizeof(e_step_tally) == EXTRUDERS * 3, "e step tally not compressed.");
 };
 
 extern Mileage mileage;

@@ -1,6 +1,7 @@
 #include "heartbeat.h"
 
 #include "checksum.h"
+#include "mileage.h"
 
 #include "../../inc/MarlinConfig.h"
 #include "../../module/stepper.h"
@@ -21,7 +22,7 @@ Heartbeat heartbeat; // singleton
 HeartbeatSelectionUint Heartbeat::selection
   = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_DEFAULT);
 
-static char chbuff[11];
+static char chbuff[12];
 
 void Heartbeat::set_interval(uint16_t v)
 {
@@ -76,6 +77,14 @@ static void report_xyzetf(CHK_ARGSDEF const xyze_pos_t &pos, const uint8_t extru
 
 void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 {
+  #if ENABLED(RAPIDIA_MILEAGE)
+    const MileageData* mileage_data;
+    if (TEST_FLAG(selection, HeartbeatSelection::MILEAGE))
+    {
+      mileage_data = &mileage.data();
+    }
+  #endif
+
   SERIAL_INIT_CHECKSUM();
 
   // begin heartbeat
@@ -167,6 +176,51 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     SERIAL_CHAR_CHK('}');
   }
 
+  if (TEST_FLAG(selection, HeartbeatSelection::MILEAGE))
+    {
+      ECHO_SEPARATOR_CHK(sep);
+      ECHO_KEY_CHK('M');
+      #if ENABLED(RAPIDIA_MILEAGE)
+      SERIAL_CHAR_CHK('{');
+      for (uint8_t e = 0; e < EXTRUDERS; ++e)
+      {
+        SERIAL_CHAR_CHK('"');
+        SERIAL_CHAR_CHK('E');
+        SERIAL_CHAR_CHK(('0' + e));
+        static_assert(EXTRUDERS < 10, "at most 10 extruders function for this arithmetic.");
+        SERIAL_CHAR_CHK('"');
+        SERIAL_CHAR_CHK(':');
+
+        // due to an apparent bug in sprintf for %llu, we need this logic.
+        uint64_t val = mileage_data->e_steps[e];
+        if (val == 0)
+        {
+          SERIAL_CHAR_CHK('0');
+        }
+        else
+        {
+          while (val > 0)
+          {
+            char c = '0' + (val % 10);
+            SERIAL_CHAR_CHK(c);
+            val /= 10;
+          }
+        }
+        SERIAL_CHAR_CHK(',');
+      }
+      ECHO_KEY_CHK('I');
+      SERIAL_ECHO_CHK(itoa(mileage.get_save_index(), chbuff, 10));
+      if (mileage.get_expended())
+      {
+        SERIAL_CHAR_CHK(',');
+        SERIAL_ECHOPGM_CHK("\"expended\":true");
+      }
+      SERIAL_CHAR_CHK('}');
+      #else
+      SERIAL_ECHO_CHK("null");
+      #endif
+    }
+
   // endstops -- report endstops closed state (at this moment)
   if (TEST_FLAG(selection, HeartbeatSelection::ENDSTOPS))
   {
@@ -187,75 +241,75 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     ES_REPORT(Z_MAX, 'Z');
 
     SERIAL_CHAR_CHK('"');
+  }
 
-    if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
+  if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
+  {
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-executing-command");
+    if (GcodeSuite::dbg_current_command_letter)
     {
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-executing-command");
-      if (GcodeSuite::dbg_current_command_letter)
+      char sbuff[32];
+      if (sprintf(sbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
       {
-        char sbuff[32];
-        if (sprintf(sbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
-        {
-          SERIAL_ECHO_CHK(sbuff);
-        }
-        else
-        {
-          SERIAL_ECHO_CHK("\"\"");
-        }
+        SERIAL_ECHO_CHK(sbuff);
       }
       else
       {
         SERIAL_ECHO_CHK("\"\"");
       }
-      
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-pause-nobuffer");
-      SERIAL_ECHO_CHK(itoa(planner.prevent_block_buffering, chbuff, 10));
-      
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-pause-noextrude");
-      SERIAL_ECHO_CHK(itoa(planner.prevent_block_extrusion, chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-buffer-moves-planned");
-      SERIAL_ECHO_CHK(itoa(planner.movesplanned(), chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-buffer-moves-nonbusy");
-      SERIAL_ECHO_CHK(itoa(planner.nonbusy_movesplanned(), chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-live-state");
-      SERIAL_ECHO_CHK(itoa(endstops.live_state, chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-state()");
-      SERIAL_ECHO_CHK(itoa(endstops.state(), chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-enable");
-      SERIAL_ECHO_CHK(itoa(endstops.enabled, chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-enable-globally");
-      SERIAL_ECHO_CHK(itoa(endstops.enabled_globally, chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-hit-state");
-      SERIAL_ECHO_CHK(itoa(endstops.hit_state, chbuff, 10));
-
-      #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-zmax-hyst-count");
-      SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_count, chbuff, 10));
-
-      ECHO_SEPARATOR_CHK(sep);
-      ECHO_KEY_STR_CHK("dbg-zmax-hyst-threshold");
-      SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_threshold, chbuff, 10));
-      #endif
     }
+    else
+    {
+      SERIAL_ECHO_CHK("\"\"");
+    }
+    
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-pause-nobuffer");
+    SERIAL_ECHO_CHK(itoa(planner.prevent_block_buffering, chbuff, 10));
+    
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-pause-noextrude");
+    SERIAL_ECHO_CHK(itoa(planner.prevent_block_extrusion, chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-buffer-moves-planned");
+    SERIAL_ECHO_CHK(itoa(planner.movesplanned(), chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-buffer-moves-nonbusy");
+    SERIAL_ECHO_CHK(itoa(planner.nonbusy_movesplanned(), chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-live-state");
+    SERIAL_ECHO_CHK(itoa(endstops.live_state, chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-state()");
+    SERIAL_ECHO_CHK(itoa(endstops.state(), chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-enable");
+    SERIAL_ECHO_CHK(itoa(endstops.enabled, chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-enable-globally");
+    SERIAL_ECHO_CHK(itoa(endstops.enabled_globally, chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-hit-state");
+    SERIAL_ECHO_CHK(itoa(endstops.hit_state, chbuff, 10));
+
+    #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-zmax-hyst-count");
+    SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_count, chbuff, 10));
+
+    ECHO_SEPARATOR_CHK(sep);
+    ECHO_KEY_STR_CHK("dbg-zmax-hyst-threshold");
+    SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_threshold, chbuff, 10));
+    #endif
   }
 
   if (!bare)

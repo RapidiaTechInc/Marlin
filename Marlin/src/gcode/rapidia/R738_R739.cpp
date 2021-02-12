@@ -79,6 +79,12 @@ if (parser.seenval('P'))
     apply_select(io_heartbeat_select, HeartbeatSelection::ENDSTOPS, enabled);
   }
 
+  if (parser.seenval('M'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    apply_select(io_heartbeat_select, HeartbeatSelection::MILEAGE, enabled);
+  }
+
   if (parser.seenval('D'))
   {
     uint16_t enabled = parser.value_ushort();

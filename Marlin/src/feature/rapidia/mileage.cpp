@@ -20,7 +20,6 @@ namespace Rapidia
     uint32_t canary_1;
     uint8_t save_index;
     uint8_t save_index_xor;
-    uint8_t reserved[32];
     uint32_t canary_2;
     uint16_t crc;
 
@@ -35,12 +34,11 @@ namespace Rapidia
       return (save_index_xor^save_index != 0xff);
     }
 
-    bool make_valid()
+    void make_valid()
     {
       canary_1 = CANARY_1;
       canary_2 = CANARY_2;
       save_index_xor = ~save_index;
-      memset(reserved, 0, sizeof(reserved));
       crc = 0;
       crc16(&crc, this, sizeof(this) - sizeof(crc));
     }
@@ -56,7 +54,7 @@ namespace Rapidia
 static_assert(RAPIDIA_MILEAGE_SIZE_FULL < RAPIDIA_MILEAGE_MAX_SIZE, "Insufficient room for mileage store in eeprom");
 
 Mileage milage;
-decltype(Mileage::e_step_tally) Mileage::e_step_tally{ 0 };
+decltype(Mileage::e_step_tally) Mileage::e_step_tally{ 0, 0 };
 MileageData Mileage::_data;
 millis_t Mileage::save_interval_ms = SEC_TO_MS(RAPIDIA_MILEAGE_SAVE_INTERVAL);
 millis_t Mileage::next_save_time_ms = 0;
@@ -66,11 +64,12 @@ static bool is_loaded = false;
 static bool is_expended = false;
 static size_t save_index = 0;
 
-bool memeq(void* v, uint8_t val, size_t length)
+bool memeq(const void* _v, uint8_t val, size_t length)
 {
+  const uint8_t* v = static_cast<const uint8_t*>(_v);
   while (length --> 0)
   {
-    if (*reinterpret_cast<uint8_t*>(v) != val) return false;
+    if (*v++ != val) return false;
   }
 
   return true;
@@ -102,21 +101,28 @@ MileageData& Mileage::data()
 void Mileage::add_tally()
 {
   // critical section
-  decltype(e_step_tally.v) steps = 0;
+  decltype(e_step_tally) tally_copy;
   cli();
-  steps = e_step_tally.v;
-  e_step_tally.v = 0;
+  memcpy(&tally_copy, &e_step_tally, sizeof(tally_copy));
+  memset(&e_step_tally, 0, sizeof(e_step_tally));
   sei();
 
-  #if ENABLED(RAPIDIA_DEV)
-  if (steps >= 0x800000)
+  for (size_t e = 0; e < EXTRUDERS; ++e)
   {
-    SERIAL_ECHO_START();
-    SERIAL_ECHOLNPGM("Warning! Stepper rate faster than mileage cache can process. Update Mileage::e_step_tally size.");
-  }
-  #endif
+    const uint32_t steps = tally_copy[e];
 
-  data().e_steps += steps;
+    if (steps == 0) continue;
+
+    #if ENABLED(RAPIDIA_DEV)
+    if (steps >= 0x800000)
+    {
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPGM("Warning! Stepper rate faster than mileage cache can process. Update Mileage::e_step_tally size.");
+    }
+    #endif
+
+    data().e_steps[e] += steps;
+  }
 }
 
 // these are chosen arbitrarily.
@@ -145,13 +151,27 @@ bool Mileage::read_header()
 
 bool Mileage::write_header()
 {
-  MileageHeader hdr {
-    save_index: save_index
-  };
+  MileageHeader hdr;
+  hdr.save_index = static_cast<uint8_t>(save_index);
 
   hdr.make_valid();
-  assert_kill(hdr.is_valid());
+  assert_kill_pgm(hdr.is_valid(), PSTR("failed to make header valid"));
   return persistentStore.write(MILEAGE_HEADER_START, hdr);
+}
+
+uint8_t Mileage::get_save_index()
+{
+  return save_index;
+}
+
+bool Mileage::get_expended()
+{
+  return is_expended;
+}
+
+bool Mileage::get_loaded()
+{
+  return is_loaded;
 }
 
 bool Mileage::load_eeprom()
@@ -175,6 +195,8 @@ bool Mileage::load_eeprom()
     return load_fail(ErrorCode::CRC_MISMATCH);
   }
 
+  is_loaded = true;
+
   return false;
 }
 
@@ -186,8 +208,10 @@ bool Mileage::save_eeprom()
     return false;
   }
 
+  next_save_time_ms = millis() + save_interval_ms;
+
   _data.update_crc();
-  assert_kill(!_data.crc_check());
+  assert_kill_pgm(_data.crc_check(), PSTR("data crc fail"));
 
   // try saving in subsequent slots until one works.
   for (; save_index < RAPIDIA_MILEAGE_SAVE_MULTIPLICITY; ++save_index)
@@ -198,7 +222,7 @@ bool Mileage::save_eeprom()
     // read and check CRC
     MileageData check;
     if (persistentStore.read(pos, check)) continue;
-    if (check.crc_check()) continue;
+    if (!check.crc_check()) continue;
 
     // we've found a spot for the data, so let's write the header.
     if (write_header()) return save_fail(ErrorCode::HEADER_DAMAGE);
@@ -208,7 +232,7 @@ bool Mileage::save_eeprom()
   }
 
   // we've run out of slots.
-  assert_kill(save_index >= RAPIDIA_MILEAGE_SAVE_MULTIPLICITY);
+  assert_kill_pgm(save_index >= RAPIDIA_MILEAGE_SAVE_MULTIPLICITY, PSTR("save slot multiplicity err"));
   write_header(); // write the out-of-bounds save index so next time we load we can recognize that the eeprom is spent.
   return save_fail(ErrorCode::EXPENDED);
 }
@@ -265,7 +289,7 @@ bool Mileage::load_fail(ErrorCode e)
 
 void Mileage::reset(bool save)
 {
-  _data.e_steps = 0;
+  memset(&_data, 0, sizeof(_data));
   is_loaded = true;
   is_expended = false;
   save_index = 0;
