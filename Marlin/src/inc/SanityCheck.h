@@ -3111,28 +3111,4 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
 #undef _TEST_PWM
 
 // RAPIDIA
-#if ENABLED(RAPIDIA_PAUSE) && !ENABLED(RAPIDIA_BLOCK_SOURCE)
-  #error "RAPIDIA_PAUSE requires RAPIDIA_BLOCK_SOURCE"
-#endif
-
-#if ENABLED(RAPIDIA_LINE_AUTO_REPORTING) &&! ENABLED(RAPIDIA_BLOCK_SOURCE)
-  #error "RAPIDIA_LINE_AUTO_REPORTING requires RAPIDIA_BLOCK_SOURCE"
-#endif
-
-#if !ENABLED(EMERGENCY_PARSER)
-  #if ENABLED(RAPIDIA_EMERGENCY_STOP_INTERRUPT) || ENABLED(RAPIDIA_EOT_EMERGENCY_STOP) || ENABLED(RAPIDIA_KILL_RECOVERY)
-    #error "Rapidia emergency stop features require emergency parser."
-  #endif
-#endif
-
-#if ENABLED(RAPIDIA_KILL_RECOVERY)
-  #ifndef __AVR_ATmega2560__
-    #error RAPIDIA_KILL_RECOVERY is coded specifically for ATmega2560
-  #endif
-#endif
-
-#if ENABLED(RAPIDIA_MILEAGE)
-  #ifndef RAPIDIA_MILEAGE_EEPROM_START
-    #error RAPIDIA_MILEAGE defined but not RAPIDIA_MILEAGE_EEPROM_START
-  #endif
-#endif
+#include "./RapidiaSanityCheck.h"

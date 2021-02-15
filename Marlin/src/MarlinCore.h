@@ -73,6 +73,7 @@ void hard_reset_bl();
 void kill(PGM_P const lcd_error=nullptr, PGM_P const lcd_component=nullptr, const bool steppers_off=false);
 void minkill(const bool steppers_off=false);
 
+#if ENABLED(RAPIDIA_DEV)
 inline void assert_kill_pgm(bool condition, const char* str=nullptr)
 {
   if (!condition)
@@ -86,6 +87,24 @@ inline void assert_kill_pgm(bool condition, const char* str=nullptr)
     kill();
   }
 }
+
+inline void assert_kill(bool condition, const char* str=nullptr)
+{
+  if (!condition)
+  {
+    if (str)
+    {
+      SERIAL_ECHOLN(str);
+    }
+    SERIAL_FLUSH();
+    kill();
+  }
+}
+
+#else
+#define assert_kill(...)
+#define assert_kill_pgm(...)
+#endif
 
 void quickstop_stepper();
 

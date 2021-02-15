@@ -37,6 +37,7 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
+#include <avr/boot.h>
 
 #ifndef pgm_read_ptr
   // Compatibility for avr-libc 1.8.0-4.1 included with Ubuntu for

@@ -37,7 +37,11 @@
 #endif
 
 #if ENABLED(RAPIDIA_DEV)
-  #include "../gcode/rapidia/dev/devcode.h"
+  // forward declaration
+  namespace Rapidia
+  {
+    void R801();
+  }
 #endif
 
 // External references

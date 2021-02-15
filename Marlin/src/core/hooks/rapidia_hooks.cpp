@@ -1,5 +1,5 @@
 #include "rapidia_hooks.hpp"
-#include <avr/pgmspace.h>
+#include "../../HAL/HAL.h"
 
 #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
 

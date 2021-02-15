@@ -8,37 +8,37 @@
 
 namespace Rapidia
 {
-    // enum for how to checksum outgoing transmissions.
-    extern enum checksum_mode_t {
-        CHECKSUMS_DISABLED,
-        CHECKSUMS_XOR,
-        CHECKSUMS_XOR_OPTIONAL,
-        CHECKSUMS_CRC16
-    } checksum_mode_out, checksum_mode_in;
+// enum for how to checksum outgoing transmissions.
+extern enum checksum_mode_t {
+    CHECKSUMS_DISABLED,
+    CHECKSUMS_XOR,
+    CHECKSUMS_XOR_OPTIONAL,
+    CHECKSUMS_CRC16
+} checksum_mode_out, checksum_mode_in;
 
-    typedef uint16_t checksum_t;
+typedef uint16_t checksum_t;
 
-    void checksum(checksum_t& checksum, const void* data, size_t length, checksum_mode_t=checksum_mode_out);
-    void checksum_pgm(checksum_t& checksum, const void* data, size_t length, checksum_mode_t=checksum_mode_out);
+void checksum(checksum_t& checksum, const void* data, size_t length, checksum_mode_t=checksum_mode_out);
+void checksum_pgm(checksum_t& checksum, const void* data, size_t length, checksum_mode_t=checksum_mode_out);
 
-    // echoes "*XXXX\n" then resets checksum to 0.
-    void checksum_eol(checksum_t& checksum, checksum_mode_t=checksum_mode_out);
+// echoes "*XXXX\n" then resets checksum to 0.
+void checksum_eol(checksum_t& checksum, checksum_mode_t=checksum_mode_out);
 
-    // compares checksum against the given string
-    // returns true on error.
-    bool compare_checksum(checksum_t checksum, const char* compare, checksum_mode_t);
+// compares checksum against the given string
+// returns true on error.
+bool compare_checksum(checksum_t checksum, const char* compare, checksum_mode_t);
 
-    inline bool checksum_required(checksum_mode_t c)
+inline bool checksum_required(checksum_mode_t c)
+{
+    switch (c)
     {
-        switch (c)
-        {
-        case CHECKSUMS_DISABLED:
-        case CHECKSUMS_XOR_OPTIONAL:
-            return false;
-        default:
-            return true;
-        }
+    case CHECKSUMS_DISABLED:
+    case CHECKSUMS_XOR_OPTIONAL:
+        return false;
+    default:
+        return true;
     }
+}
 }
 
 #define SERIAL_INIT_CHECKSUM() Rapidia::checksum_t __crc__ = 0
@@ -80,3 +80,11 @@ namespace Rapidia
 #endif
 
 #define ECHO_SEPARATOR_CHK(io_first_separator) do { if (!io_first_separator) SERIAL_CHAR_CHK(','); io_first_separator = false; } while (0)
+
+template<typename T>
+inline void serial_hex_chk(CHK_ARGSDEF T value, uint8_t digits, bool zeropad=true)
+{
+    char cbuff[digits + 1];
+    char* c = _sprint_hex(cbuff, value, digits, zeropad);
+    SERIAL_ECHO_CHK(c);
+}

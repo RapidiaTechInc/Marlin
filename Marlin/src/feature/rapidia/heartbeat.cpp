@@ -22,8 +22,6 @@ Heartbeat heartbeat; // singleton
 HeartbeatSelectionUint Heartbeat::selection
   = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_DEFAULT);
 
-static char chbuff[12];
-
 void Heartbeat::set_interval(uint16_t v)
 {
   if (v && v < min_heartbeat_interval_ms)
@@ -84,6 +82,8 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       mileage_data = &mileage.data();
     }
   #endif
+
+  static char chbuff[32];
 
   SERIAL_INIT_CHECKSUM();
 
@@ -199,12 +199,14 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
         }
         else
         {
+          char* cbuff = chbuff + sizeof(chbuff);
+          *(--cbuff) = 0;
           while (val > 0)
           {
-            char c = '0' + (val % 10);
-            SERIAL_CHAR_CHK(c);
+            *(--cbuff) = '0' + (val % 10);
             val /= 10;
           }
+          SERIAL_ECHO_CHK(cbuff);
         }
         SERIAL_CHAR_CHK(',');
       }
@@ -249,10 +251,9 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     ECHO_KEY_STR_CHK("dbg-executing-command");
     if (GcodeSuite::dbg_current_command_letter)
     {
-      char sbuff[32];
-      if (sprintf(sbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
+      if (sprintf(chbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
       {
-        SERIAL_ECHO_CHK(sbuff);
+        SERIAL_ECHO_CHK(chbuff);
       }
       else
       {

@@ -873,6 +873,9 @@ private:
     static void R733(); // pin test.
     static void R800(); // softlock (infinite loop). (I1: loop as interrupt)
     static void R802(); // debug info
+    static void R803(); // read EEPROM
+    static void R804(); // write EEPROM
+    static void R805(); // EEPROM integrity scan
   #endif
 
   TERN_(HAS_BED_PROBE, static void M851());

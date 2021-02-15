@@ -2,10 +2,9 @@
 
 #include "../../core/serial.h"
 #include "../../HAL/shared/eeprom_api.h"
+#include "../../HAL/HAL.h"
 #include "../../libs/crc16.h"
 #include "../../MarlinCore.h"
-
-#include <avr/interrupt.h>
 
 #if ENABLED(RAPIDIA_MILEAGE)
 

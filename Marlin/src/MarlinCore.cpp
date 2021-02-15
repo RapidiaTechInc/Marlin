@@ -51,25 +51,14 @@
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #include "feature/closedloop.h"
 
-#if ENABLED(RAPIDIA_HEARTBEAT)
 #include "feature/rapidia/heartbeat.h"
-#endif
-
-#if ENABLED(RAPIDIA_PAUSE)
 #include "feature/rapidia/pause.h"
-#endif
+#include "feature/rapidia/mileage.h"
+#include "feature/rapidia/stack_util.h"
 
 #if ENABLED(RAPIDIA_KILL_RECOVERY)
 #include "feature/rapidia/kill_recovery.h"
 #include "feature/e_parser.h"
-#endif
-
-#if ENABLED(RAPIDIA_KILL_RECOVERY)
-#include <avr/boot.h>
-#endif
-
-#if ENABLED(RAPIDIA_MILEAGE)
-#include "feature/rapidia/mileage.h"
 #endif
 
 #include "HAL/shared/Delay.h"
@@ -722,7 +711,7 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
 
 #if ENABLED(RAPIDIA_EMULATOR_HOOKS)
   // idle() is re-entrant.
-  // this counts the number of times is is currently on the stack.
+  // this counts the number of times it is currently on the stack.
   volatile uint32_t idle_count = 0;
   volatile bool emu_hook_sd_card_enabled = true;
 #else
@@ -1360,7 +1349,12 @@ void setup() {
  *    card, host, or by direct injection. The queue will continue to fill
  *    as long as idle() or manage_inactivity() are being called.
  */
+#if ENABLED(RAPIDIA_STACK_UTIL)
+  NO_INLINE
+#endif
 void loop() {
+  RAPIDIA_MARK_STACK_ROOT();
+
   do {
     idle();
 

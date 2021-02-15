@@ -326,6 +326,7 @@ inline void print_xyz(const xyz_pos_t &xyz, PGM_P const prefix=nullptr, PGM_P co
 #define SERIAL_POS(SUFFIX,VAR) do { print_xyz(VAR, PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n")); }while(0)
 #define SERIAL_XYZ(PREFIX,V...) do { print_xyz(V, PSTR(PREFIX), nullptr); }while(0)
 
+#if ENABLED(RAPIDIA)
 // echoes json key with quotes and colon
 inline void echo_key(char c)
 {
@@ -351,3 +352,29 @@ inline void echo_separator(bool& io_first_separator)
   }
   io_first_separator = false;
 }
+
+template<typename T>
+inline char* _sprint_hex(char* cbuff, T value, uint8_t digits, bool zeropad=true)
+{
+    char *c = cbuff + digits + 1;
+    *(--c) = 0;
+    while (digits --> 0)
+    {
+        uint8_t digit = value % 0x10;
+        *(--c) = (digit < 10)
+            ? (digit + '0')
+            : (digit + 'A' - 10);
+        value /= 0x10;
+        if (!zeropad && !value) break;
+    }
+    return c;
+}
+
+template<typename T>
+inline void serial_hex(T value, uint8_t digits, bool zeropad=true)
+{
+    char cbuff[digits + 1];
+    char* c = _sprint_hex(cbuff, value, digits, zeropad);
+    SERIAL_ECHO(c);
+}
+#endif

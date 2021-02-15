@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../inc/MarlinConfigPre.h"
-#include <avr/pgmspace.h>
+#include "../../HAL/HAL.h"
 
 #if ENABLED(RAPIDIA_KILL_RECOVERY)
 

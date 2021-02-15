@@ -1055,6 +1055,9 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
           break;
         case 801: break; // (emergency parser handles this)
         case 802: R802(); break; // print debug info
+        case 803: R803(); break; // read EEPROM
+        case 804: R804(); break; // write EEPROM
+        case 805: R805(); break; // EEPROM integrity scan
       #endif
 
       default: parser.unknown_command_warning(); break;
