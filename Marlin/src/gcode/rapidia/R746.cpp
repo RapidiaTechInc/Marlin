@@ -94,7 +94,6 @@ void homeT1Z() {
   do_t1_homing_move(Z_AXIS, 1.5f * max_length(Z_AXIS) * axis_home_dir);
 
   // When homing Z with probe respect probe clearance
-  const bool use_probe_bump = TERN0(HOMING_Z_WITH_PROBE, home_bump_mm(Z_AXIS));
   const float bump = axis_home_dir * home_bump_mm(Z_AXIS);
 
   // If a second homing move is configured...
@@ -111,11 +110,13 @@ void homeT1Z() {
   }
 
   // Set T1 Z Offset
+  tool_change(0, true); // use t0's z value as the offset
   hotend_offset[1].z = current_position[Z_AXIS];
   SERIAL_ECHO_START();
   SERIAL_ECHOPGM("Set T1 Z Offset to: ");
   SERIAL_ECHO_F(hotend_offset[1].z, 3);
   SERIAL_EOL();
+  tool_change(1, true); // change back to t1
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
@@ -163,6 +164,8 @@ void GcodeSuite::R746() {
   // Wait for planner moves to finish!
   planner.synchronize();
 
+  hotend_offset[1].z = 0; // reset t1 z offset to 0 before moving
+
   // Disable the leveling matrix before homing (REVISIT THIS LATER)
   #if HAS_LEVELING
 
@@ -176,19 +179,17 @@ void GcodeSuite::R746() {
   // Count this command as movement / activity
   reset_stepper_timeout();
 
-  // Always home with tool 1 active
-  #if HAS_MULTI_HOTEND
-    #if DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-      const uint8_t old_tool_index = active_extruder;
-    #endif
-    tool_change(1);
-  #endif
-
   TERN_(HAS_DUPLICATION_MODE, extruder_duplication_enabled = false);
 
   remember_feedrate_scaling_off();
 
   endstops.enable(true); // Enable endstops for next homing move
+
+  tool_change(0, true); // change to t0 without moving in order to dock it
+
+  homeaxis(X_AXIS); // always dock t0 to prevent crashing
+
+  tool_change(1, true); // change to t1 without moving
 
   const float z_homing_height =
     ENABLED(UNKNOWN_Z_NO_RAISE) && !TEST(axis_known_position, Z_AXIS)
@@ -215,11 +216,6 @@ void GcodeSuite::R746() {
   TERN_(RESTORE_LEVELING_AFTER_G28, set_bed_leveling_enabled(leveling_was_active));
 
   restore_feedrate_and_scaling();
-
-  // Restore the active tool after homing
-  #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
-    tool_change(old_tool_index);
-  #endif
 
   #if defined(Z_AFTER_HOMING)
     do_blocking_move_to_z(Z_AFTER_HOMING);
