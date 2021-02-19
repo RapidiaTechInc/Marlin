@@ -122,7 +122,11 @@ void GcodeSuite::R746() {
   // restore previous settings
   endstops.not_homing();
   TERN_(RESTORE_LEVELING_AFTER_G28, set_bed_leveling_enabled(leveling_was_active));
+
+  // return to previous active extruder, park inactive extruder
+  tool_change(!prev_extruder, true);
   tool_change(prev_extruder);
+
   restore_feedrate_and_scaling();
 
   report_current_position();
