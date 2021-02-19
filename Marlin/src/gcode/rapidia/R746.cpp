@@ -55,10 +55,10 @@ static void t1_probe()
   // measure the height at which T1 probe triggers
   const float measured_z = probe.probe_at_point(safe_homing_xy);
 
-  // define this to be T1's z=0.
+  // define this to be T1's z=0
+  // (we need to be in T0 coordinates to do this.)
+  tool_change(0, true);
   hotend_offset[1].z = measured_z;
-  current_position[Z_AXIS] = 0;
-  sync_plan_position();
 
   // probe.move_z_after_homing(); // raise after home
   do_z_clearance(Z_AFTER_HOMING, true, true, false);
