@@ -57,6 +57,7 @@ void do_t1_homing_move(const AxisEnum axis, const float distance, const feedRate
   }
 
   // Get the ABC or XYZ positions in mm
+  sync_plan_position();
   abce_pos_t target = planner.get_axis_positions_mm();
 
   #if HAS_DIST_MM_ARG
@@ -84,7 +85,7 @@ void do_t1_homing_move(const AxisEnum axis, const float distance, const feedRate
   }
 }
 
-void homeT1Z() {
+void homeT1Z() { // in T0's coordinates
   const int axis_home_dir = home_dir(Z_AXIS);
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
@@ -110,13 +111,12 @@ void homeT1Z() {
   }
 
   // Set T1 Z Offset
-  tool_change(0, true); // use t0's z value as the offset
-  hotend_offset[1].z = current_position[Z_AXIS];
+  sync_plan_position();
+  hotend_offset[1].z = stepper.report_state().position[Z_AXIS] / planner.settings.axis_steps_per_mm[Z_AXIS]; // Current position of T0 Z
   SERIAL_ECHO_START();
   SERIAL_ECHOPGM("Set T1 Z Offset to: ");
   SERIAL_ECHO_F(hotend_offset[1].z, 3);
   SERIAL_EOL();
-  tool_change(1, true); // change back to t1
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
@@ -125,38 +125,36 @@ void homeT1Z() {
 
 } // homeaxis()
 
-#if ENABLED(Z_SAFE_HOMING)
-  inline void home_z_safely() {
-    /**
-     * Move the Z probe (or just the nozzle) to the safe homing point
-     * (Z is already at the right height)
-     * Set destination to center of bed with same height
-     */
-    destination.set(safe_homing_xy, current_position.z);
+static void home_t1_z_safely() {
+  /**
+   * Move the Z probe (or just the nozzle) to the safe homing point
+   * (Z is already at the right height)
+   * Set destination to center of bed with same height
+   */
 
-    TERN_(HOMING_Z_WITH_PROBE, destination -= probe.offset_xy);
+  tool_change(1, true); // change to t1 without moving
 
-    if (position_is_reachable(destination)) {
-      // This causes the carriage on Dual X to unpark
-      TERN_(DUAL_X_CARRIAGE, active_extruder_parked = false);
-      do_blocking_move_to_xy(destination);
-      homeT1Z();
-    }
-    else {
-      SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
-    }
+  destination.set(safe_homing_xy, current_position.z);
+
+  TERN_(HOMING_Z_WITH_PROBE, destination -= probe.offset_xy);
+
+  if (position_is_reachable(destination)) {
+    // This causes the carriage on Dual X to unpark
+    TERN_(DUAL_X_CARRIAGE, active_extruder_parked = false);
+    do_blocking_move_to_xy(destination);
+    tool_change(0, true); // change to t1 without moving
+    homeT1Z();
   }
-
-#endif // Z_SAFE_HOMING
+  else {
+    SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
+  }
+}
 
 void GcodeSuite::R746() {
-
-  // Add checking for correct state
   // Check T0 already homed
-  // Disallow Z homing if X or Y homing is needed
-  if (homing_needed_error(_BV(X_AXIS) | _BV(Y_AXIS))) return;
-  // Check T1 enabled
-  // Check XY position
+  if (homing_needed_error()) {
+    return;
+  }
   // Check dualx mode was not set to something weird
 
   RAISE_HOMING_SEMAPHORE();
@@ -187,9 +185,10 @@ void GcodeSuite::R746() {
 
   tool_change(0, true); // change to t0 without moving in order to dock it
 
+  // TODO: Don't home but just park it
   homeaxis(X_AXIS); // always dock t0 to prevent crashing
 
-  tool_change(1, true); // change to t1 without moving
+  tool_change(1, true); // change to t0 without moving in order to dock it
 
   const float z_homing_height =
     ENABLED(UNKNOWN_Z_NO_RAISE) && !TEST(axis_known_position, Z_AXIS)
@@ -205,9 +204,18 @@ void GcodeSuite::R746() {
   // Home Z
   TERN_(BLTOUCH, bltouch.init());
 
-  TERN(Z_SAFE_HOMING, home_z_safely(), homeT1Z());
+  // home_t1_z_safely();
+  hotend_offset[1].z = probe.probe_at_point(safe_homing_xy);
+  SERIAL_ECHO_START();
+  SERIAL_ECHOPGM("Set T1 Z Offset to: ");
+  SERIAL_ECHO_F(hotend_offset[1].z, 3);
+  SERIAL_EOL();
 
-  probe.move_z_after_homing(); // raise after home
+  tool_change(0, true); // change to t0 without moving in order to dock it
+
+
+  // probe.move_z_after_homing(); // raise after home
+  do_z_clearance(Z_AFTER_HOMING, true, true, false);
 
   SERIAL_ECHOLNPGM("Finished homing T1 Z.");
 
