@@ -186,8 +186,8 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
       {
         SERIAL_CHAR_CHK('"');
         SERIAL_CHAR_CHK('E');
-        SERIAL_CHAR_CHK(('0' + e));
-        static_assert(EXTRUDERS < 10, "at most 10 extruders function for this arithmetic.");
+        SERIAL_CHAR_CHK(('1' + e));
+        static_assert(EXTRUDERS < 9, "at most 9 extruders function for this arithmetic.");
         SERIAL_CHAR_CHK('"');
         SERIAL_CHAR_CHK(':');
 
