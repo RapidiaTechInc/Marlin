@@ -701,7 +701,7 @@ inline void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_a
 
 #if ENABLED(DUAL_X_CARRIAGE)
 
-  inline void dualx_tool_change(const uint8_t new_tool, bool &no_move) {
+  inline void dualx_tool_change(const uint8_t new_tool, const bool no_move) {
 
     DEBUG_ECHOPGM("Dual X Carriage Mode ");
     switch (dual_x_carriage_mode) {

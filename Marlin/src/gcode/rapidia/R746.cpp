@@ -21,6 +21,7 @@
  */
 
 #include "../../inc/MarlinConfig.h"
+#include "../../MarlinCore.h"
 
 #include "../gcode.h"
 
@@ -42,21 +43,22 @@
 
 #if ENABLED(RAPIDIA_T1_HOMING)
 
-static void park_toolhead(uint8_t toolhead=active_extruder) {
-  uint8_t prev = active_extruder;
-  tool_change(toolhead, true);
-  do_blocking_move_to_x(x_home_pos(toolhead));
-  tool_change(prev, true);
-}
-
 static void t1_probe()
 {
-  tool_change(1, true);
+  // TODO: enable these after rebasing onto 2.0.6.1r
+  //assert_kill(active_extruder == 0);
+  //assert_kill(hotend_offset[Z_AXIS] == 0);
 
-  hotend_offset[1].z = probe.probe_at_point(safe_homing_xy);
+  // park T0 and move T1 into position.
+  tool_change(1);
 
-  // for z clearance and raising
-  tool_change(0, true);
+  // measure the height at which T1 probe triggers
+  const float measured_z = probe.probe_at_point(safe_homing_xy);
+
+  // define this to be T1's z=0.
+  hotend_offset[1].z = measured_z;
+  current_position[Z_AXIS] = 0;
+  sync_plan_position();
 
   // probe.move_z_after_homing(); // raise after home
   do_z_clearance(Z_AFTER_HOMING, true, true, false);
@@ -76,8 +78,8 @@ void GcodeSuite::R746() {
   }
 
   // Check dualx mode was not set to something weird
-  if (dual_x_carriage_mode != DXC_FULL_CONTROL_MODE) {
-    SERIAL_ERROR_MSG("dualx mode must be set to full control mode. (M605 S0)");
+  if (dual_x_carriage_mode != DXC_AUTO_PARK_MODE) {
+    SERIAL_ERROR_MSG("dualx mode must be set to auto-park mode. (M605 S0)");
     return;
   }
 
@@ -88,7 +90,11 @@ void GcodeSuite::R746() {
   // Wait for planner moves to finish.
   planner.synchronize();
 
-  hotend_offset[1].z = 0; // reset t1 z offset to 0 before moving
+  // reset t1 z offset to 0 before moving,
+  // but ensure this is done while in T0's coordinates
+  // (so that current_position remains correct)
+  tool_change(0, true);
+  hotend_offset[1].z = 0;
 
   // Disable the leveling matrix before homing (REVISIT THIS LATER)
   #if HAS_LEVELING
@@ -108,8 +114,6 @@ void GcodeSuite::R746() {
 
   endstops.enable(true); // Enable endstops upcoming homing moves
 
-  park_toolhead(0); // always dock t0 to prevent crashing
-
   TERN_(BLTOUCH, bltouch.init());
 
   // main homing logic for T1.
@@ -118,7 +122,7 @@ void GcodeSuite::R746() {
   // restore previous settings
   endstops.not_homing();
   TERN_(RESTORE_LEVELING_AFTER_G28, set_bed_leveling_enabled(leveling_was_active));
-  tool_change(prev_extruder, true);
+  tool_change(prev_extruder);
   restore_feedrate_and_scaling();
 
   report_current_position();
