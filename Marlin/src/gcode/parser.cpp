@@ -364,6 +364,19 @@ void GCodeParser::unknown_command_warning() {
   SERIAL_ECHO_MSG(STR_UNKNOWN_COMMAND, command_ptr, "\"");
 }
 
+uint64_t GCodeParser::value_ulong64()
+{
+    const char* p = value_ptr;
+    uint64_t value = 0;
+    while (*p >= '0' && *p <= '9')
+    {
+      value *= 10;
+      value += (*p - '0');
+      ++p;
+    }
+    return value;
+  }
+
 #if ENABLED(DEBUG_GCODE_PARSER)
 
   void GCodeParser::debug() {

@@ -82,7 +82,7 @@
 
 // keep track of and store certain printer statistics
 // (namely cumulative total extrusion amount)
-//#define RAPIDIA_MILEAGE
+#define RAPIDIA_MILEAGE
 
 // must be enough room for the other eeprom settings to fit before this.
 #define RAPIDIA_MILEAGE_EEPROM_START 0x400

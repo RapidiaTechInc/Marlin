@@ -267,6 +267,7 @@ public:
   // Code value as a long or ulong
   static inline int32_t value_long() { return value_ptr ? strtol(value_ptr, nullptr, 10) : 0L; }
   static inline uint32_t value_ulong() { return value_ptr ? strtoul(value_ptr, nullptr, 10) : 0UL; }
+  static uint64_t value_ulong64();
 
   // Code value for use as time
   static inline millis_t value_millis() { return value_ulong(); }

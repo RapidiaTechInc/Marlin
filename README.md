@@ -127,7 +127,7 @@ Lamp on/Lamp off.
 For now, these commands are aliases of M106 and M107.
 
 
-### R738 [H(s32:milliseconds)] [P,C,R,X,E,D(0,1)]
+### R738 [H(s32:milliseconds)] [A,P,C,R,X,E,D(0,1)]
 
 Auto-reporting. H sets the interval at which the heartbeat status update occurs. Temperature and heartbeat reports occur separately, but they are both enabled by this command. P,C,R, etc. can enable/disable individual status updates in that heartbeat. Some of these options are disabled by default (\*). The report is issued as a json object and can contain the following entries:
 
@@ -139,9 +139,11 @@ Auto-reporting. H sets the interval at which the heartbeat status update occurs.
 - E: Endstops states. Reported as a string: endstop state for X_MIN through Z_MIN (reported as ‘x’, ‘y’, ‘z’ in lower case), and X_MAX through Z_MAX (reported as ‘X’, ‘Y’, ‘Z’ in upper case)
 - M: Mileage data. Reported as (a) `null`, if mileage is disabled, or (b) an object containing the keys "E0" etc. with the number of steps taken on the E axis per extruder. Also contains key "I", whose value is the current "mileage save index"; if this value equals or exceeds RAPIDIA_MILEAGE_SAVE_MULTIPLICITY (as defined in the firmware), then the EEPROM store for the mileage data is expended.
 - D: debug info.
+- A: Use `A0` to set all flags to 0, or `A1` to set all flags to the default values, or `A2` to set all flags to on. (This is applied before any of the other flags.)
+
 
 Example command:
-`M155 S3 H2000 P1 C0 R1 X0`
+`M155 S3 H2000 A0 P1 C0 R1 X0`
 
 **Example report [H]**
 
@@ -155,7 +157,7 @@ Note that the “F" and “T" entries in the position object refer to the curren
 
 As above, but sends a heartbeat message immediately upon execution (rather than scheduling a heartbeat interval).
 By default, the flags are the same as has been configured with R736, and additional flags specified will modify only
-this heartbeat message. Use `A0` to default all flags to 0 regardless of the current configuration, or `A1` to default all flags to the default values, or `A2` to default all flags to on.
+this heartbeat message.
 
 Example commands:
 `M155`,
@@ -180,13 +182,26 @@ Save Mileage Data.
 
 While the mileage data is saved to EEPROM roughly every minute or two, this command causes the mileage to be saved immediately. It's recommended to use this command after a print completes, when pausing a print, before any action which is unusually likely to be interrupted by a complete power-down of the printer, and perhaps at the end of every layer.
 
-### R743 I(:seconds)
+### R743 I(u16:seconds)
 
 Set Mileage save interval.
 
 The mileage data saves to EEPROM every minute or two by default. This sets the maximum save interval in seconds.
 
 (Note that the EEPROM will not be redundantly overwritten if the mileage data has not changed, i.e. if no extrusion has occurred. There are a limited number of EEPROM writes available.)
+
+### R744 E(u8:extruder) V(u64:amount) S(bool:save)
+
+Directly edit mileage.
+
+Parameters:
+
+- E: extruder number, indexed from 1. Default value is 0, meaning modify all extruders.
+- V: number of steps (decimal)
+- S: save mileage immediately (default: true)
+
+Example command:
+`R744 E2 V5883928405943249`
 
 ### R745
 

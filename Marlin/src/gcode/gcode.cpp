@@ -1020,6 +1020,7 @@ void GcodeSuite::process_parsed_command(bool no_ok/*=false*/) {
         case 741: R741(); break;                                  // R741: reset mileage
         case 742: R742(); break;                                  // R742: save mileage immediately
         case 743: R743(); break;                                  // R743: set mileage save interval
+        case 744: R744(); break;                                  // R743: edit mileage directly
       #endif
 
       #if ENABLED(RAPIDIA_HOMING_RESET)

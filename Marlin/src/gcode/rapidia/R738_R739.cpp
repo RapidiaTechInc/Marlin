@@ -43,7 +43,24 @@ void apply_select(HeartbeatSelectionUint& io_selection, HeartbeatSelection apply
 
 static void parse_heartbeat_select(HeartbeatSelectionUint& io_heartbeat_select)
 {
-if (parser.seenval('P'))
+  if (parser.seenval('A'))
+  {
+    uint16_t enabled = parser.value_ushort();
+    if (enabled == 0)
+    {
+      io_heartbeat_select = 0;
+    }
+    else if (enabled == 1)
+    {
+      io_heartbeat_select = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_DEFAULT);
+    }
+    else
+    {
+      io_heartbeat_select = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_ALL);
+    }
+  }
+
+  if (parser.seenval('P'))
   {
     uint16_t enabled = parser.value_ushort();
     apply_select(io_heartbeat_select, HeartbeatSelection::PLAN_POSITION, enabled);
@@ -106,23 +123,6 @@ void GcodeSuite::R738()
 void GcodeSuite::R739()
 {
   HeartbeatSelectionUint selection = heartbeat.selection;
-
-  if (parser.seenval('A'))
-  {
-    uint16_t enabled = parser.value_ushort();
-    if (enabled == 0)
-    {
-      selection = 0;
-    }
-    else if (enabled == 1)
-    {
-      selection = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_DEFAULT);
-    }
-    else
-    {
-      selection = static_cast<HeartbeatSelectionUint>(HeartbeatSelection::_ALL);
-    }
-  }
 
   parse_heartbeat_select(selection);
   heartbeat.serial_info(selection);

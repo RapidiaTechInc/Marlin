@@ -42,5 +42,37 @@ void GcodeSuite::R743()
     SERIAL_ECHOLNPGM(" ms.");
 }
 
+void GcodeSuite::R744()
+{
+    // modify mileage
+    const uint8_t extruder = parser.seenval('E') ? parser.value_byte() : 0; // 0 = all extruders
+    const uint64_t amount = parser.seenval('V') ? parser.value_ulong64() : 0;
+    const bool save = parser.seenval('S') ? parser.value_bool() : true;
+
+    MileageData& data = mileage.data();
+
+    if (extruder == 0)
+    {
+        for (size_t i = 0; i < EXTRUDERS; ++i)
+        {
+            data.e_steps[i] = amount;
+        }
+    }
+    else
+    {
+        if (extruder - 1 >= EXTRUDERS)
+        {
+            SERIAL_ERROR_MSG("invalid extruder number.");
+            return;
+        }
+        data.e_steps[extruder - 1] = amount;
+    }
+
+    if (save && mileage.save_eeprom())
+    {
+        SERIAL_ERROR_MSG("Mileage was not saved to EEPROM.");
+    }
+}
+
 #endif // USB_FLASH_DRIVE_SUPPORT
 
