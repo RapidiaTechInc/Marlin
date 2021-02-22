@@ -355,6 +355,10 @@ bool Probe::set_deployed(const bool deploy) {
     constexpr float unknown_condition = true;
   #endif
 
+  // silence warnings if unused
+  (void)deploy_stow_condition;
+  (void)unknown_condition;
+
   #if 0
   if (deploy_stow_condition && unknown_condition)
     do_z_raise(_MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_CLEARANCE_DEPLOY_PROBE));
