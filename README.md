@@ -197,7 +197,7 @@ Directly edit mileage.
 Parameters:
 
 - E: extruder number, indexed from 1. Default value is 0, meaning modify all extruders.
-- V: number of steps (decimal)
+- V: number of steps (decimal). Default value is 0.
 - S: save mileage immediately (default: true)
 
 Example command:
