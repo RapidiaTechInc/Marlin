@@ -77,6 +77,9 @@
 // allow computing checksums for heartbeat, etc.
 #define RAPIDIA_CHECKSUMS
 
+// reports UUID in capabilities (M115)
+#define RAPIDIA_REPORT_UUID
+
 // keep track of and store certain printer statistics
 // (namely cumulative total extrusion amount)
 //#define RAPIDIA_MILEAGE

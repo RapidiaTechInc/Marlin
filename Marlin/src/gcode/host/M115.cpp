@@ -23,6 +23,10 @@
 #include "../gcode.h"
 #include "../../inc/MarlinConfig.h"
 
+#if ENABLED(RAPIDIA_REPORT_UUID)
+  #include "../../libs/ArduinoUniqueID.h"
+#endif
+
 #if ENABLED(M115_GEOMETRY_REPORT)
   #include "../../module/motion.h"
 #endif
@@ -65,6 +69,17 @@ void GcodeSuite::M115() {
     {
       SERIAL_ECHOLNPGM("RAPIDIA:REV:" STRINGIFY(RAPIDIA_SRC_REV));
     }
+  #endif
+
+  #if ENABLED(RAPIDIA_REPORT_UUID)
+  {
+    SERIAL_ECHOPGM("RAPIDIA:UUID:");
+    for (size_t i = 0; i < UniqueIDsize; ++i)
+    {
+      serial_hex(UniqueID[i], 2);
+    }
+    SERIAL_ECHOLN();
+  }
   #endif
 
   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
