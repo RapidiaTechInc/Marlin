@@ -136,10 +136,6 @@ Stepper stepper; // Singleton
   #include "../feature/spindle_laser.h"
 #endif
 
-#if ENABLED(RAPIDIA_MILEAGE)
-  #include "../feature/rapidia/mileage.h"
-#endif
-
 // public:
 
 #if EITHER(HAS_EXTRA_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
@@ -2276,7 +2272,7 @@ void Stepper::stop_e_motion()
     // this allows moving onto the next block.
     step_events_completed = step_event_count;
   }
-  
+
   if (was_enabled) wake_up();
 }
 
@@ -2353,10 +2349,6 @@ void Stepper::stop_e_motion()
       #endif
 
       LA_steps < 0 ? ++LA_steps : --LA_steps;
-
-      #if ENABLED(RAPIDIA_MILEAGE)
-        Rapidia::mileage.increment_e_step_tally(stepper_extruder);
-      #endif
 
       #if ISR_PULSE_CONTROL
         AWAIT_HIGH_PULSE();

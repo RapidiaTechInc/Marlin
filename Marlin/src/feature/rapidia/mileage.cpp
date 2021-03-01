@@ -53,7 +53,7 @@ namespace Rapidia
 static_assert(RAPIDIA_MILEAGE_SIZE_FULL < RAPIDIA_MILEAGE_MAX_SIZE, "Insufficient room for mileage store in eeprom");
 
 Mileage milage;
-decltype(Mileage::e_step_tally) Mileage::e_step_tally{ 0, 0 };
+decltype(Mileage::e_mm_tally) Mileage::e_mm_tally{ 0, 0 };
 MileageData Mileage::_data;
 millis_t Mileage::save_interval_ms = SEC_TO_MS(RAPIDIA_MILEAGE_SAVE_INTERVAL);
 millis_t Mileage::next_save_time_ms = 0;
@@ -97,30 +97,16 @@ MileageData& Mileage::data()
   return _data;
 }
 
-void Mileage::add_tally()
-{
-  // critical section
-  decltype(e_step_tally) tally_copy;
+void Mileage::add_tally() {
+  decltype(e_mm_tally) tally_copy;
   cli();
-  memcpy(&tally_copy, &e_step_tally, sizeof(tally_copy));
-  memset(&e_step_tally, 0, sizeof(e_step_tally));
+  memcpy(&tally_copy, &e_mm_tally, sizeof(tally_copy));
+  memset(&e_mm_tally, 0, sizeof(e_mm_tally));
   sei();
-
-  for (size_t e = 0; e < EXTRUDERS; ++e)
-  {
-    const uint32_t steps = tally_copy[e];
-
-    if (steps == 0) continue;
-
-    #if ENABLED(RAPIDIA_DEV)
-    if (steps >= 0x800000)
-    {
-      SERIAL_ECHO_START();
-      SERIAL_ECHOLNPGM("Warning! Stepper rate faster than mileage cache can process. Update Mileage::e_step_tally size.");
-    }
-    #endif
-
-    data().e_steps[e] += steps;
+  for (size_t e = 0; e < EXTRUDERS; ++e) {
+    const double distance_mm = tally_copy[e];
+    if (distance_mm == 0) continue;
+    data().e_mm[e] += distance_mm;
   }
 }
 
@@ -268,7 +254,7 @@ bool Mileage::save_fail(ErrorCode e)
 {
   SERIAL_ECHO_START();
   SERIAL_ECHOPGM("Warning! failed to write mileage data: ");
-  fail(e);    
+  fail(e);
   SERIAL_ECHOLNPGM(".");
 
   return true;

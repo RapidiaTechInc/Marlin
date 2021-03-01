@@ -55,7 +55,7 @@ on a stock arduino with no peripherals attached (for testing purposes).
 
 ## Changes
 
-### M155 [S(u8:seconds)] *
+### M155 [S(u8:seconds)] \*
 
 temperature setting. This exists in the original firmware, but now additional args will be passed to R738, allowing setting
 heartbeat and temperature simultaneously. See below.
@@ -81,7 +81,7 @@ Flags:
 
 - `I`: Set input checksum mode (default: 1); for gcode checksums.
 - `O`: Set output checksum mode (default: 0). Note: not all output messages support checksums (yet).
-     (As of writing, only heartbeat messages (R738/R739) support checksums)
+  (As of writing, only heartbeat messages (R738/R739) support checksums)
 
 Values:
 
@@ -94,7 +94,8 @@ Example command:
 `R732 O2`
 
 Example checksums:
-- mode `0`: ` Message `
+
+- mode `0`: `Message`
 - mode `1`/`2`: ` Message *75`
 - mode `3`: ` Message *54FD`
 
@@ -102,7 +103,7 @@ Note for input only: leading spaces are skipped and are not included in the chec
 
 ### R733
 
-*[Dev code]*
+_[Dev code]_
 
 Pin test.
 
@@ -126,7 +127,6 @@ Warning: setting S0 means that Marlin requires 0 positive reads for the endstop 
 Lamp on/Lamp off.
 For now, these commands are aliases of M106 and M107.
 
-
 ### R738 [H(s32:milliseconds)] [A,P,C,R,X,E,D(0,1)]
 
 Auto-reporting. H sets the interval at which the heartbeat status update occurs. Temperature and heartbeat reports occur separately, but they are both enabled by this command. P,C,R, etc. can enable/disable individual status updates in that heartbeat. Some of these options are disabled by default (\*). The report is issued as a json object and can contain the following entries:
@@ -140,7 +140,6 @@ Auto-reporting. H sets the interval at which the heartbeat status update occurs.
 - M: Mileage data. Reported as (a) `null`, if mileage is disabled, or (b) an object containing the keys "E0" etc. with the number of steps taken on the E axis per extruder. Also contains key "I", whose value is the current "mileage save index"; if this value equals or exceeds RAPIDIA_MILEAGE_SAVE_MULTIPLICITY (as defined in the firmware), then the EEPROM store for the mileage data is expended.
 - D: debug info.
 - A: Use `A0` to set all flags to 0, or `A1` to set all flags to the default values, or `A2` to set all flags to on. (This is applied before any of the other flags.)
-
 
 Example command:
 `M155 S3 H2000 A0 P1 C0 R1 X0`
@@ -174,7 +173,8 @@ Marlin previously failed to detect it on init.
 
 Reset Mileage Data.
 
-This resets the ongoing count of the number of E steps taken.
+This resets the ongoing count of the number of E mm taken.
+E mm is the length of the theoretical filament length.
 
 ### R742
 
@@ -197,7 +197,7 @@ Directly edit mileage.
 Parameters:
 
 - E: extruder number, indexed from 1. Default value is 0, meaning modify all extruders.
-- V: number of steps (decimal). Default value is 0.
+- V: length in mm (decimal) of theoretical filament used. Default value is 0.
 - S: save mileage immediately (default: true)
 
 Example command:

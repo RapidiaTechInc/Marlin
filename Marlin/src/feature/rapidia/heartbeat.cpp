@@ -27,7 +27,7 @@ void Heartbeat::set_interval(uint16_t v)
   if (v && v < min_heartbeat_interval_ms)
   {
     v = min_heartbeat_interval_ms;
-    
+
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM("Heartbeat interval is lower than minimum ");
     SERIAL_ECHO(min_heartbeat_interval_ms);
@@ -72,6 +72,44 @@ static void report_xyzetf(CHK_ARGSDEF const xyze_pos_t &pos, const uint8_t extru
 }
 
 #define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
+
+char* to_char_array(double num_double, int decimal_place)
+{
+    int num_int = round(num_double * pow(10, decimal_place));
+    int sign = num_int < 0 ? 1 : 0;
+    num_int = abs(num_int);
+
+    if (num_int == 0)
+    {
+        char* s = (char*)malloc(decimal_place + 3);
+        s[0] = '0';
+        s[1] = '.';
+        for (int i = 2; i < decimal_place + 2; i++)
+            s[i] = '0';
+        s[decimal_place + 2] = '\0';
+        return s;
+    }
+
+    int digit_count = 1;
+    int n = num_int;
+    if (n >= 100000000) { digit_count += 8; n /= 100000000; }
+    if (n >= 10000) { digit_count += 4; n /= 10000; }
+    if (n >= 100) { digit_count += 2; n /= 100; }
+    if (n >= 10) { digit_count++; }
+
+    int size = digit_count + 1 + (decimal_place > 0 ? 1 : 0) + sign;
+    char* s = (char*)malloc(size);
+
+    for (int i = 0, integer = num_int; integer != 0; integer /= 10) {
+        s[size - 2 - i++] = integer % 10 + 48;
+        if (decimal_place > 0 && i == decimal_place)
+            s[size - 2 - i++] = '.';
+    }
+    s[size - 1] = '\0';
+    if (sign)
+        s[0] = '-';
+    return s;
+}
 
 void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 {
@@ -192,20 +230,14 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
         SERIAL_CHAR_CHK(':');
 
         // due to an apparent bug in sprintf for %llu, we need this logic.
-        uint64_t val = mileage_data->e_steps[e];
+        double val = mileage_data->e_mm[e];
         if (val == 0)
         {
           SERIAL_CHAR_CHK('0');
         }
         else
         {
-          char* cbuff = chbuff + sizeof(chbuff);
-          *(--cbuff) = 0;
-          while (val > 0)
-          {
-            *(--cbuff) = '0' + (val % 10);
-            val /= 10;
-          }
+          char* cbuff = to_char_array(val, 2);
           SERIAL_ECHO_CHK(cbuff);
         }
         SERIAL_CHAR_CHK(',');
@@ -264,12 +296,12 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
     {
       SERIAL_ECHO_CHK("\"\"");
     }
-    
+
 
     ECHO_SEPARATOR_CHK(sep);
     ECHO_KEY_STR_CHK("dbg-pause-nobuffer");
     SERIAL_ECHO_CHK(itoa(planner.prevent_block_buffering, chbuff, 10));
-    
+
     ECHO_SEPARATOR_CHK(sep);
     ECHO_KEY_STR_CHK("dbg-pause-noextrude");
     SERIAL_ECHO_CHK(itoa(planner.prevent_block_extrusion, chbuff, 10));

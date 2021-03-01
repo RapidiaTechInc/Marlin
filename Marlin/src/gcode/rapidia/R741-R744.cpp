@@ -55,7 +55,7 @@ void GcodeSuite::R744()
     {
         for (size_t i = 0; i < EXTRUDERS; ++i)
         {
-            data.e_steps[i] = amount;
+            data.e_mm[i] = amount;
         }
     }
     else
@@ -65,7 +65,7 @@ void GcodeSuite::R744()
             SERIAL_ERROR_MSG("invalid extruder number.");
             return;
         }
-        data.e_steps[extruder - 1] = amount;
+        data.e_mm[extruder - 1] = amount;
     }
 
     if (save && mileage.save_eeprom())

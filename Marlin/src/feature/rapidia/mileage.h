@@ -11,14 +11,15 @@ namespace Rapidia
 // (stored in EEPROM so this persists between runs, ideally.)
 
 struct MileageData
-{    
-    // all E steps taken (on both extruders).
-    uint64_t e_steps[EXTRUDERS];
+{
+    // All E "length" of theoretical filament extruded in mm
+    // Preserved raw directly from gcode command
+    double e_mm[EXTRUDERS];
 
     void update_crc();
     bool crc_check();
 
-private:
+  private:
     // this must be the last member.
     uint16_t crc;
     uint16_t calc_crc();
@@ -27,8 +28,9 @@ private:
 class Mileage
 {
 public:
-    // intended for stepper ISR use only.
-    FORCE_INLINE static void increment_e_step_tally(uint8_t e) { e_step_tally[e]++; }
+    static void increment_e_mm_tally(uint8_t extruder, double e_mm) {
+      e_mm_tally[extruder] += e_mm;
+    }
 
     static millis_t save_interval_ms;
 
@@ -73,14 +75,9 @@ private:
     static bool save_fail(ErrorCode);
     static void fail(ErrorCode); // helper for load_fail and save_fail
 
-    // this is updated by the stepper ISR,
-    // and cleared in Mileageupdate()
-    // 24 bits ought to be enough to store the maximum possible
-    // number of steps taken between idle loops.
-    // maximum
-    static __uint24 e_step_tally[EXTRUDERS];
-
-    static_assert(sizeof(e_step_tally) == EXTRUDERS * 3, "e step tally not compressed.");
+    // This is updated in the planner, less accurate that actual stepper isr, but good enough for
+    // the purpose of tracking paste usage.
+    static double e_mm_tally[EXTRUDERS];
 };
 
 extern Mileage mileage;
