@@ -73,42 +73,52 @@ static void report_xyzetf(CHK_ARGSDEF const xyze_pos_t &pos, const uint8_t extru
 
 #define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
 
-char* to_char_array(double num_double, int decimal_place)
+char* to_char_array(char* io_result, size_t result_length, double num_double, size_t decimal_place)
 {
-    int num_int = round(num_double * pow(10, decimal_place));
-    int sign = num_int < 0 ? 1 : 0;
-    num_int = abs(num_int);
+    if (result_length <= decimal_place + 3) {
+      // 3 is because of '0.\0'
+      // unsupported
+      return nullptr;
+    }
+
+    int64_t num_int = abs(num_double);
+    size_t sign = num_double < 0 ? 1 : 0;
 
     if (num_int == 0)
     {
-        char* s = (char*)malloc(decimal_place + 3);
-        s[0] = '0';
-        s[1] = '.';
-        for (int i = 2; i < decimal_place + 2; i++)
-            s[i] = '0';
-        s[decimal_place + 2] = '\0';
-        return s;
+        io_result[0] = '0';
+        io_result[1] = '.';
+        for (size_t i = 2; i < decimal_place + 2; i++)
+            io_result[i] = '0';
+        io_result[decimal_place + 2] = '\0';
+        return io_result;
     }
+    size_t digit_count = log10(num_int) + 1;
 
-    int digit_count = 1;
-    int n = num_int;
-    if (n >= 100000000) { digit_count += 8; n /= 100000000; }
-    if (n >= 10000) { digit_count += 4; n /= 10000; }
-    if (n >= 100) { digit_count += 2; n /= 100; }
-    if (n >= 10) { digit_count++; }
+    size_t size = sign + digit_count + (decimal_place > 0 ? 1 : 0) + decimal_place + 1 /* \0 */;
+    size_t decimal_pos = sign + digit_count;
 
-    int size = digit_count + 1 + (decimal_place > 0 ? 1 : 0) + sign;
-    char* s = (char*)malloc(size);
-
-    for (int i = 0, integer = num_int; integer != 0; integer /= 10) {
-        s[size - 2 - i++] = integer % 10 + 48;
-        if (decimal_place > 0 && i == decimal_place)
-            s[size - 2 - i++] = '.';
+    if (result_length < size) {
+      // unsupported
+      return nullptr;
     }
-    s[size - 1] = '\0';
     if (sign)
-        s[0] = '-';
-    return s;
+        io_result[0] = '-';
+
+    uint64_t integer = num_int;
+    for (size_t i = 0; integer != 0; integer /= 10) {
+        io_result[decimal_pos - ++i] = (integer % 10) + '0';
+    }
+    io_result[decimal_pos] = '.';
+    double decimal_values = abs(num_double) - num_int;
+    for (size_t i = 0; i < decimal_pos; i++) {
+      decimal_values -= (int) decimal_values; // removes all values left of decimal point
+      decimal_values *= 10;
+      io_result[decimal_pos + i + 1] = (int) decimal_values + '0';
+    }
+
+    io_result[size - 1] = '\0';
+    return io_result;
 }
 
 void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
@@ -237,8 +247,12 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
         }
         else
         {
-          char* cbuff = to_char_array(val, 2);
-          SERIAL_ECHO_CHK(cbuff);
+          // char* result = to_char_array(chbuff, sizeof(chbuff), val, 2);
+          // if (result == nullptr) {
+          //   SERIAL_ECHO_CHK("null");
+          // } else {
+          SERIAL_ECHO_F(val);
+          // }
         }
         SERIAL_CHAR_CHK(',');
       }

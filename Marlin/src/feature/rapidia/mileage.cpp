@@ -84,6 +84,15 @@ void Mileage::update()
     next_save_time_ms = now + save_interval_ms;
 
     save_eeprom();
+
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPGM("E0 = ");
+    SERIAL_ECHO(data().e_mm[0]);
+    SERIAL_EOL();
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPGM("E1 = ");
+    SERIAL_ECHO(data().e_mm[1]);
+    SERIAL_EOL();
   }
 }
 

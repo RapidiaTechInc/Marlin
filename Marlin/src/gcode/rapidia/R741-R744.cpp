@@ -46,7 +46,7 @@ void GcodeSuite::R744()
 {
     // modify mileage
     const uint8_t extruder = parser.seenval('E') ? parser.value_byte() : 0; // 0 = all extruders
-    const uint64_t amount = parser.seenval('V') ? parser.value_ulong64() : 0;
+    const double amount = parser.seenval('V') ? parser.value_float() : 0;
     const bool save = parser.seenval('S') ? parser.value_bool() : true;
 
     MileageData& data = mileage.data();
@@ -55,7 +55,17 @@ void GcodeSuite::R744()
     {
         for (size_t i = 0; i < EXTRUDERS; ++i)
         {
-            data.e_mm[i] = amount;
+            if (amount < 0) {
+              data.e_mm[i] = 0;
+            } else {
+              data.e_mm[i] = amount;
+            }
+            SERIAL_ECHO_START();
+            SERIAL_ECHOPGM("E");
+            SERIAL_ECHO(i);
+            SERIAL_ECHOPGM(" set to ");
+            SERIAL_ECHO(data.e_mm[i]);
+            SERIAL_EOL();
         }
     }
     else
@@ -65,7 +75,17 @@ void GcodeSuite::R744()
             SERIAL_ERROR_MSG("invalid extruder number.");
             return;
         }
-        data.e_mm[extruder - 1] = amount;
+        if (amount < 0) {
+          data.e_mm[extruder - 1] = 0;
+        } else {
+          data.e_mm[extruder - 1] = amount;
+        }
+        SERIAL_ECHO_START();
+        SERIAL_ECHOPGM("E");
+        SERIAL_ECHO(extruder - 1);
+        SERIAL_ECHOPGM(" set to ");
+        SERIAL_ECHO(data.e_mm[extruder - 1]);
+        SERIAL_EOL();
     }
 
     if (save && mileage.save_eeprom())
