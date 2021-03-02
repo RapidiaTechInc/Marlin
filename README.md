@@ -190,7 +190,7 @@ The mileage data saves to EEPROM every minute or two by default. This sets the m
 
 (Note that the EEPROM will not be redundantly overwritten if the mileage data has not changed, i.e. if no extrusion has occurred. There are a limited number of EEPROM writes available.)
 
-### R744 E(u8:extruder) [V(double:mm)] [N(u64:nm)] S(bool:save)
+### R744 E(u8:extruder) [V(double:mm)] [N(u64:nm)] [U(u64:mm)] S(bool:save)
 
 Directly edit mileage.
 
@@ -199,6 +199,7 @@ Parameters:
 - E: extruder number, indexed from 1. Default value is 0, meaning modify all extruders.
 - V: length in mm (decimal) of theoretical filament used. Default value is 0. **Note**: it is advisable to use the `N` field instead of `V` as it supports greater precision than the floating point parsing of the `V` field.
 - N: length in nm of theoretical filament used. Default value is 0. **Note**: this field is in nanometres, which are 10^-6 mm. This field is preferred over use of the `V` field as it employs greater precision.
+- U: length in um of theoretical filament used. Default value is 0. **Note**: this field is in micrometres, which are 10^-3 mm.
 - S: save mileage immediately (default: true)
 
 Example command:

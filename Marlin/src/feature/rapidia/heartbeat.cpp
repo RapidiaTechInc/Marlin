@@ -192,29 +192,20 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
         SERIAL_CHAR_CHK(':');
 
         uint64_t val = mileage_to_u64nm(mileage_data->e_mm[e]);
-        if (val == 0)
-        {
-          SERIAL_CHAR_CHK('0');
-          SERIAL_CHAR_CHK('.');
-          SERIAL_CHAR_CHK('0');
-        }
-        else
-        {
-          // convert to mm/1000
-          constexpr uint8_t PREC = 3;
-          val /= 1000; // this must be 10^(6 - PREC), where 6 is the digits between nm and mm.
+        // convert to mm/1000
+        constexpr uint8_t PREC = 3;
+        val /= 1000; // this must be 10^(6 - PREC), where 6 is the digits between nm and mm.
 
-          // make this into floating point by shifting digits over and inserting a '.'
-          const char* c = (val >= 1000) // 1000 = 10^PREC
-             ? (_sprint_dec(chbuff + 1, val, sizeof(chbuff) - 1, false) - 1)
-             : (_sprint_dec(chbuff + sizeof(chbuff) - PREC - 1, val, PREC + 1, true) - 1);
-          for (size_t i = 0; i < sizeof(chbuff) - 1 - PREC; ++i)
-          {
-            chbuff[i] = chbuff[i + 1];
-          }
-          chbuff[sizeof(chbuff) - 1 - PREC] = '.';
-          SERIAL_ECHO_CHK(c);
+        // make this into floating point by shifting digits over and inserting a '.'
+        const char* c = (val >= 1000) // 1000 = 10^PREC
+            ? (_sprint_dec(chbuff + 1, val, sizeof(chbuff) - 1, false) - 1)
+            : (_sprint_dec(chbuff + sizeof(chbuff) - PREC - 1, val, PREC + 1, true) - 1);
+        for (size_t i = 0; i < sizeof(chbuff) - 1 - PREC; ++i)
+        {
+          chbuff[i] = chbuff[i + 1];
         }
+        chbuff[sizeof(chbuff) - 1 - PREC] = '.';
+        SERIAL_ECHO_CHK(c);
         SERIAL_CHAR_CHK(',');
       }
       ECHO_KEY_CHK('I');

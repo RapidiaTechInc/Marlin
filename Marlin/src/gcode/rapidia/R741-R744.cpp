@@ -55,9 +55,13 @@ void GcodeSuite::R744()
         return;
     }
 
+    const uint64_t amount_um = parser.seenval('U')
+        ? parser.value_ulong64()
+        : static_cast<uint64_t>(amount_mm * 1000);
+
     const uint64_t amount_nm = parser.seenval('N')
         ? parser.value_ulong64()
-        : static_cast<uint64_t>(amount_mm * 1000000);
+        : (amount_um * 1000);
     
     const bool save = parser.seenval('S') ? parser.value_bool() : true;
 
