@@ -371,6 +371,21 @@ inline char* _sprint_hex(char* cbuff, T value, uint8_t digits, bool zeropad=true
 }
 
 template<typename T>
+inline char* _sprint_dec(char* cbuff, T value, uint8_t digits=0xff, bool zeropad=false)
+{
+    char *c = cbuff + digits + 1;
+    *(--c) = 0;
+    while (digits --> 0)
+    {
+        uint8_t digit = value % 10;
+        *(--c) = digit + '0';
+        value /= 10;
+        if (!zeropad && !value) break;
+    }
+    return c;
+}
+
+template<typename T>
 inline void serial_hex(T value, uint8_t digits, bool zeropad=true)
 {
     char cbuff[digits + 1];

@@ -2978,7 +2978,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
   #endif
 
   #if ENABLED(RAPIDIA_MILEAGE)
-    Rapidia::mileage.increment_e_mm_tally(extruder, e);
+    Rapidia::mileage.increment_e_mm_tally(extruder, Rapidia::double_to_mileage(e));
   #endif
 
   // The target position of the tool in absolute steps

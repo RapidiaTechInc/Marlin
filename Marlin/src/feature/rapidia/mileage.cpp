@@ -84,15 +84,6 @@ void Mileage::update()
     next_save_time_ms = now + save_interval_ms;
 
     save_eeprom();
-
-    SERIAL_ECHO_START();
-    SERIAL_ECHOPGM("E0 = ");
-    SERIAL_ECHO(data().e_mm[0]);
-    SERIAL_EOL();
-    SERIAL_ECHO_START();
-    SERIAL_ECHOPGM("E1 = ");
-    SERIAL_ECHO(data().e_mm[1]);
-    SERIAL_EOL();
   }
 }
 
@@ -106,22 +97,22 @@ MileageData& Mileage::data()
   return _data;
 }
 
-void Mileage::add_tally() {
+void Mileage::add_tally()
+{
+  // copy tally to temporary variable and reset tally to 0.
   decltype(e_mm_tally) tally_copy;
   cli();
   memcpy(&tally_copy, &e_mm_tally, sizeof(tally_copy));
   memset(&e_mm_tally, 0, sizeof(e_mm_tally));
   sei();
-  for (size_t e = 0; e < EXTRUDERS; ++e) {
-    const double distance_mm = tally_copy[e];
-    if (distance_mm == 0) continue;
+  
+  // add these values to the mileage data.
+  for (size_t e = 0; e < EXTRUDERS; ++e)
+  {
+    const mileage_amount_t distance_mm = tally_copy[e];
     data().e_mm[e] += distance_mm;
   }
 }
-
-// these are chosen arbitrarily.
-#define INDEX_NULL_BYTE 0x59
-#define INDEX_SET_BYTE 0xc2
 
 bool Mileage::header_is_empty()
 {

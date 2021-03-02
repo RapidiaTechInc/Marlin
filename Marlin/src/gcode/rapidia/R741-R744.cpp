@@ -46,7 +46,19 @@ void GcodeSuite::R744()
 {
     // modify mileage
     const uint8_t extruder = parser.seenval('E') ? parser.value_byte() : 0; // 0 = all extruders
-    const double amount = parser.seenval('V') ? parser.value_float() : 0;
+    const double amount_mm = parser.seenval('V') ? parser.value_float() : 0;
+
+    // can't store negative mileage.
+    if (amount_mm < 0)
+    {
+        SERIAL_ERROR_MSG("Cannot store negative mileage value.");
+        return;
+    }
+
+    const uint64_t amount_nm = parser.seenval('N')
+        ? parser.value_ulong64()
+        : static_cast<uint64_t>(amount_mm * 1000000);
+    
     const bool save = parser.seenval('S') ? parser.value_bool() : true;
 
     MileageData& data = mileage.data();
@@ -55,17 +67,7 @@ void GcodeSuite::R744()
     {
         for (size_t i = 0; i < EXTRUDERS; ++i)
         {
-            if (amount < 0) {
-              data.e_mm[i] = 0;
-            } else {
-              data.e_mm[i] = amount;
-            }
-            SERIAL_ECHO_START();
-            SERIAL_ECHOPGM("E");
-            SERIAL_ECHO(i);
-            SERIAL_ECHOPGM(" set to ");
-            SERIAL_ECHO(data.e_mm[i]);
-            SERIAL_EOL();
+            data.e_mm[i] = Rapidia::u64nm_to_mileage(amount_nm);
         }
     }
     else
@@ -75,17 +77,7 @@ void GcodeSuite::R744()
             SERIAL_ERROR_MSG("invalid extruder number.");
             return;
         }
-        if (amount < 0) {
-          data.e_mm[extruder - 1] = 0;
-        } else {
-          data.e_mm[extruder - 1] = amount;
-        }
-        SERIAL_ECHO_START();
-        SERIAL_ECHOPGM("E");
-        SERIAL_ECHO(extruder - 1);
-        SERIAL_ECHOPGM(" set to ");
-        SERIAL_ECHO(data.e_mm[extruder - 1]);
-        SERIAL_EOL();
+        data.e_mm[extruder - 1] = Rapidia::u64nm_to_mileage(amount_nm);
     }
 
     if (save && mileage.save_eeprom())

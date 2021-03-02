@@ -73,54 +73,6 @@ static void report_xyzetf(CHK_ARGSDEF const xyze_pos_t &pos, const uint8_t extru
 
 #define TEST_FLAG(a, b) (!!((uint32_t)(a) & (uint32_t)(b)))
 
-char* to_char_array(char* io_result, size_t result_length, double num_double, size_t decimal_place)
-{
-    if (result_length <= decimal_place + 3) {
-      // 3 is because of '0.\0'
-      // unsupported
-      return nullptr;
-    }
-
-    int64_t num_int = abs(num_double);
-    size_t sign = num_double < 0 ? 1 : 0;
-
-    if (num_int == 0)
-    {
-        io_result[0] = '0';
-        io_result[1] = '.';
-        for (size_t i = 2; i < decimal_place + 2; i++)
-            io_result[i] = '0';
-        io_result[decimal_place + 2] = '\0';
-        return io_result;
-    }
-    size_t digit_count = log10(num_int) + 1;
-
-    size_t size = sign + digit_count + (decimal_place > 0 ? 1 : 0) + decimal_place + 1 /* \0 */;
-    size_t decimal_pos = sign + digit_count;
-
-    if (result_length < size) {
-      // unsupported
-      return nullptr;
-    }
-    if (sign)
-        io_result[0] = '-';
-
-    uint64_t integer = num_int;
-    for (size_t i = 0; integer != 0; integer /= 10) {
-        io_result[decimal_pos - ++i] = (integer % 10) + '0';
-    }
-    io_result[decimal_pos] = '.';
-    double decimal_values = abs(num_double) - num_int;
-    for (size_t i = 0; i < decimal_pos; i++) {
-      decimal_values -= (int) decimal_values; // removes all values left of decimal point
-      decimal_values *= 10;
-      io_result[decimal_pos + i + 1] = (int) decimal_values + '0';
-    }
-
-    io_result[size - 1] = '\0';
-    return io_result;
-}
-
 void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 {
   #if ENABLED(RAPIDIA_MILEAGE)
@@ -239,20 +191,29 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
         SERIAL_CHAR_CHK('"');
         SERIAL_CHAR_CHK(':');
 
-        // due to an apparent bug in sprintf for %llu, we need this logic.
-        double val = mileage_data->e_mm[e];
+        uint64_t val = mileage_to_u64nm(mileage_data->e_mm[e]);
         if (val == 0)
         {
+          SERIAL_CHAR_CHK('0');
+          SERIAL_CHAR_CHK('.');
           SERIAL_CHAR_CHK('0');
         }
         else
         {
-          // char* result = to_char_array(chbuff, sizeof(chbuff), val, 2);
-          // if (result == nullptr) {
-          //   SERIAL_ECHO_CHK("null");
-          // } else {
-          SERIAL_ECHO_F(val);
-          // }
+          // convert to mm/1000
+          constexpr uint8_t PREC = 3;
+          val /= 1000; // this must be 10^(6 - PREC), where 6 is the digits between nm and mm.
+
+          // make this into floating point by shifting digits over and inserting a '.'
+          const char* c = (val >= 1000) // 1000 = 10^PREC
+             ? (_sprint_dec(chbuff + 1, val, sizeof(chbuff) - 1, false) - 1)
+             : (_sprint_dec(chbuff + sizeof(chbuff) - PREC - 1, val, PREC + 1, true) - 1);
+          for (size_t i = 0; i < sizeof(chbuff) - 1 - PREC; ++i)
+          {
+            chbuff[i] = chbuff[i + 1];
+          }
+          chbuff[sizeof(chbuff) - 1 - PREC] = '.';
+          SERIAL_ECHO_CHK(c);
         }
         SERIAL_CHAR_CHK(',');
       }
