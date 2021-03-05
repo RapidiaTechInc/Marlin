@@ -93,7 +93,7 @@ void GcodeSuite::R746() {
   // reset t1 z offset to 0 before moving,
   // but ensure this is done while in T0's coordinates
   // (so that current_position remains correct)
-  tool_change(0, true);
+  tool_change(0, true /* no move */);
   hotend_offset[1].z = 0;
 
   // Disable the leveling matrix before homing (REVISIT THIS LATER)
@@ -122,10 +122,6 @@ void GcodeSuite::R746() {
   // restore previous settings
   endstops.not_homing();
   TERN_(RESTORE_LEVELING_AFTER_G28, set_bed_leveling_enabled(leveling_was_active));
-
-  // return to previous active extruder, park inactive extruder
-  tool_change(!prev_extruder, true);
-  tool_change(prev_extruder);
 
   restore_feedrate_and_scaling();
 
