@@ -43,13 +43,18 @@
 
 #if ENABLED(RAPIDIA_T1_HOMING)
 
+static const float PARK_BUFFER = 3.0;
+
 static void t1_probe()
 {
   // TODO: enable these after rebasing onto 2.0.6.1r
   //assert_kill(active_extruder == 0);
   //assert_kill(hotend_offset[Z_AXIS] == 0);
 
+  // ensure it is in t0 before entering this function
+
   // park T0 and move T1 into position.
+  do_blocking_move_to_x(X_MIN_POS + PARK_BUFFER);
   tool_change(1);
 
   // measure the height at which T1 probe triggers
@@ -57,7 +62,7 @@ static void t1_probe()
 
   // define this to be T1's z=0
   // (we need to be in T0 coordinates to do this.)
-  tool_change(0, true);
+  tool_change(0);
   hotend_offset[1].z = measured_z;
 
   // probe.move_z_after_homing(); // raise after home
@@ -78,12 +83,10 @@ void GcodeSuite::R746() {
   }
 
   // Check dualx mode was not set to something weird
-  if (dual_x_carriage_mode != DXC_AUTO_PARK_MODE) {
-    SERIAL_ERROR_MSG("dualx mode must be set to auto-park mode. (M605 S0)");
+  if (dual_x_carriage_mode != DXC_FULL_CONTROL_MODE) {
+    SERIAL_ERROR_MSG("dualx mode must be set to full_control mode. (M605 S0)");
     return;
   }
-
-  uint8_t prev_extruder = active_extruder;
 
   RAISE_HOMING_SEMAPHORE();
 
@@ -93,7 +96,7 @@ void GcodeSuite::R746() {
   // reset t1 z offset to 0 before moving,
   // but ensure this is done while in T0's coordinates
   // (so that current_position remains correct)
-  tool_change(0, true /* no move */);
+  tool_change(0);
   hotend_offset[1].z = 0;
 
   // Disable the leveling matrix before homing (REVISIT THIS LATER)
