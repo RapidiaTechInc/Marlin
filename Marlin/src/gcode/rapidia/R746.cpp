@@ -63,7 +63,7 @@ static void t1_probe()
   // define this to be T1's z=0
   // (we need to be in T0 coordinates to do this.)
   tool_change(0);
-  hotend_offset[1].z = measured_z;
+  hotend_offset[1].z = -1.0f * measured_z;
 
   // probe.move_z_after_homing(); // raise after home
   do_z_clearance(Z_AFTER_HOMING, true, true, false);
