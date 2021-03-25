@@ -1,10 +1,10 @@
 # Rapidia 3D Printer Firmware
 
-Marlin is an open source project which drives many of the world's 3D printers. It is considered to be a reliable and professional-grade firwmare project. Additional documentation can be found at the [Marlin Home Page](http://marlinfw.org/).
+Marlin is an open source project which drives many of the world's 3D printers. It is considered to be a reliable and professional-grade firmware project. Additional documentation can be found at the [Marlin Home Page](http://marlinfw.org/).
 
 Rapidia has made some modifications to Marlin to work better with our hardware and host software. Because this project is licensed under [version 3.0 of the GNU General Public License](./LICENSE), the source code and license must be made available with every distribution of the Marlin firmware.
 
-Most Rapidia-specific changes to the code can be identified by the surrounding RAPIDIA\_\* macros. A list of the new gcode commands created for and existing commands modified for Rapidia use has been provided below.
+Most Rapidia-specific changes to the code can be identified by the surrounding RAPIDIA\_\* macros. A list of the new gcode commands created for (and existing commands modified for) Rapidia use has been provided below.
 
 ## Build and Upload with PlatformIO
 
@@ -22,10 +22,16 @@ Click on the PlatformIO icon on the toolbar on the left, then use Default > Gene
 
 ### PlatformIO CLI
 
-In BASH:
+In Bash (to upload):
 
 ```
-pio run -e rapidia_export -t upload
+pio run -t upload
+```
+
+To build with debug symbols (does not upload):
+
+```
+pio run -t debug
 ```
 
 ### PlatformIO Configurations
