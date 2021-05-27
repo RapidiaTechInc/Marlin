@@ -20,8 +20,8 @@ firmware_root_path = os.getcwd()
 rapidia_export_path = path.join(firmware_root_path, '.pio/build/rapidia_export')
 rapidia_host_path = path.join(firmware_root_path, '../rapidia-host-react-v1')
 hex_source_path = path.join(rapidia_export_path, 'firmware.hex') 
-hex_destination_path = path.join(rapidia_host_path,'resources', 'firmware','firmwareV2.hex')
-package_json_path = './app/package.json'
+hex_destination_path = path.join(rapidia_host_path,'assets', 'firmware','firmwareV2.hex')
+package_json_path = './src/package.json'
 
 print("Running Rapidia Firmware Export Script")
 
@@ -81,7 +81,7 @@ def after_build(source, target, env):
 
 	# update package.json with firmware version
 	if not(path.exists(package_json_path)):
-		raise Exception('package.json not found!')
+		raise Exception(package_json_path + ' not found!')
 	package_json = open(package_json_path)
 	package_data = json.load(package_json, object_pairs_hook=OrderedDict)
 	package_data['packaged_firmware_version'] = firmware_version
