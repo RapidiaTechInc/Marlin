@@ -124,6 +124,8 @@ void GcodeSuite::R746() {
 
   // restore previous settings
   endstops.not_homing();
+  endstops.enable_z_probe(false);
+  endstops.hit_on_purpose();
   TERN_(RESTORE_LEVELING_AFTER_G28, set_bed_leveling_enabled(leveling_was_active));
 
   restore_feedrate_and_scaling();

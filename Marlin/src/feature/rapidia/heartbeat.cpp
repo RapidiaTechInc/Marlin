@@ -246,7 +246,7 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
   if (TEST_FLAG(selection, HeartbeatSelection::DEBUG))
   {
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-executing-command");
+    ECHO_KEY_STR_CHK("executing-command");
     if (GcodeSuite::dbg_current_command_letter)
     {
       if (sprintf(chbuff, "\"%c%d\"", GcodeSuite::dbg_current_command_letter, GcodeSuite::dbg_current_codenum) > 0)
@@ -265,48 +265,48 @@ void Heartbeat::serial_info(HeartbeatSelection selection, bool bare)
 
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-pause-nobuffer");
+    ECHO_KEY_STR_CHK("pause-nobuffer");
     SERIAL_ECHO_CHK(itoa(planner.prevent_block_buffering, chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-pause-noextrude");
+    ECHO_KEY_STR_CHK("pause-noextrude");
     SERIAL_ECHO_CHK(itoa(planner.prevent_block_extrusion, chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-buffer-moves-planned");
+    ECHO_KEY_STR_CHK("buffer-moves-planned");
     SERIAL_ECHO_CHK(itoa(planner.movesplanned(), chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-buffer-moves-nonbusy");
+    ECHO_KEY_STR_CHK("buffer-moves-nonbusy");
     SERIAL_ECHO_CHK(itoa(planner.nonbusy_movesplanned(), chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-live-state");
+    ECHO_KEY_STR_CHK("endstop-live-state");
     SERIAL_ECHO_CHK(itoa(endstops.live_state, chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-state()");
+    ECHO_KEY_STR_CHK("endstop-state");
     SERIAL_ECHO_CHK(itoa(endstops.state(), chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-enable");
+    ECHO_KEY_STR_CHK("endstop-enable");
     SERIAL_ECHO_CHK(itoa(endstops.enabled, chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-enable-globally");
+    ECHO_KEY_STR_CHK("endstop-enable-globally");
     SERIAL_ECHO_CHK(itoa(endstops.enabled_globally, chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-hit-state");
+    ECHO_KEY_STR_CHK("endstop-hit-state");
     SERIAL_ECHO_CHK(itoa(endstops.hit_state, chbuff, 10));
 
     #if ENABLED(RAPIDIA_NOZZLE_PLUG_HYSTERESIS)
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-zmax-hyst-count");
+    ECHO_KEY_STR_CHK("zmax-hyst-count");
     SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_count, chbuff, 10));
 
     ECHO_SEPARATOR_CHK(sep);
-    ECHO_KEY_STR_CHK("dbg-zmax-hyst-threshold");
+    ECHO_KEY_STR_CHK("zmax-hyst-threshold");
     SERIAL_ECHO_CHK(itoa(endstops.z_max_hysteresis_threshold, chbuff, 10));
     #endif
   }
@@ -339,12 +339,12 @@ void Heartbeat::pause_block_buffering_info()
     if (planner.prevent_block_buffering)
     {
       SERIAL_ECHO_START();
-      SERIAL_ECHOLN("pause: dbg-pause-nobuffer disabled.");
+      SERIAL_ECHOLN("pause: pause-nobuffer disabled.");
     }
     if (planner.prevent_block_extrusion)
     {
       SERIAL_ECHO_START();
-      SERIAL_ECHOLN("pause: dbg-pause-noextrude disabled.");
+      SERIAL_ECHOLN("pause: pause-noextrude disabled.");
     }
   }
 }
