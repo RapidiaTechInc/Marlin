@@ -1172,7 +1172,7 @@
     #define Z_MIN_POS 0
     #define X_MAX_POS 248
     #define Y_MAX_POS Y_BED_SIZE
-    #define Z_MAX_POS 130
+    #define Z_MAX_POS 150
 
     #define Z_HOMING_X_POINT ((X_BED_SIZE) / 2) // X point for Z homing when homing all axes (G28).
     #define Z_HOMING_Y_POINT ((Y_BED_SIZE) / 2) // Y point for Z homing when homing all axes (G28).
