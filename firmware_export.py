@@ -1,6 +1,6 @@
 #
 # Rapidia Firmware Export Script
-# This will build current commit and copy the firmware hex and elf files to
+# This will build current commit and copy the firmware elf file to
 # RapidiaHost directory, which is assumed to be ../rapidia-host-react-v1/
 #
 # Use with caution as this will directly git commit and git push!!
@@ -16,11 +16,13 @@ import shutil
 from collections import OrderedDict
 Import("env", "projenv")
 
+ELF = ".elf"
+HEX = ".hex"
 firmware_root_path = os.getcwd()
 rapidia_export_path = path.join(firmware_root_path, '.pio/build/rapidia_export')
 rapidia_host_path = path.join(firmware_root_path, '../rapidia-host-react-v1')
-hex_source_path = path.join(rapidia_export_path, 'firmware.hex') 
-hex_destination_path = path.join(rapidia_host_path,'assets', 'firmware','firmwareV2.hex')
+firmware_source_path = path.join(rapidia_export_path, 'firmware') 
+firmware_destination_path = path.join(rapidia_host_path,'assets', 'firmware','firmware')
 package_json_path = './src/package.json'
 
 print("Running Rapidia Firmware Export Script")
@@ -28,20 +30,28 @@ print("Running Rapidia Firmware Export Script")
 if not(path.exists(rapidia_host_path)):
 	raise Exception('../rapidia-host-react-v1 directory not found!')
 
+def check_firmware_exists(build_path, file_extension):
+	has_file = False
+	# Check that firmware files exist
+	for (dirpath, dirnames, filenames) in walk(build_path):
+		for filename in filenames:
+			if filename == "firmware" + file_extension:
+				has_file = True
+				print("firmware" + file_extension +" found.")
+		break
+
+	if not(has_file):
+		raise Exception("FAIL: firmware" + file_extension + " not found!")
+
+def copy_firmware_to_destination(source_path, destination_path, file_extension):
+	shutil.copyfile(source_path + file_extension, destination_path + file_extension)
+	print("Copied " + source_path + file_extension + " to " + destination_path + file_extension)
+
 def after_build(source, target, env):
 	print("Starting after-build export process..")
 	f = []
-	has_hex = False
-	# Check that firmware files exist
-	for (dirpath, dirnames, filenames) in walk(rapidia_export_path):
-		for filename in filenames:
-			if filename == "firmware.hex":
-				has_hex = True
-				print("firmware.hex found.")
-		break
-
-	if not(has_hex):
-		raise Exception("FAIL: firmware.hex not found!")
+	
+	check_firmware_exists(rapidia_export_path, ELF)
 
 	# Look for rapidia firmware version
 	file = open('Marlin/src/inc/RapidiaVersion.h')
@@ -75,9 +85,7 @@ def after_build(source, target, env):
 	# git pull in case of conflicts
 	os.system('git pull')
 
-	# copy firmware files over to RapidiaHost
-	shutil.copyfile(hex_source_path, hex_destination_path)
-	print("Copied " + hex_source_path + " to " + hex_destination_path)
+	copy_firmware_to_destination(firmware_source_path, firmware_destination_path, ELF)
 
 	# update package.json with firmware version
 	if not(path.exists(package_json_path)):
