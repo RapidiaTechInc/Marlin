@@ -54,7 +54,7 @@
 #define Y_MIN_PIN          PIN_UNDEFINED
 #define Y_MAX_PIN          33
 #define Z_MIN_PIN          34
-#define Z_MAX_PIN          22
+#define Z_MAX_PIN          PIN_UNDEFINED
 
 //
 // Z Probe (when not Z_MIN_PIN)

@@ -34,7 +34,7 @@
 
 // Z_MAX_PIN (nozzle plug pin) requires N positive reads in a row to trigger.
 // (N is user-specified.)
-#define RAPIDIA_NOZZLE_PLUG_HYSTERESIS
+// #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS
 
 // record nozzle state for debugging purposes.
 // #define RAPIDIA_NOZZLE_PLUG_HYSTERESIS_DEBUG_RECORDING
