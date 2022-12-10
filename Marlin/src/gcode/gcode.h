@@ -860,7 +860,7 @@ private:
   TERN_(RAPIDIA_HOMING_RESET, static void R745()); // reset homing status
 
   #if ENABLED(RAPIDIA_T1_HOMING)
-    static void R746();
+    // static void R746();
   #endif
 
   #if ENABLED(RAPIDIA_KILL_RECOVERY)

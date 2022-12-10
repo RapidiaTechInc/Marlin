@@ -82,19 +82,19 @@
 
 // keep track of and store certain printer statistics
 // (namely cumulative total extrusion amount)
-#define RAPIDIA_MILEAGE
+// #define RAPIDIA_MILEAGE
 
 // must be enough room for the other eeprom settings to fit before this.
-#define RAPIDIA_MILEAGE_EEPROM_START 0x400
+// #define RAPIDIA_MILEAGE_EEPROM_START 0x400
 
 // saving every 100 seconds, we can (only) support 150 days of EEPROM writing.
 // (EEPROM safe for ~100,000 writes.)
 // (measured in seconds)
-#define RAPIDIA_MILEAGE_SAVE_INTERVAL 100
+// #define RAPIDIA_MILEAGE_SAVE_INTERVAL 100
 
 // this multiplies the lifetime of the mileage eeprom data,
 // at the cost of using this many times redundant eeprom.
-#define RAPIDIA_MILEAGE_SAVE_MULTIPLICITY 100
+// #define RAPIDIA_MILEAGE_SAVE_MULTIPLICITY 100
 
 // performs some stack monitoring
 #if ENABLED(RAPIDIA_DEV)
